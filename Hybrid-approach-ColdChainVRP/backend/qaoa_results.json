@@ -1,0 +1,184 @@
+{
+  "V1": {
+    "clinic_ids": [
+      1,
+      2,
+      3
+    ],
+    "sub_cluster_results": [
+      {
+        "clinic_ids": [
+          1,
+          2,
+          3
+        ],
+        "route": [
+          1,
+          2,
+          3
+        ],
+        "feasible": true,
+        "cost": {
+          "distance": 7.6166,
+          "spoilage": 4.9135,
+          "refrigeration": 0.0295,
+          "total": 12.5595
+        },
+        "solver": "QAOA"
+      }
+    ]
+  },
+  "V2": {
+    "clinic_ids": [
+      4,
+      5,
+      6,
+      7,
+      11
+    ],
+    "sub_cluster_results": [
+      {
+        "clinic_ids": [
+          4,
+          5,
+          6,
+          7
+        ],
+        "route": [
+          5,
+          6,
+          4,
+          7
+        ],
+        "feasible": true,
+        "cost": {
+          "distance": 15.1322,
+          "spoilage": 11.2601,
+          "refrigeration": 0.0591,
+          "total": 26.4514
+        },
+        "solver": "QAOA"
+      },
+      {
+        "clinic_ids": [
+          4,
+          5,
+          6,
+          11
+        ],
+        "route": [
+          11,
+          4,
+          6,
+          5
+        ],
+        "feasible": true,
+        "cost": {
+          "distance": 19.6419,
+          "spoilage": 16.151,
+          "refrigeration": 0.077,
+          "total": 35.87
+        },
+        "solver": "QAOA"
+      },
+      {
+        "clinic_ids": [
+          4,
+          5,
+          7,
+          11
+        ],
+        "route": [
+          11,
+          7,
+          4,
+          5
+        ],
+        "feasible": true,
+        "cost": {
+          "distance": 23.7787,
+          "spoilage": 16.2524,
+          "refrigeration": 0.0903,
+          "total": 40.1214
+        },
+        "solver": "QAOA"
+      },
+      {
+        "clinic_ids": [
+          4,
+          6,
+          7,
+          11
+        ],
+        "route": [
+          11,
+          4,
+          6,
+          7
+        ],
+        "feasible": true,
+        "cost": {
+          "distance": 23.8464,
+          "spoilage": 17.8458,
+          "refrigeration": 0.0879,
+          "total": 41.7801
+        },
+        "solver": "QAOA"
+      },
+      {
+        "clinic_ids": [
+          5,
+          6,
+          7,
+          11
+        ],
+        "route": [
+          11,
+          7,
+          6,
+          5
+        ],
+        "feasible": true,
+        "cost": {
+          "distance": 25.8648,
+          "spoilage": 20.035,
+          "refrigeration": 0.0976,
+          "total": 45.9974
+        },
+        "solver": "QAOA"
+      }
+    ]
+  },
+  "V3": {
+    "clinic_ids": [
+      8,
+      9,
+      10,
+      12
+    ],
+    "sub_cluster_results": [
+      {
+        "clinic_ids": [
+          8,
+          9,
+          10,
+          12
+        ],
+        "route": [
+          12,
+          10,
+          9,
+          8
+        ],
+        "feasible": true,
+        "cost": {
+          "distance": 31.1201,
+          "spoilage": 13.3662,
+          "refrigeration": 0.11,
+          "total": 44.5964
+        },
+        "solver": "QAOA"
+      }
+    ]
+  }
+}

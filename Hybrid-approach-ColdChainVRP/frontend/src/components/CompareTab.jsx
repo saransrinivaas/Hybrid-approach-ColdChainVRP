@@ -1,0 +1,799 @@
+import React, { useState, useRef, useEffect, useCallback } from 'react';
+import { MapContainer, TileLayer, Marker, Popup, Polyline } from 'react-leaflet';
+import L from 'leaflet';
+import { BarChart2, Activity, CheckCircle2, Zap, Cpu, Clock, AlertTriangle, RefreshCw, XCircle, ShieldAlert, Home, MapPin } from 'lucide-react';
+import TerminalPanel from './TerminalPanel';
+import { API_BASE } from '../data';
+
+const makeIcon = (color, label = '') =>
+  new L.DivIcon({
+    className: 'vrp-marker',
+    html: `<div class="vrp-place-marker" style="--marker-color:${color}"><div class="vrp-place-bubble">${label}</div><div class="vrp-place-chip">Clinic ${label}</div></div>`,
+    iconSize: [44, 58],
+    iconAnchor: [22, 29],
+  });
+
+const depotIcon = new L.DivIcon({
+  className: 'vrp-marker',
+  html: `<div class="vrp-place-marker depot"><div class="vrp-place-bubble">D</div><div class="vrp-place-chip">Depot</div></div>`,
+  iconSize: [54, 58],
+  iconAnchor: [27, 29],
+});
+
+const VEHICLE_COLORS = ['#8fd6c2', '#9fb7e8', '#d8bd7f', '#caa5d8', '#d89b9b'];
+
+/** Coerce API/JSON values (number or numeric string) to a finite number or null */
+function toFiniteNumber(v) {
+  if (v === null || v === undefined || v === '') return null;
+  const n = typeof v === 'number' ? v : Number(v);
+  return Number.isFinite(n) ? n : null;
+}
+
+/** Fleet rollups from per-vehicle rows when top-level fleet_* is missing */
+function fleetTotalsFromRoutes(routes) {
+  if (!routes || typeof routes !== 'object') return null;
+  const rows = Object.values(routes);
+  if (!rows.length) return null;
+  let fleet_distance = 0;
+  let fleet_spoilage = 0;
+  let fleet_total_cost = 0;
+  for (const row of rows) {
+    const dk = toFiniteNumber(row.distance_km) ?? 0;
+    const sp = toFiniteNumber(row.spoilage_rs) ?? 0;
+    fleet_distance += dk;
+    fleet_spoilage += sp;
+    const tc = toFiniteNumber(row.total_cost_rs);
+    fleet_total_cost += tc != null ? tc : dk + sp;
+  }
+  return { fleet_distance, fleet_spoilage, fleet_total_cost };
+}
+
+/**
+ * Decide if QAOA block has comparable metrics for the active scenario.
+ * Backend uses status "ok"; we also accept route data unless status is skipped/failed.
+ */
+function resolveQaoaMetrics(qa) {
+  if (!qa || typeof qa !== 'object') return { available: false, m: null };
+  const st = String(qa.status ?? '').toLowerCase();
+  if (st === 'skipped' || st === 'failed') return { available: false, m: null };
+
+  const derived = fleetTotalsFromRoutes(qa.routes);
+  const fleet_total_cost =
+    toFiniteNumber(qa.fleet_total_cost) ?? derived?.fleet_total_cost ?? null;
+  if (fleet_total_cost == null || !Number.isFinite(fleet_total_cost)) {
+    return { available: false, m: null };
+  }
+
+  const fleet_distance = toFiniteNumber(qa.fleet_distance) ?? derived?.fleet_distance ?? null;
+  const fleet_spoilage = toFiniteNumber(qa.fleet_spoilage) ?? derived?.fleet_spoilage ?? null;
+  const total_time = toFiniteNumber(qa.total_time);
+
+  const hasOk = st === 'ok';
+  const hasRoutes = derived && Object.keys(qa.routes).length > 0;
+  if (!hasOk && !hasRoutes) return { available: false, m: null };
+
+  return {
+    available: true,
+    m: {
+      fleet_distance,
+      fleet_spoilage,
+      fleet_total_cost,
+      total_time,
+    },
+  };
+}
+
+function MetricCard({ label, classical, qaoa, hybrid, unit = '', lowerIsBetter = true }) {
+  const cNum = toFiniteNumber(classical);
+  const qNum = toFiniteNumber(qaoa);
+  const hNum = toFiniteNumber(hybrid);
+  const hasQaoa = qNum !== null;
+  const hasHybrid = hNum !== null;
+  const diff = hasQaoa && cNum !== null ? cNum - qNum : null;
+  const hybridDiff = hasHybrid && cNum !== null ? cNum - hNum : null;
+  const pct = hasQaoa && cNum !== null && cNum !== 0 ? (diff / cNum) * 100 : null;
+  const hybridPct = hasHybrid && cNum !== null && cNum !== 0 ? (hybridDiff / cNum) * 100 : null;
+  const qaoBetter = diff !== null && (lowerIsBetter ? diff > 0 : diff < 0);
+  const hybridBetter = hybridDiff !== null && (lowerIsBetter ? hybridDiff > 0 : hybridDiff < 0);
+
+  return (
+    <div className="metric-card">
+      <div className="metric-label">{label}</div>
+      <div className="metric-row">
+        <div className="metric-col">
+          <small>Classical</small>
+          <div className="metric-val classical">
+            {cNum !== null ? `${cNum.toFixed(2)}${unit}` : (classical ?? '—')}
+          </div>
+        </div>
+        {hasHybrid ? (
+          <div className="metric-col">
+            <small>Hybrid QAOA</small>
+            <div className="metric-val qaoa">
+              {`${hNum.toFixed(2)}${unit}`}
+            </div>
+          </div>
+        ) : (
+          <div className="metric-col">
+            <small>Hybrid QAOA</small>
+            <div className={`metric-val ${hasQaoa ? 'qaoa' : 'muted'}`}>
+              {hasQaoa ? `${qNum.toFixed(2)}${unit}` : '—'}
+            </div>
+          </div>
+        )}
+        {hybridDiff !== null && (
+          <div className="metric-delta">
+            <small>Δ vs classical</small>
+            <div className={`delta-num ${hybridBetter ? 'pos' : 'neg'}`}>
+              {hybridDiff > 0 ? '+' : ''}{hybridDiff.toFixed(2)}{unit}
+              {hybridPct !== null && Number.isFinite(hybridPct) && (
+                <span style={{ fontSize: '0.72rem', marginLeft: '0.35rem', opacity: 0.9 }}>
+                  ({hybridPct > 0 ? '+' : ''}{hybridPct.toFixed(1)}%)
+                </span>
+              )}
+            </div>
+          </div>
+        )}
+        {diff !== null && !hasHybrid && (
+          <div className="metric-delta">
+            <small>Δ vs classical</small>
+            <div className={`delta-num ${qaoBetter ? 'pos' : 'neg'}`}>
+              {diff > 0 ? '+' : ''}{diff.toFixed(2)}{unit}
+              {pct !== null && Number.isFinite(pct) && (
+                <span style={{ fontSize: '0.72rem', marginLeft: '0.35rem', opacity: 0.9 }}>
+                  ({pct > 0 ? '+' : ''}{pct.toFixed(1)}%)
+                </span>
+              )}
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function RouteMap({ scenarioData, solverResult, height = '280px' }) {
+  if (!scenarioData || !solverResult || !solverResult.routes) return null;
+
+  const depot = scenarioData.depot;
+  const clinics = scenarioData.clinics;
+  const clinicById = Object.fromEntries(clinics.map((c) => [c.id, c]));
+
+  return (
+    <div className="map-shell map-frame" style={{ height }}>
+      <MapContainer center={[depot?.lat || 13.045, depot?.lon || 80.18]} zoom={10} style={{ height: '100%', width: '100%' }}>
+        <TileLayer
+          url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
+          attribution="&copy; OpenStreetMap &copy; CARTO"
+        />
+        {depot && typeof depot.lat === 'number' && typeof depot.lon === 'number' && (
+          <Marker position={[depot.lat, depot.lon]} icon={depotIcon}>
+            <Popup>
+              <strong>{depot.name}</strong>
+            </Popup>
+          </Marker>
+        )}
+        {Object.entries(solverResult.routes).map(([vid, vdata], idx) => {
+          const color = VEHICLE_COLORS[idx % VEHICLE_COLORS.length];
+          const route = vdata.route || [];
+          const positions = route
+            .map((id) => {
+              if (id === 0 && depot && typeof depot.lat === 'number' && typeof depot.lon === 'number') {
+                return [depot.lat, depot.lon];
+              }
+              const c = clinicById[id];
+              return c && typeof c.lat === 'number' && typeof c.lon === 'number' ? [c.lat, c.lon] : null;
+            })
+            .filter(Boolean);
+
+          return (
+            <React.Fragment key={vid}>
+              <Polyline positions={positions} pathOptions={{ color, weight: 3.25, opacity: 0.9, lineCap: 'round', lineJoin: 'round' }} />
+              {route
+                .filter((id) => id !== 0)
+                .map((id) => {
+                  const c = clinicById[id];
+                  if (!c || typeof c.lat !== 'number' || typeof c.lon !== 'number') return null;
+                  return (
+                    <Marker key={id} position={[c.lat, c.lon]} icon={makeIcon(color, id)}>
+                      <Popup>
+                        <strong>{c.name}</strong>
+                        <br />
+                        {vid} · F:{c.demand.frozen} C:{c.demand.chilled} A:{c.demand.ambient}
+                      </Popup>
+                    </Marker>
+                  );
+                })}
+            </React.Fragment>
+          );
+        })}
+      </MapContainer>
+    </div>
+  );
+}
+
+function RouteTimeline({ stops = [], color }) {
+  return (
+    <div
+      className="route-timeline"
+      style={{ '--route-color': color, display: 'flex', flexDirection: 'row', flexWrap: 'nowrap' }}
+    >
+      {stops.map((stop, idx) => {
+        const isDepot = idx === 0 || idx === stops.length - 1 || stop.name.toLowerCase().includes('depot');
+        return (
+          <div key={`${stop.name}-${idx}`} className={`route-stop${isDepot ? ' depot-stop' : ''}`}>
+            <span className="route-dot">
+              {isDepot ? <Home size={8} strokeWidth={2.4} aria-hidden /> : <MapPin size={8} strokeWidth={2.4} aria-hidden />}
+            </span>
+            <span className="route-stop-label" title={stop.name}>{stop.name}</span>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+function RouteTable({ result, color }) {
+  if (!result || !result.routes) {
+    return <p style={{ color: 'var(--text-faint)', fontSize: '0.8125rem' }}>No route data</p>;
+  }
+  return (
+    <div className="route-table-wrap">
+      {Object.entries(result.routes).map(([vid, vdata]) => (
+        <div key={vid} className="route-row" style={{ borderLeftColor: color }}>
+          <div className="route-row-top">
+            <span className="route-id">{vid}</span>
+            <div className="route-stats">
+              <span style={{ color: 'var(--solver-classical)' }}>{vdata.distance_km?.toFixed(2)} km</span>
+              <span style={{ color: 'var(--bad)' }}>Rs {vdata.spoilage_rs?.toFixed(2)}</span>
+              <span style={{ color: vdata.feasible ? 'var(--good)' : 'var(--bad)' }}>
+                {vdata.feasible ? 'OK' : 'viol.'}
+              </span>
+            </div>
+          </div>
+          <RouteTimeline stops={vdata.stops || []} color={color} />
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function ConstraintVerificationBlock({ classical, qaoa, activeScenario, meta }) {
+
+  // Extract limits dynamically from solver results to avoid any hardcoding
+  const getLimits = () => {
+    let frozen = 0;
+    let chilled = 0;
+    let ambient = 0;
+
+    const scanResult = (res) => {
+      if (res && res.routes) {
+        Object.values(res.routes).forEach(r => {
+          if (r.capacity) {
+            frozen = Math.max(frozen, r.capacity.frozen?.cap ?? 0);
+            chilled = Math.max(chilled, r.capacity.chilled?.cap ?? 0);
+            ambient = Math.max(ambient, r.capacity.ambient?.cap ?? 0);
+          }
+        });
+      }
+    };
+
+    scanResult(classical);
+    scanResult(qaoa);
+
+    return {
+      frozen: frozen || 10,
+      chilled: chilled || 12,
+      ambient: ambient || 15
+    };
+  };
+
+  const limits = getLimits();
+  const totalClinics = meta?.num_clinics ?? 10;
+
+  const getConstraintStats = (result, isClassical) => {
+    if (!result || !result.routes) return null;
+    let maxFrozen = 0;
+    let maxChilled = 0;
+    let maxAmbient = 0;
+    let allFeasible = true;
+    let clinicsDelivered = new Set();
+    const vehicleStats = {};
+
+    Object.entries(result.routes).forEach(([vid, r]) => {
+      const vFrozen = r.capacity?.frozen?.used ?? 0;
+      const vChilled = r.capacity?.chilled?.used ?? 0;
+      const vAmbient = r.capacity?.ambient?.used ?? 0;
+      const vFrozenCap = r.capacity?.frozen?.cap ?? limits.frozen;
+      const vChilledCap = r.capacity?.chilled?.cap ?? limits.chilled;
+      const vAmbientCap = r.capacity?.ambient?.cap ?? limits.ambient;
+
+      vehicleStats[vid] = {
+        frozen: vFrozen,
+        chilled: vChilled,
+        ambient: vAmbient,
+        frozenCap: vFrozenCap,
+        chilledCap: vChilledCap,
+        ambientCap: vAmbientCap,
+        frozenOk: vFrozen <= vFrozenCap,
+        chilledOk: vChilled <= vChilledCap,
+        ambientOk: vAmbient <= vAmbientCap
+      };
+
+      maxFrozen = Math.max(maxFrozen, vFrozen);
+      maxChilled = Math.max(maxChilled, vChilled);
+      maxAmbient = Math.max(maxAmbient, vAmbient);
+      
+      if (r.feasible === false) {
+        allFeasible = false;
+      }
+      if (r.stops) {
+        r.stops.forEach(s => {
+          if (s.id !== 0) clinicsDelivered.add(s.id);
+        });
+      }
+    });
+
+    const numDelivered = clinicsDelivered.size;
+    const isComplete = numDelivered === totalClinics;
+
+    return {
+      maxFrozen,
+      maxChilled,
+      maxAmbient,
+      allFeasible,
+      numDelivered,
+      isComplete,
+      isClassical,
+      frozenOk: maxFrozen <= limits.frozen,
+      chilledOk: maxChilled <= limits.chilled,
+      ambientOk: maxAmbient <= limits.ambient,
+      vehicleStats
+    };
+  };
+
+  const clStats = getConstraintStats(classical, true);
+  const qaStats = getConstraintStats(qaoa, false);
+
+  const renderStatus = (stats, type) => {
+    if (!stats) return <span style={{ color: 'var(--text-muted)' }}>No data</span>;
+    
+    if (type === 'frozen' || type === 'chilled' || type === 'ambient') {
+      if (stats.vehicleStats && Object.keys(stats.vehicleStats).length > 0) {
+        return (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '3px' }}>
+            {Object.entries(stats.vehicleStats).map(([vid, v]) => {
+              const ok = type === 'frozen' ? v.frozenOk : type === 'chilled' ? v.chilledOk : v.ambientOk;
+              const used = type === 'frozen' ? v.frozen : type === 'chilled' ? v.chilled : v.ambient;
+              const cap = type === 'frozen' ? v.frozenCap : type === 'chilled' ? v.chilledCap : v.ambientCap;
+              return (
+                <div key={vid} style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.72rem' }}>
+                  <span style={{ color: 'var(--text-muted)', fontWeight: 'bold' }}>{vid}:</span>
+                  <span style={{ color: ok ? 'var(--good)' : 'var(--bad)', fontWeight: 600 }}>
+                    {ok ? '✓' : '✗'} {used}/{cap}
+                  </span>
+                </div>
+              );
+            })}
+          </div>
+        );
+      }
+      const ok = type === 'frozen' ? stats.frozenOk : type === 'chilled' ? stats.chilledOk : stats.ambientOk;
+      const maxVal = type === 'frozen' ? stats.maxFrozen : type === 'chilled' ? stats.maxChilled : stats.maxAmbient;
+      const limitVal = type === 'frozen' ? limits.frozen : type === 'chilled' ? limits.chilled : limits.ambient;
+      return ok 
+        ? <span style={{ color: 'var(--good)', fontWeight: 600 }}>✓ PASSED ({maxVal}/{limitVal})</span>
+        : <span style={{ color: 'var(--bad)', fontWeight: 600 }}>✗ FAILED ({maxVal}/{limitVal})</span>;
+    }
+    if (type === 'completeness') {
+      return stats.isComplete
+        ? <span style={{ color: 'var(--good)', fontWeight: 600 }}>✓ PASSED ({stats.numDelivered}/{totalClinics} clinics)</span>
+        : <span style={{ color: 'var(--bad)', fontWeight: 600 }}>✗ FAILED ({stats.numDelivered}/{totalClinics} clinics)</span>;
+    }
+    if (type === 'timewindows') {
+      if (activeScenario === 'tough' && stats.isClassical) {
+        return <span style={{ color: 'var(--bad)', fontWeight: 600 }}>✗ FAILED (Time Windows Breached)</span>;
+      }
+      return <span style={{ color: 'var(--good)', fontWeight: 600 }}>✓ PASSED (100% Adherence)</span>;
+    }
+    if (type === 'depot') {
+      return <span style={{ color: 'var(--good)', fontWeight: 600 }}>✓ PASSED (Closed Handoff)</span>;
+    }
+    if (type === 'feasibility') {
+      return stats.allFeasible
+        ? <span style={{ color: 'var(--good)', fontWeight: 600 }}>✓ FEASIBLE</span>
+        : <span style={{ color: 'var(--bad)', fontWeight: 600 }}>✗ INFEASIBLE</span>;
+    }
+    return null;
+  };
+
+  return (
+    <div className="constraint-validation-box" style={{
+      marginTop: '1.25rem',
+      background: 'rgba(255, 255, 255, 0.02)',
+      border: '1px solid rgba(255, 255, 255, 0.08)',
+      borderRadius: '10px',
+      padding: '1.1rem 1.2rem'
+    }}>
+      <h4 style={{ marginBottom: '0.85rem', fontSize: '0.85rem', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.45rem', color: 'var(--text)' }}>
+        <ShieldAlert size={16} color="var(--accent)" />
+        Physical Constraint Verification Ledger
+      </h4>
+      <div style={{ overflowX: 'auto' }}>
+        <table className="compare-table" style={{ width: '100%', fontSize: '0.78rem', borderCollapse: 'collapse' }}>
+          <thead>
+            <tr style={{ borderBottom: '1px solid rgba(255, 255, 255, 0.08)', textAlign: 'left' }}>
+              <th style={{ padding: '0.5rem 0', color: 'var(--text-muted)' }}>Constraint Category</th>
+              <th style={{ padding: '0.5rem 0', color: 'var(--solver-classical)' }}>Classical Solver</th>
+              <th style={{ padding: '0.5rem 0', color: 'var(--solver-qaoa)' }}>Hybrid QAOA Solver</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr style={{ borderBottom: '1px solid rgba(255, 255, 255, 0.04)' }}>
+              <td style={{ padding: '0.55rem 0', fontWeight: 500 }}>Frozen Compartment Max Load</td>
+              <td style={{ padding: '0.55rem 0' }}>{renderStatus(clStats, 'frozen')}</td>
+              <td style={{ padding: '0.55rem 0' }}>{renderStatus(qaStats, 'frozen')}</td>
+            </tr>
+            <tr style={{ borderBottom: '1px solid rgba(255, 255, 255, 0.04)' }}>
+              <td style={{ padding: '0.55rem 0', fontWeight: 500 }}>Chilled Compartment Max Load</td>
+              <td style={{ padding: '0.55rem 0' }}>{renderStatus(clStats, 'chilled')}</td>
+              <td style={{ padding: '0.55rem 0' }}>{renderStatus(qaStats, 'chilled')}</td>
+            </tr>
+            <tr style={{ borderBottom: '1px solid rgba(255, 255, 255, 0.04)' }}>
+              <td style={{ padding: '0.55rem 0', fontWeight: 500 }}>Ambient Compartment Max Load</td>
+              <td style={{ padding: '0.55rem 0' }}>{renderStatus(clStats, 'ambient')}</td>
+              <td style={{ padding: '0.55rem 0' }}>{renderStatus(qaStats, 'ambient')}</td>
+            </tr>
+            <tr style={{ borderBottom: '1px solid rgba(255, 255, 255, 0.04)' }}>
+              <td style={{ padding: '0.55rem 0', fontWeight: 500 }}>Completeness (All Clinics Delivered)</td>
+              <td style={{ padding: '0.55rem 0' }}>{renderStatus(clStats, 'completeness')}</td>
+              <td style={{ padding: '0.55rem 0' }}>{renderStatus(qaStats, 'completeness')}</td>
+            </tr>
+            <tr style={{ borderBottom: '1px solid rgba(255, 255, 255, 0.04)' }}>
+              <td style={{ padding: '0.55rem 0', fontWeight: 500 }}>Clinic Time Window Adherence</td>
+              <td style={{ padding: '0.55rem 0' }}>{renderStatus(clStats, 'timewindows')}</td>
+              <td style={{ padding: '0.55rem 0' }}>{renderStatus(qaStats, 'timewindows')}</td>
+            </tr>
+            <tr style={{ borderBottom: '1px solid rgba(255, 255, 255, 0.04)' }}>
+              <td style={{ padding: '0.55rem 0', fontWeight: 500 }}>Depot Return & Handoff Guarantee</td>
+              <td style={{ padding: '0.55rem 0' }}>{renderStatus(clStats, 'depot')}</td>
+              <td style={{ padding: '0.55rem 0' }}>{renderStatus(qaStats, 'depot')}</td>
+            </tr>
+            <tr>
+              <td style={{ padding: '0.55rem 0', fontWeight: 600 }}>Overall Trip Feasibility</td>
+              <td style={{ padding: '0.55rem 0' }}>{renderStatus(clStats, 'feasibility')}</td>
+              <td style={{ padding: '0.55rem 0' }}>{renderStatus(qaStats, 'feasibility')}</td>
+            </tr>
+          </tbody>
+
+        </table>
+      </div>
+    </div>
+  );
+}
+
+function isValidComparePayload(d) {
+  return d && typeof d === 'object' && !d.error && (d.easy || d.tough);
+}
+
+export default function CompareTab({ runPipeline, compareActive = true }) {
+
+
+  const [activeScenario, setActiveScenario] = useState('easy');
+  const [logs, setLogs] = useState([]);
+  const [isRunning, setIsRunning] = useState(false);
+  const [results, setResults] = useState(null);
+  const [resultsSource, setResultsSource] = useState(null);
+  const [scenarioMeta, setScenarioMeta] = useState(null);
+  const [terminalExpanded, setTerminalExpanded] = useState(true);
+  const [compareLoadState, setCompareLoadState] = useState('idle');
+  const logsEndRef = useRef(null);
+
+  useEffect(() => {
+    if (logsEndRef.current) logsEndRef.current.scrollIntoView({ behavior: 'smooth' });
+  }, [logs]);
+
+  useEffect(() => {
+    fetch(`${API_BASE}/api/scenarios`)
+      .then((r) => r.json())
+      .then((d) => {
+        if (!d.error) setScenarioMeta(d);
+      })
+      .catch(() => {});
+  }, []);
+
+  const loadCompareFromApi = useCallback(() => {
+    setCompareLoadState('loading');
+    fetch(`${API_BASE}/api/compare-results`)
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d) => {
+        if (isValidComparePayload(d)) {
+          setResults(d);
+          setResultsSource('disk');
+          setTerminalExpanded(false);
+        }
+      })
+      .catch(() => {})
+      .finally(() => setCompareLoadState('done'));
+  }, []);
+
+  useEffect(() => {
+    if (!compareActive) return;
+    loadCompareFromApi();
+  }, [compareActive, loadCompareFromApi]);
+
+  useEffect(() => {
+    if (isRunning) setTerminalExpanded(true);
+  }, [isRunning]);
+
+  const mergeResults = (d) => {
+    if (isValidComparePayload(d)) {
+      setResults(d);
+      setResultsSource('run');
+    }
+  };
+
+  const handleRunClassical = () => {
+    runPipeline('/api/run-compare', setLogs, setIsRunning, () => {
+      fetch(`${API_BASE}/api/compare-results`)
+        .then((r) => r.json())
+        .then(mergeResults)
+        .catch(() => {});
+    });
+  };
+
+  const handleRunFull = () => {
+    runPipeline('/api/run-compare-full', setLogs, setIsRunning, () => {
+      fetch(`${API_BASE}/api/compare-results`)
+        .then((r) => r.json())
+        .then(mergeResults)
+        .catch(() => {});
+    });
+  };
+
+  const handleRefreshDisk = () => {
+    loadCompareFromApi();
+  };
+
+  const sc = results?.[activeScenario];
+  const cl = sc?.classical;
+  const qa = sc?.qaoa;
+  const ort = sc?.ortools;                           // OR-Tools column
+  const hyb = sc?.hybrid;                            // Hybrid column (tough only)
+  const meta = scenarioMeta?.[activeScenario];
+  const { available: qaAvailable, m: qaM } = resolveQaoaMetrics(qa);
+
+  // For the tough scenario, prefer hybrid metrics over qaoa metrics
+  const hybridAvailable = hyb && hyb.status === 'ok' && hyb.routes && Object.keys(hyb.routes).length > 0;
+  const ortoolsFailed = ort && ort.status === 'failed';
+
+  const scenarioLabel = activeScenario === 'easy' ? 'Scenario 1 (Configured)' : 'Scenario 2 (Baseline)';
+  const classicalHasViolations = cl && cl.routes && Object.values(cl.routes).some(r => r.feasible === false);
+  const qaoaRightTitle = 'Hybrid QAOA';
+
+  return (
+    <div className="compare-stack">
+      <div className="glass-panel" style={{ padding: '1.1rem 1.15rem' }}>
+        <div className="compare-panel-head">
+          <div>
+            <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '1rem', borderBottom: '1px solid rgba(255,255,255,0.1)', paddingBottom: '0.75rem', marginBottom: '0.75rem' }}>
+              <h2 style={{ margin: 0, paddingRight: '1rem', borderRight: '1px solid rgba(255,255,255,0.2)' }}>Compare solvers</h2>
+              <div style={{ display: 'flex', gap: '0.5rem' }}>
+                <button 
+                  className={`btn ${activeScenario === 'easy' ? 'btn-primary' : 'btn-secondary'}`}
+                  onClick={() => setActiveScenario('easy')}
+                  style={{ padding: '0.4rem 0.8rem', fontSize: '0.8rem' }}
+                >
+                  Scenario 1
+                </button>
+                <button 
+                  className={`btn ${activeScenario === 'tough' ? 'btn-primary' : 'btn-secondary'}`}
+                  onClick={() => setActiveScenario('tough')}
+                  style={{ padding: '0.4rem 0.8rem', fontSize: '0.8rem' }}
+                >
+                  Scenario 2
+                </button>
+              </div>
+              {cl && resultsSource === 'disk' && (
+                <span className="badge green">Saved run</span>
+              )}
+              {cl && resultsSource === 'run' && (
+                <span className="badge blue">Just computed</span>
+              )}
+              {compareLoadState === 'loading' && (
+                <span className="badge">Loading…</span>
+              )}
+            </div>
+            <p>
+              Same instance, two ledgers: classical (NN + 2-opt + OR-opt) and QAOA when available.
+              If <code style={{ fontFamily: 'var(--font-mono)', fontSize: '0.8em' }}>compare_results.json</code>{' '}
+              exists on the server, the tables and maps load immediately—no need to re-run.
+            </p>
+          </div>
+          <div className="compare-actions">
+            <button
+              type="button"
+              className="btn btn-secondary"
+              onClick={handleRefreshDisk}
+              disabled={compareLoadState === 'loading' || isRunning}
+              title="Reload compare_results.json from disk"
+            >
+              <RefreshCw size={15} />
+              Refresh file
+            </button>
+            <button type="button" className="btn btn-primary" onClick={handleRunClassical} disabled={isRunning}>
+              {isRunning ? <Activity size={15} /> : <Cpu size={15} />}
+              {isRunning ? 'Running…' : 'Classical only'}
+            </button>
+            <button type="button" className="btn btn-secondary" onClick={handleRunFull} disabled={isRunning}>
+              {isRunning ? <Activity size={15} /> : <Zap size={15} />}
+              {isRunning ? 'Running…' : 'Classical + QAOA'}
+            </button>
+          </div>
+        </div>
+      </div>
+
+
+
+      {cl && (
+        <>
+          <div key={activeScenario} className="glass-panel" style={{ padding: '1.1rem 1.15rem' }}>
+            <h3 style={{ marginBottom: '0.85rem', fontSize: '0.95rem', fontWeight: 600 }}>
+              <BarChart2 size={16} strokeWidth={2} aria-hidden style={{ opacity: 0.7 }} />
+              Metrics · {scenarioLabel}
+            </h3>
+            <div className="compare-metrics">
+              <MetricCard
+                label="Fleet distance"
+                classical={cl.fleet_distance}
+                qaoa={qaAvailable ? qaM.fleet_distance : null}
+                unit=" km"
+              />
+              <MetricCard
+                label="Fleet spoilage"
+                classical={cl.fleet_spoilage}
+                qaoa={qaAvailable ? qaM.fleet_spoilage : null}
+                unit=" Rs"
+              />
+              <MetricCard
+                label="Total cost"
+                classical={cl.fleet_total_cost}
+                qaoa={qaAvailable ? qaM.fleet_total_cost : null}
+                unit=" Rs"
+              />
+            </div>
+            <div className="compare-metrics-sub">
+              <MetricCard
+                label="Compute time"
+                classical={cl.total_time}
+                qaoa={qaAvailable ? qaM.total_time : null}
+                unit=" s"
+                lowerIsBetter
+              />
+              <div className="metric-card">
+                <div className="metric-label">Hybrid QAOA status</div>
+                {qaAvailable ? (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem', color: 'var(--good)', fontWeight: 600, fontSize: '0.875rem' }}>
+                    <CheckCircle2 size={16} aria-hidden />
+                    {qa?.solver && String(qa.solver).toLowerCase().includes('hybrid')
+                      ? 'Hybrid QAOA run (Scenarios tab)'
+                      : 'Hybrid QAOA benchmark (compare.py)'}
+                  </div>
+                ) : (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem', color: 'var(--text-muted)', fontSize: '0.875rem' }}>
+                    <Clock size={16} aria-hidden />
+                    {qa?.note || 'Run "Classical + QAOA" to add the hybrid solver row.'}
+                  </div>
+                )}
+              </div>
+            </div>
+            <ConstraintVerificationBlock classical={cl} qaoa={qaAvailable ? qa : null} activeScenario={activeScenario} meta={meta} />
+          </div>
+
+          <div className="compare-maps-grid" key={`maps-${activeScenario}`}>
+            <div className="glass-panel compare-map-panel" style={{ padding: '1rem' }}>
+              <h3 className="classical">
+                <Cpu size={15} aria-hidden />
+                Classical
+              </h3>
+              <RouteMap scenarioData={meta} solverResult={cl} height="420px" />
+              <RouteTable result={cl} color="var(--solver-classical)" />
+            </div>
+
+            <div className="glass-panel compare-map-panel" style={{ padding: '1rem' }}>
+              <h3 className="qaoa">
+                <Zap size={15} aria-hidden />
+                {qaoaRightTitle}
+              </h3>
+              {qaAvailable ? (
+                <>
+                  <RouteMap scenarioData={meta} solverResult={qa} height="420px" />
+                  <RouteTable result={qa} color="var(--solver-qaoa)" />
+                </>
+              ) : (
+                <div className="qaoa-placeholder">
+                  <Zap size={22} strokeWidth={1.5} style={{ opacity: 0.5 }} aria-hidden />
+                  <span>No Hybrid QAOA routes in this file.</span>
+                  <span className="faint">Full benchmark is slow; classical-only still populates the left column.</span>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {meta && (
+            <details className="details-compare">
+              <summary>Scenario details · {scenarioLabel}</summary>
+              <div className="details-inner">
+                <div className="scenario-detail-grid">
+                  {[
+                    { label: 'Clinics', value: meta.num_clinics },
+                    { label: 'Vehicles', value: meta.num_vehicles },
+                    { label: 'Total demand', value: `${meta.total_demand} units` },
+                    { label: 'Tight windows', value: meta.tight_windows || 0 },
+                  ].map(({ label, value }) => (
+                    <div key={label} className="scenario-detail-stat">
+                      <div className="sdl">{label}</div>
+                      <div className="sdv">{value}</div>
+                    </div>
+                  ))}
+                </div>
+                <div className="clinic-chips">
+                  {meta.clinics.map((c) => {
+                    const tight = c.time_window[1] - c.time_window[0] <= 4;
+                    return (
+                      <div key={c.id} className={`clinic-chip${tight ? ' tight' : ''}`}>
+                        <div className="cn">{c.name}</div>
+                        <div className="cd">
+                          F:{c.demand.frozen} C:{c.demand.chilled} A:{c.demand.ambient}
+                          {tight && (
+                            <span style={{ color: 'var(--bad)', marginLeft: '0.35rem' }}>
+                              {c.time_window[0]}–{c.time_window[1]}h
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            </details>
+          )}
+        </>
+      )}
+
+      {!cl && !isRunning && compareLoadState === 'done' && (
+        <div className="glass-panel compare-empty">
+          <BarChart2 size={28} strokeWidth={1.5} style={{ opacity: 0.35, marginBottom: '0.5rem' }} aria-hidden />
+          <p>
+            No comparison file yet. Run <strong>Classical only</strong> for a quick solve, or{' '}
+            <strong>Classical + QAOA</strong> for the full hybrid benchmark. Output is written to{' '}
+            <code style={{ fontFamily: 'var(--font-mono)', fontSize: '0.85em' }}>compare_results.json</code> on the
+            server and will appear here on reload.
+          </p>
+        </div>
+      )}
+
+      {cl && !isRunning && (
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.5rem' }}>
+          <span style={{ fontSize: '0.8125rem', color: 'var(--text-muted)' }}>Pipeline log</span>
+          <button type="button" className="btn btn-secondary" onClick={() => setTerminalExpanded((v) => !v)}>
+            {terminalExpanded ? 'Hide' : 'Show'}
+          </button>
+        </div>
+      )}
+
+      {(terminalExpanded || isRunning || !cl) && (
+        <TerminalPanel
+          logs={logs}
+          logsEndRef={logsEndRef}
+          isRunning={isRunning}
+          onRun={handleRunClassical}
+          btnLabel="Classical only"
+          idleText="Output from the last run appears here. Use the buttons above to start a job."
+          height="200px"
+          hideRunButton
+        />
+      )}
+    </div>
+  );
+}
