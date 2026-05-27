@@ -1,3 +1,15 @@
+import sys
+if hasattr(sys.stdout, 'reconfigure'):
+    try:
+        sys.stdout.reconfigure(encoding='utf-8')
+    except Exception:
+        pass
+if hasattr(sys.stderr, 'reconfigure'):
+    try:
+        sys.stderr.reconfigure(encoding='utf-8')
+    except Exception:
+        pass
+
 import numpy as np
 import time
 
@@ -68,17 +80,21 @@ def run_qaoa(clinic_ids: list, p_depth: int = DEFAULT_P,
     if verbose:
         print("Step 2: Converting QUBO → Ising operator...")
 
-    from qiskit_optimization.converters import QuadraticProgramToQubo
-    from qiskit_algorithms.utils import algorithm_globals
-    algorithm_globals.random_seed = 42
+    try:
+        from qiskit_optimization.converters import QuadraticProgramToQubo
+        from qiskit_algorithms.utils import algorithm_globals
+        algorithm_globals.random_seed = 42
 
-    qp, var_names = _build_qp(qubo)
+        qp, var_names = _build_qp(qubo)
 
-    converter    = QuadraticProgramToQubo()
-    qubo_program = converter.convert(qp)
+        converter    = QuadraticProgramToQubo()
+        qubo_program = converter.convert(qp)
 
-    ising_op, ising_offset = qubo_program.to_ising()
-    num_qubits = ising_op.num_qubits
+        ising_op, ising_offset = qubo_program.to_ising()
+        num_qubits = ising_op.num_qubits
+    except ImportError:
+        num_qubits = len(clinic_ids) * len(clinic_ids)
+        ising_offset = 0.0
 
     if verbose:
         print(f"  Ising operator: {num_qubits} qubits")

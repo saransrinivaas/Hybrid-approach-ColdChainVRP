@@ -1,0 +1,389 @@
+{
+  "classical": {
+    "solver": "Classical (NN+2opt+ORopt)",
+    "routes": {
+      "V1": {
+        "route": [
+          0,
+          3,
+          2,
+          1,
+          0
+        ],
+        "stops": [
+          {
+            "id": 0,
+            "name": "Depot",
+            "lat": 13.0827,
+            "lon": 80.2707
+          },
+          {
+            "id": 3,
+            "name": "Pallavaram PHC",
+            "lat": 12.9675,
+            "lon": 80.1491
+          },
+          {
+            "id": 2,
+            "name": "Chromepet Clinic",
+            "lat": 12.9516,
+            "lon": 80.1462
+          },
+          {
+            "id": 1,
+            "name": "Tambaram PHC",
+            "lat": 12.9249,
+            "lon": 80.1
+          },
+          {
+            "id": 0,
+            "name": "Depot",
+            "lat": 13.0827,
+            "lon": 80.2707
+          }
+        ],
+        "distance_km": 51.4846,
+        "spoilage_rs": 21.844,
+        "refrigeration_rs": 0.078,
+        "total_cost_rs": 73.4066,
+        "feasible": true,
+        "capacity": {
+          "frozen": {
+            "used": 9,
+            "cap": 10
+          },
+          "chilled": {
+            "used": 5,
+            "cap": 12
+          },
+          "ambient": {
+            "used": 5,
+            "cap": 15
+          }
+        },
+        "computation_time": 0.001,
+        "solver": "Classical (NN+2opt+ORopt)"
+      },
+      "V2": {
+        "route": [
+          0,
+          11,
+          12,
+          5,
+          6,
+          4,
+          7,
+          10,
+          9,
+          8,
+          0
+        ],
+        "stops": [
+          {
+            "id": 0,
+            "name": "Depot",
+            "lat": 13.0827,
+            "lon": 80.2707
+          },
+          {
+            "id": 11,
+            "name": "Perambur PHC",
+            "lat": 13.1148,
+            "lon": 80.2345
+          },
+          {
+            "id": 12,
+            "name": "Royapettah Hospital",
+            "lat": 13.0524,
+            "lon": 80.2609
+          },
+          {
+            "id": 5,
+            "name": "Adyar Clinic",
+            "lat": 13.0012,
+            "lon": 80.2565
+          },
+          {
+            "id": 6,
+            "name": "Velachery PHC",
+            "lat": 12.9815,
+            "lon": 80.218
+          },
+          {
+            "id": 4,
+            "name": "Guindy Hospital",
+            "lat": 13.0067,
+            "lon": 80.2206
+          },
+          {
+            "id": 7,
+            "name": "Porur Clinic",
+            "lat": 13.035,
+            "lon": 80.1567
+          },
+          {
+            "id": 10,
+            "name": "Poonamallee PHC",
+            "lat": 13.0467,
+            "lon": 80.0956
+          },
+          {
+            "id": 9,
+            "name": "Avadi Clinic",
+            "lat": 13.1067,
+            "lon": 80.095
+          },
+          {
+            "id": 8,
+            "name": "Ambattur PHC",
+            "lat": 13.1143,
+            "lon": 80.1548
+          },
+          {
+            "id": 0,
+            "name": "Depot",
+            "lat": 13.0827,
+            "lon": 80.2707
+          }
+        ],
+        "distance_km": 66.6351,
+        "spoilage_rs": 71.4278,
+        "refrigeration_rs": 0.1608,
+        "total_cost_rs": 138.2236,
+        "feasible": false,
+        "capacity": {
+          "frozen": {
+            "used": 17,
+            "cap": 10
+          },
+          "chilled": {
+            "used": 20,
+            "cap": 12
+          },
+          "ambient": {
+            "used": 17,
+            "cap": 15
+          }
+        },
+        "computation_time": 0.0353,
+        "solver": "Classical (NN+2opt+ORopt)"
+      }
+    },
+    "fleet_distance": 118.1197,
+    "fleet_spoilage": 93.2718,
+    "fleet_refrigeration": 0.2388,
+    "fleet_total_cost": 211.6303,
+    "total_time": 0.0363,
+    "status": "ok"
+  },
+  "qaoa": {
+    "routes": {
+      "V1": {
+        "route": [
+          0,
+          3,
+          2,
+          1,
+          0
+        ],
+        "stops": [
+          {
+            "id": 0,
+            "name": "Depot",
+            "lat": 13.0827,
+            "lon": 80.2707
+          },
+          {
+            "id": 3,
+            "name": "Pallavaram PHC",
+            "lat": 12.9675,
+            "lon": 80.1491
+          },
+          {
+            "id": 2,
+            "name": "Chromepet Clinic",
+            "lat": 12.9516,
+            "lon": 80.1462
+          },
+          {
+            "id": 1,
+            "name": "Tambaram PHC",
+            "lat": 12.9249,
+            "lon": 80.1
+          },
+          {
+            "id": 0,
+            "name": "Depot",
+            "lat": 13.0827,
+            "lon": 80.2707
+          }
+        ],
+        "distance_km": 51.48,
+        "spoilage_rs": 21.844,
+        "refrigeration_rs": 0.078,
+        "total_cost_rs": 73.4066,
+        "feasible": true,
+        "capacity": {
+          "frozen": {
+            "used": 9,
+            "cap": 10
+          },
+          "chilled": {
+            "used": 5,
+            "cap": 12
+          },
+          "ambient": {
+            "used": 5,
+            "cap": 15
+          }
+        }
+      },
+      "V2_1": {
+        "route": [
+          0,
+          12,
+          6,
+          7,
+          10,
+          0
+        ],
+        "stops": [
+          {
+            "id": 0,
+            "name": "Depot",
+            "lat": 13.0827,
+            "lon": 80.2707
+          },
+          {
+            "id": 12,
+            "name": "Royapettah Hospital",
+            "lat": 13.0524,
+            "lon": 80.2609
+          },
+          {
+            "id": 6,
+            "name": "Velachery PHC",
+            "lat": 12.9815,
+            "lon": 80.218
+          },
+          {
+            "id": 7,
+            "name": "Porur Clinic",
+            "lat": 13.035,
+            "lon": 80.1567
+          },
+          {
+            "id": 10,
+            "name": "Poonamallee PHC",
+            "lat": 13.0467,
+            "lon": 80.0956
+          },
+          {
+            "id": 0,
+            "name": "Depot",
+            "lat": 13.0827,
+            "lon": 80.2707
+          }
+        ],
+        "distance_km": 47.73,
+        "spoilage_rs": 21.7096,
+        "refrigeration_rs": 0.085,
+        "total_cost_rs": 69.5245,
+        "feasible": true,
+        "capacity": {
+          "frozen": {
+            "used": 10,
+            "cap": 10
+          },
+          "chilled": {
+            "used": 12,
+            "cap": 12
+          },
+          "ambient": {
+            "used": 6,
+            "cap": 15
+          }
+        }
+      },
+      "V2_2": {
+        "route": [
+          0,
+          11,
+          9,
+          8,
+          4,
+          5,
+          0
+        ],
+        "stops": [
+          {
+            "id": 0,
+            "name": "Depot",
+            "lat": 13.0827,
+            "lon": 80.2707
+          },
+          {
+            "id": 11,
+            "name": "Perambur PHC",
+            "lat": 13.1148,
+            "lon": 80.2345
+          },
+          {
+            "id": 9,
+            "name": "Avadi Clinic",
+            "lat": 13.1067,
+            "lon": 80.095
+          },
+          {
+            "id": 8,
+            "name": "Ambattur PHC",
+            "lat": 13.1143,
+            "lon": 80.1548
+          },
+          {
+            "id": 4,
+            "name": "Guindy Hospital",
+            "lat": 13.0067,
+            "lon": 80.2206
+          },
+          {
+            "id": 5,
+            "name": "Adyar Clinic",
+            "lat": 13.0012,
+            "lon": 80.2565
+          },
+          {
+            "id": 0,
+            "name": "Depot",
+            "lat": 13.0827,
+            "lon": 80.2707
+          }
+        ],
+        "distance_km": 54.02,
+        "spoilage_rs": 35.2798,
+        "refrigeration_rs": 0.1345,
+        "total_cost_rs": 89.4374,
+        "feasible": true,
+        "capacity": {
+          "frozen": {
+            "used": 7,
+            "cap": 10
+          },
+          "chilled": {
+            "used": 8,
+            "cap": 12
+          },
+          "ambient": {
+            "used": 11,
+            "cap": 15
+          }
+        }
+      }
+    },
+    "fleet_distance": 153.24,
+    "fleet_spoilage": 78.8334,
+    "fleet_refrigeration": 0.2975,
+    "fleet_total_cost": 232.3685,
+    "status": "ok"
+  }
+}

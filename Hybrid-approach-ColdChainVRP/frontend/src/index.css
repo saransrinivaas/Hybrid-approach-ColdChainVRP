@@ -11,7 +11,12 @@
   --accent: #d6d6d6;
   --accent-hover: #eeeeee;
   --solver-classical: #cfcfcf;
+  --solver-alns: #f472b6;
+  --solver-ortools: #8fd6c2;
+  --solver-gurobi: #caa5d8;
+  --solver-pulp: #d8bd7f;
   --solver-qaoa: #e8e8e8;
+  --solver-hybrid: #e8e8e8;
   --warn: #b8b8b8;
   --bad: #9a9a9a;
   --good: #dedede;
@@ -65,7 +70,12 @@ html[data-theme='light'] body {
   --accent: #242424;
   --accent-hover: #000000;
   --solver-classical: #465f8f;
+  --solver-alns: #b04c7a;
+  --solver-ortools: #2b705e;
+  --solver-gurobi: #6e468f;
+  --solver-pulp: #8c6b1b;
   --solver-qaoa: #456f63;
+  --solver-hybrid: #456f63;
   --warn: #7c6a35;
   --bad: #8a5555;
   --good: #456f63;
@@ -139,7 +149,8 @@ html[data-theme='light'] body {
 }
 
 .dashboard-container {
-  max-width: 1360px;
+  width: 100%;
+  max-width: 100%;
   margin: 0 auto;
   padding: 1.35rem 1.25rem 2.5rem;
   display: flex;
@@ -250,11 +261,17 @@ html[data-theme='light'] body {
 
 .app-scenarios-grid {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: repeat(3, 1fr);
   gap: 1rem;
 }
 
-@media (max-width: 960px) {
+@media (max-width: 1200px) {
+  .app-scenarios-grid {
+    grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+  }
+}
+
+@media (max-width: 768px) {
   .app-scenarios-grid {
     grid-template-columns: 1fr;
   }
@@ -1040,6 +1057,125 @@ html[data-theme='light'] body {
 .compare-empty strong {
   color: var(--text);
   font-weight: 600;
+}
+
+/* Multi-solver Comparison Table styles */
+.solver-comparison-table-wrapper {
+  overflow-x: auto;
+  margin-top: 1rem;
+  margin-bottom: 1rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--bg-muted);
+}
+
+.solver-comparison-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.8125rem;
+  text-align: left;
+}
+
+.solver-comparison-table th,
+.solver-comparison-table td {
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid var(--border);
+  vertical-align: middle;
+}
+
+.solver-comparison-table th {
+  font-weight: 600;
+  color: var(--text-muted);
+  background: rgba(255, 255, 255, 0.015);
+}
+
+.dashboard-container[data-theme='light'] .solver-comparison-table th {
+  background: rgba(0, 0, 0, 0.02);
+}
+
+.solver-comparison-table tr:last-child th,
+.solver-comparison-table tr:last-child td {
+  border-bottom: none;
+}
+
+.solver-comparison-table td.solver-col-classical {
+  color: var(--text);
+}
+.solver-comparison-table td.solver-col-alns {
+  color: var(--solver-alns);
+}
+.solver-comparison-table td.solver-col-ortools {
+  color: var(--solver-ortools);
+}
+.solver-comparison-table td.solver-col-gurobi {
+  color: var(--solver-gurobi);
+}
+.solver-comparison-table td.solver-col-pulp {
+  color: var(--solver-pulp);
+}
+.solver-comparison-table td.solver-col-qaoa {
+  color: var(--solver-qaoa);
+}
+
+.solver-comparison-table .val-mono {
+  font-family: var(--font-mono);
+  font-weight: 600;
+}
+
+.solver-comparison-table .delta-val {
+  font-size: 0.7rem;
+  margin-left: 0.4rem;
+  font-family: var(--font-mono);
+}
+
+.solver-comparison-table .delta-val.better {
+  color: var(--good);
+}
+
+.solver-comparison-table .delta-val.worse {
+  color: var(--bad);
+}
+
+/* Solver status / badges */
+.solver-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.2rem 0.5rem;
+  border-radius: 999px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.solver-badge.winner {
+  background: rgba(222, 222, 222, 0.1);
+  color: var(--good);
+  border: 1px solid var(--good);
+}
+
+.dashboard-container[data-theme='light'] .solver-badge.winner {
+  background: rgba(69, 111, 99, 0.1);
+  color: var(--good);
+}
+
+.solver-badge.unavailable {
+  background: rgba(114, 114, 114, 0.1);
+  color: var(--text-faint);
+  border: 1px solid var(--border);
+}
+
+.solver-badge.failed {
+  background: rgba(154, 154, 154, 0.15);
+  color: var(--bad);
+  border: 1px solid var(--bad);
+}
+
+.solver-badge.ok {
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--text-muted);
+  border: 1px solid var(--border);
 }
 
 /* Terminal */

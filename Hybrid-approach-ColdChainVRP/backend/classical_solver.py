@@ -165,133 +165,21 @@ def or_opt(route: list, demands, distance_matrix,
 # Reuses the same K-Means + greedy repair
 # logic as clustering.py but parameterised.
 # ─────────────────────────────────────────
-def cluster_clinics(clinics, vehicles, demands, distance_matrix):
+def cluster_clinics(clinics, vehicles, demands, distance_matrix, sc_module=None):
     """
-    Assign clinics to vehicles using K-Means + greedy capacity repair.
-    Returns {vehicle_id: [clinic_id, ...]}
+    Assign clinics to vehicles using our robust dynamic fleet-capping K-Means 
+    and First-Fit bin-packing trip splitter.
+    Returns {trip_id: [clinic_id, ...]}
     """
-    from sklearn.cluster import KMeans
-
-    capacity = {
-        temp: vehicles[0]["compartments"][temp]["capacity"]
-        for temp in vehicles[0]["compartments"]
-    }
-    n_vehicles = len(vehicles)
-    coords     = np.array([[c["lat"], c["lon"]] for c in clinics])
-
-    kmeans = KMeans(n_clusters=n_vehicles, random_state=42, n_init=10)
-    labels = kmeans.fit_predict(coords)
-
-    clusters = [[] for _ in range(n_vehicles)]
-    for i, label in enumerate(labels):
-        clusters[label].append(clinics[i]["id"])
-    clusters = [c for c in clusters if c]
-
-    # Greedy repair: move overflowing clinics to nearest feasible vehicle
-    def cap_ok(ids):
-        for temp in capacity:
-            if sum(demands[cid][temp] for cid in ids) > capacity[temp]:
-                return False
-        return True
-
-    def avg_dist(cid, cluster):
-        if not cluster:
-            return float("inf")
-        return np.mean([distance_matrix[cid][x] for x in cluster])
-
-    for _ in range(100):
-        fixed = True
-        for i, cluster in enumerate(clusters):
-            if not cap_ok(cluster):
-                fixed = False
-                # Find the biggest offender for the first violated temp
-                for temp in capacity:
-                    if sum(demands[cid][temp] for cid in cluster) > capacity[temp]:
-                        offender = max(cluster, key=lambda cid: demands[cid][temp])
-                        break
-                cluster.remove(offender)
-                # Find best target
-                best_j, best_d = None, float("inf")
-                for j, other in enumerate(clusters):
-                    if j == i:
-                        continue
-                    if cap_ok(other + [offender]):
-                        d = avg_dist(offender, other)
-                        if d < best_d:
-                            best_d, best_j = d, j
-                if best_j is not None:
-                    clusters[best_j].append(offender)
-                else:
-                    # Infeasible: force it into the nearest existing cluster
-                    candidates = [j for j in range(len(clusters)) if j != i]
-                    if candidates:
-                        best_j_forced = min(candidates, key=lambda j: avg_dist(offender, clusters[j]))
-                        clusters[best_j_forced].append(offender)
-                    else:
-                        clusters.append([offender])
-                break
-        if fixed:
-            break
-
-    clusters = [c for c in clusters if c]
-
-    # If repair created more clusters than vehicles, merge smallest into nearest feasible
-    while len(clusters) > n_vehicles:
-        smallest_idx = min(range(len(clusters)), key=lambda i: len(clusters[i]))
-        smallest = clusters.pop(smallest_idx)
-        for cid in smallest:
-            # Try nearest feasible cluster first
-            best_j, best_d = None, float("inf")
-            for j, other in enumerate(clusters):
-                if cap_ok(other + [cid]):
-                    d = np.mean([distance_matrix[cid][x] for x in other]) if other else float("inf")
-                    if d < best_d:
-                        best_d, best_j = d, j
-            if best_j is None:
-                # No feasible target — just pick nearest regardless (will be repaired next)
-                best_j = min(range(len(clusters)),
-                             key=lambda j: np.mean([distance_matrix[cid][x] for x in clusters[j]]) if clusters[j] else float("inf"))
-            clusters[best_j].append(cid)
-        clusters = [c for c in clusters if c]
-        # Re-run capacity repair after merge
-        for _ in range(100):
-            fixed = True
-            for i, cluster in enumerate(clusters):
-                if not cap_ok(cluster):
-                    fixed = False
-                    for temp in capacity:
-                        if sum(demands[cid][temp] for cid in cluster) > capacity[temp]:
-                            offender = max(cluster, key=lambda cid: demands[cid][temp])
-                            break
-                    cluster.remove(offender)
-                    best_j2, best_d2 = None, float("inf")
-                    for j, other in enumerate(clusters):
-                        if j == i:
-                            continue
-                        if cap_ok(other + [offender]):
-                            d = avg_dist(offender, other)
-                            if d < best_d2:
-                                best_d2, best_j2 = d, j
-                    if best_j2 is not None:
-                        clusters[best_j2].append(offender)
-                    else:
-                        # Infeasible: force it into the nearest existing cluster
-                        candidates = [j for j in range(len(clusters)) if j != i]
-                        if candidates:
-                            best_j_forced = min(candidates, key=lambda j: avg_dist(offender, clusters[j]))
-                            clusters[best_j_forced].append(offender)
-                        else:
-                            clusters.append([offender])
-                    break
-            if fixed:
-                break
-        clusters = [c for c in clusters if c]
-
-    result   = {}
-    for i, cluster in enumerate(clusters):
-        vid = vehicles[i]["id"] if i < len(vehicles) else f"V{i+1}"
-        result[vid] = cluster
-    return result
+    import clustering as _cl
+    
+    # Run the modular clustering pipeline to get cap-balanced vehicle routes and trips
+    vehicle_routes = _cl.build_clusters(sc_module)
+    
+    assignments = {}
+    for vehicle_id, trips in vehicle_routes:
+        assignments[vehicle_id] = [cid for trip in trips for cid in trip]
+    return assignments
 
 
 # ─────────────────────────────────────────
@@ -355,7 +243,7 @@ def solve_scenario(sc_module) -> dict:
     print(f"  {len(clinics)} clinics / {len(vehicles)} vehicles")
     print(f"{'='*55}")
 
-    assignments = cluster_clinics(clinics, vehicles, demands, dm)
+    assignments = cluster_clinics(clinics, vehicles, demands, dm, sc_module)
     print(f"  Clustering: {assignments}")
 
     total_start  = time.time()
@@ -440,9 +328,13 @@ def solve_scenario(sc_module) -> dict:
 # MAIN — self-test on both scenarios
 # ─────────────────────────────────────────
 if __name__ == "__main__":
-    import scenario  as sc1
-    import scenario2 as sc2
+    import scenario as sc1
+    try:
+        import scenario_dynamic as sc2
+    except ImportError:
+        sc2 = sc1
 
     for sc in (sc1, sc2):
-        result = solve_scenario(sc)
-        print(f"\n[{sc.__name__}] Classical total: Rs {result['fleet_total_cost']:.4f}")
+        if sc:
+            result = solve_scenario(sc)
+            print(f"\n[{getattr(sc, '__name__', 'scenario')}] Classical total: Rs {result['fleet_total_cost']:.4f}")

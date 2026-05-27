@@ -53,7 +53,29 @@ export default function ScenarioPanel({
   const [isRunning, setIsRunning] = useState(false);
   const [results, setResults]     = useState(null);
   const [showLogs, setShowLogs]   = useState(false);
+  const [localMeta, setLocalMeta] = useState(meta || null);
   const logsEndRef = useRef(null);
+
+  // Sync localMeta when prop changes (parent fetched it)
+  useEffect(() => { if (meta) setLocalMeta(meta); }, [meta]);
+
+  // Auto-retry fetching scenarios meta every 3s until we have it
+  useEffect(() => {
+    if (localMeta) return;
+    const interval = setInterval(() => {
+      fetch(`${API_BASE}/api/scenarios`)
+        .then(r => r.json())
+        .then(d => {
+          if (!d.error) {
+            const key = scenarioKey === 'easy' ? 'easy' : scenarioKey === 'tough' ? 'tough' : 'tough3';
+            const found = d[key];
+            if (found?.clinics?.length > 0) setLocalMeta(found);
+          }
+        })
+        .catch(() => {});
+    }, 3000);
+    return () => clearInterval(interval);
+  }, [localMeta, scenarioKey]);
 
   useEffect(() => {
     if (logsEndRef.current) logsEndRef.current.scrollIntoView({ behavior: 'smooth' });
@@ -77,8 +99,8 @@ export default function ScenarioPanel({
     });
   };
 
-  const depot   = meta?.depot;
-  const clinics = meta?.clinics || [];
+  const depot   = localMeta?.depot;
+  const clinics = localMeta?.clinics || [];
 
   // Build route polylines from results if available with type-guarded coords
   const solverResults = results?.qaoa || results;
@@ -105,9 +127,9 @@ export default function ScenarioPanel({
         <div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.25rem' }}>
             {scenarioKey === 'easy'
-              ? <CheckCircle2 size={18} color={accentColor} />
-              : <AlertTriangle size={18} color={accentColor} />}
-            <h2 style={{ margin: 0, fontSize: '1.1rem', color: accentColor }}>{label}</h2>
+              ? <CheckCircle2 size={18} color='var(--text)' />
+              : <AlertTriangle size={18} color='var(--text)' />}
+            <h2 style={{ margin: 0, fontSize: '1.1rem', color: 'var(--text)' }}>{label}</h2>
           </div>
           <p style={{ margin: 0, fontSize: '0.82rem', color: 'var(--text-secondary)' }}>{subtitle}</p>
         </div>
@@ -132,13 +154,13 @@ export default function ScenarioPanel({
       </div>
 
       {/* Stats row */}
-      {meta && (
+      {localMeta && (
         <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
           {[
-            { label: 'Clinics',   value: meta.num_clinics, icon: MapPin },
-            { label: 'Vehicles',  value: meta.num_vehicles, icon: Truck },
-            { label: 'Demand',    value: `${meta.total_demand} units`, icon: Package },
-            { label: 'Tight Windows', value: meta.tight_windows || 0, icon: Clock3 },
+            { label: 'Clinics',   value: localMeta.num_clinics, icon: MapPin },
+            { label: 'Vehicles',  value: localMeta.num_vehicles, icon: Truck },
+            { label: 'Demand',    value: `${localMeta.total_demand} units`, icon: Package },
+            { label: 'Tight Windows', value: localMeta.tight_windows || 0, icon: Clock3 },
           ].map(({ label: l, value, icon: Icon }) => (
             <div key={l} style={{
               flex: '1 1 0', minWidth: '70px',
@@ -151,14 +173,25 @@ export default function ScenarioPanel({
               <div style={{ fontSize: '0.68rem', color: 'var(--text-secondary)', marginBottom: '0.20rem', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '0.3rem' }}>
                 <Icon size={12} strokeWidth={2} aria-hidden />{l}
               </div>
-              <div style={{ fontWeight: 700, color: accentColor, fontSize: '0.95rem' }}>{value}</div>
+              <div style={{ fontWeight: 700, color: 'var(--text)', fontSize: '0.95rem' }}>{value}</div>
             </div>
           ))}
         </div>
       )}
 
       {/* Map — always pre-rendered so tiles load immediately */}
-      <div className="map-shell scenario-map-shell" style={{ height: '430px' }}>
+      <div className="map-shell scenario-map-shell" style={{ height: '430px', position: 'relative' }}>
+        {!localMeta && (
+          <div style={{
+            position: 'absolute', inset: 0, zIndex: 1000,
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            background: 'rgba(17,17,17,0.75)', backdropFilter: 'blur(4px)',
+            borderRadius: '8px', flexDirection: 'column', gap: '0.75rem',
+          }}>
+            <div style={{ width: 28, height: 28, border: `3px solid ${accentColor}`, borderTopColor: 'transparent', borderRadius: '50%', animation: 'spin 0.9s linear infinite' }} />
+            <span style={{ color: 'var(--text-muted)', fontSize: '0.82rem' }}>Loading map data…</span>
+          </div>
+        )}
         <MapContainer center={mapCenter} zoom={10} style={{ height: '100%', width: '100%' }}>
           <TileLayer
             url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"

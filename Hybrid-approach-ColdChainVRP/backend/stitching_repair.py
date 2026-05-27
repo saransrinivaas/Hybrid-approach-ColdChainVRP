@@ -36,14 +36,31 @@ def route_distance(route: list) -> float:
 
 def insertion_cost(route: list, clinic_id: int, pos: int) -> float:
     """
-    Extra distance added by inserting clinic_id at position pos.
+    Extra cost added by inserting clinic_id at position pos.
+    Includes BOTH distance delta AND spoilage delta so that
+    high-decay clinics are preferentially placed early in route.
     pos is an interior index (not at depot ends).
     """
     before = route[pos - 1]
     after  = route[pos]
-    return (DISTANCE_MATRIX[before][clinic_id]
-            + DISTANCE_MATRIX[clinic_id][after]
-            - DISTANCE_MATRIX[before][after])
+    dist_delta = (DISTANCE_MATRIX[before][clinic_id]
+                  + DISTANCE_MATRIX[clinic_id][after]
+                  - DISTANCE_MATRIX[before][after])
+
+    # Spoilage delta: cumulative time to reach clinic_id at pos
+    cum_time = 0.0
+    for k in range(1, pos):
+        cum_time += DISTANCE_MATRIX[route[k - 1]][route[k]] / AVG_SPEED
+    cum_time += DISTANCE_MATRIX[before][clinic_id] / AVG_SPEED
+
+    spoilage_delta = 0.0
+    for temp in ("frozen", "chilled", "ambient"):
+        alpha  = SPOILAGE[temp]["alpha"]
+        value  = SPOILAGE[temp]["value"]
+        demand = DEMANDS[clinic_id][temp]
+        spoilage_delta += value * alpha * cum_time * demand
+
+    return dist_delta + spoilage_delta
 
 def vehicle_demand(inner_route: list, temp_class: str) -> int:
     """Total demand for a temperature class (inner route = no depots)."""
@@ -178,7 +195,16 @@ def build_consensus_route(sub_results: list, all_clinic_ids: list) -> list:
             return -1      # a before b
         if ba > ab:
             return 1       # b before a
-        # Tie: clinic nearer depot goes first
+        # Tie: place higher-spoilage clinic first to minimise decay time
+        def spoilage_urgency(cid):
+            return sum(
+                SPOILAGE[t]["alpha"] * SPOILAGE[t]["value"] * DEMANDS[cid][t]
+                for t in ("frozen", "chilled", "ambient")
+            )
+        sa, sb = spoilage_urgency(a), spoilage_urgency(b)
+        if sa != sb:
+            return -1 if sa > sb else 1  # higher urgency goes first
+        # Final tie: closer to depot goes first
         return -1 if DISTANCE_MATRIX[0][a] <= DISTANCE_MATRIX[0][b] else 1
 
     ordered = sorted(all_clinic_ids, key=functools.cmp_to_key(compare))
@@ -191,21 +217,29 @@ def build_consensus_route(sub_results: list, all_clinic_ids: list) -> list:
 # Depot endpoints are kept fixed.
 # ─────────────────────────────────────────
 def two_opt(route: list) -> list:
-    """2-opt local search on a depot-wrapped route."""
+    """2-opt local search optimising total cost (distance + spoilage), depot endpoints fixed."""
     if len(route) <= 4:
         return route
 
     inner    = route[1:-1]
     improved = True
 
+    def full_cost(inner_r):
+        r = [0] + inner_r + [0]
+        return route_distance(r) + compute_spoilage(r)
+
+    best_cost = full_cost(inner)
+
     while improved:
         improved = False
         for i in range(len(inner) - 1):
             for j in range(i + 2, len(inner)):
                 new_inner = inner[:i] + inner[i:j + 1][::-1] + inner[j + 1:]
-                if route_distance([0] + new_inner + [0]) < route_distance([0] + inner + [0]):
-                    inner    = new_inner
-                    improved = True
+                c = full_cost(new_inner)
+                if c < best_cost - 1e-9:
+                    inner     = new_inner
+                    best_cost = c
+                    improved  = True
                     break
             if improved:
                 break

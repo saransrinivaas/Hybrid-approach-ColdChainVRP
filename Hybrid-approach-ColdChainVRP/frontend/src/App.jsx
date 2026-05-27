@@ -158,10 +158,20 @@ export default function App() {
             scenarioKey="tough"
             meta={scenarioMeta?.tough}
             pipelineEndpoint="/api/run-pipeline-easy"
-            resultsEndpoint="/api/results"
+            resultsEndpoint="/api/results-tough"
             label="Scenario 2 (Baseline)"
             subtitle="10 clinics · 2 vehicles · uniform 8–18h windows"
             accentColor="var(--solver-qaoa)"
+            runPipeline={runSSE}
+          />
+          <ScenarioPanel
+            scenarioKey="tough3"
+            meta={scenarioMeta?.tough3}
+            pipelineEndpoint="/api/run-pipeline-tough3"
+            resultsEndpoint="/api/results-tough3"
+            label="Scenario 3 (Stress Test)"
+            subtitle="30 clinics · 3 vehicles · non-uniform operating windows"
+            accentColor="var(--solver-alns)"
             runPipeline={runSSE}
           />
         </div>

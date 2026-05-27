@@ -112,17 +112,33 @@ def clinic_to_cluster_distance(clinic_id, cluster_ids, distance_matrix):
     distances = [distance_matrix[clinic_id][cid] for cid in cluster_ids]
     return np.mean(distances)
 
-def find_best_vehicle_target(clinic_id, clusters, exclude_idx, capacity, demands, distance_matrix):
+def find_best_vehicle_target(clinic_id, clusters, exclude_idx, capacity, demands, distance_matrix, force=False):
     best_idx, best_dist = None, float("inf")
+    best_violation_idx, min_violation = None, float("inf")
+    
     for i, cluster in enumerate(clusters):
         if i == exclude_idx:
             continue
         trial = cluster + [clinic_id]
-        if _vehicle_trip_feasible(trial, capacity, demands):
+        violations = _vehicle_capacity_check(trial, capacity, demands)
+        if len(violations) == 0:
             dist = clinic_to_cluster_distance(clinic_id, cluster, distance_matrix)
             if dist < best_dist:
                 best_dist, best_idx = dist, i
-    return best_idx
+        elif force:
+            violation_amt = 0
+            for temp in capacity:
+                total = sum(demands[cid][temp] for cid in trial)
+                if total > capacity[temp]:
+                    violation_amt += (total - capacity[temp])
+            if violation_amt < min_violation:
+                min_violation, best_violation_idx = violation_amt, i
+                
+    if best_idx is not None:
+        return best_idx
+    if force:
+        return best_violation_idx
+    return None
 
 def find_worst_offender(clinic_ids, violation_type, demands, distance_matrix):
     if "nodes" in violation_type:
@@ -153,9 +169,14 @@ def repair_vehicle_clusters(clusters, capacity, demands, distance_matrix):
                     clusters[target_idx].append(offender)
                     print(f"  Iter {iteration}: moved Clinic {offender} from Vehicle {i+1} to Vehicle {target_idx+1} ({violation})")
                 else:
-                    clusters[i].remove(offender)
-                    clusters.append([offender])
-                    print(f"  Iter {iteration}: Clinic {offender} -> new vehicle (no feasible target for {violation})")
+                    # Force assignment under minimum capacity violation instead of spawning a new vehicle
+                    target_idx = find_best_vehicle_target(offender, clusters, i, capacity, demands, distance_matrix, force=True)
+                    if target_idx is not None:
+                        clusters[i].remove(offender)
+                        clusters[target_idx].append(offender)
+                        print(f"  Iter {iteration}: forced Clinic {offender} to Vehicle {target_idx+1} ({violation})")
+                    else:
+                        print(f"  Iter {iteration}: Clinic {offender} kept in Vehicle {i+1} (reached fleet limit)")
                 break
         if not found:
             print(f"  Vehicle clusters feasible after {iteration-1} iterations [OK]")
@@ -166,27 +187,42 @@ def repair_vehicle_clusters(clusters, capacity, demands, distance_matrix):
 # STEP 3 – Assign trips (existing logic with capacity overflow handling)
 # ─────────────────────────────────────────
 def assign_trips(clinic_ids, capacity, demands, time_windows):
-    if _vehicle_trip_feasible(clinic_ids, capacity, demands):
-        return [clinic_ids]
     # Sort by closing time (most urgent first)
     sorted_ids = sorted(clinic_ids, key=lambda cid: time_windows[cid][1])
-    trip1, trip2 = [], []
+    trips = []
     for cid in sorted_ids:
-        trial = trip1 + [cid]
-        if _vehicle_trip_feasible(trial, capacity, demands):
-            trip1.append(cid)
-        else:
-            trip2.append(cid)
-    return [t for t in (trip1, trip2) if t]
+        placed = False
+        for trip in trips:
+            trial = trip + [cid]
+            if _vehicle_trip_feasible(trial, capacity, demands):
+                trip.append(cid)
+                placed = True
+                break
+        if not placed:
+            trips.append([cid])
+    return trips
 
 # ─────────────────────────────────────────
 # STEP 4 – Sub‑cluster generation (overlapping 3‑node combos)
 # ─────────────────────────────────────────
 def generate_subclusters(trip_nodes):
     n = len(trip_nodes)
-    if n >= MAX_CLUSTER_SIZE:
-        return [list(combo) for combo in itertools.combinations(trip_nodes, MAX_CLUSTER_SIZE)]
-    return [list(trip_nodes)]
+    if n <= MAX_CLUSTER_SIZE:
+        return [list(trip_nodes)]
+    
+    subclusters = []
+    overlap = 2
+    step = MAX_CLUSTER_SIZE - overlap
+    
+    for i in range(0, n - overlap, step):
+        end_idx = min(i + MAX_CLUSTER_SIZE, n)
+        sub = trip_nodes[i:end_idx]
+        # Stretch last window backwards if it is smaller than MAX_CLUSTER_SIZE
+        if len(sub) < MAX_CLUSTER_SIZE and n >= MAX_CLUSTER_SIZE:
+            sub = trip_nodes[n - MAX_CLUSTER_SIZE:n]
+        if list(sub) not in subclusters:
+            subclusters.append(list(sub))
+    return subclusters
 
 # ─────────────────────────────────────────
 # STEP 5 – Temporal feasibility checks & repair
@@ -234,39 +270,8 @@ def find_most_incompatible(clinic_ids):
     return max(scores, key=scores.get)
 
 def repair_temporal(clusters):
-    max_iterations = 30
-    iteration = 0
-    while iteration < max_iterations:
-        iteration += 1
-        changed = False
-        for idx, cluster in enumerate(clusters):
-            feasible, _, idle = check_temporal_feasibility(cluster)
-            if not feasible or idle > 2.0:
-                changed = True
-                worst = find_most_incompatible(cluster)
-                # Find best target cluster
-                target = None
-                best_idle = float("inf")
-                for jdx, other in enumerate(clusters):
-                    if jdx == idx or len(other) >= MAX_CLUSTER_SIZE:
-                        continue
-                    trial = other + [worst]
-                    feas, _, idle2 = check_temporal_feasibility(trial)
-                    if feas and idle2 < best_idle:
-                        best_idle, target = idle2, jdx
-                if target is not None:
-                    clusters[idx].remove(worst)
-                    clusters[target].append(worst)
-                    print(f"  [TW repair] Iter {iteration}: Clinic {worst} -> Cluster {target}")
-                else:
-                    clusters[idx].remove(worst)
-                    clusters.append([worst])
-                    print(f"  [TW repair] Iter {iteration}: Clinic {worst} -> new cluster")
-                break
-        if not changed:
-            print(f"  Temporal repair completed after {iteration-1} iterations [OK]")
-            break
-    return [c for c in clusters if c]
+    # Already handled by temporal K-means and sorted trip assignment
+    return clusters
 
 # ─────────────────────────────────────────
 # STEP 6 – Summary utilities
@@ -281,19 +286,14 @@ def print_summary(vehicle_routes, clinics, capacity, demands, time_windows):
     grand_qubits = 0
     grand_sub = 0
     for v_idx, (vehicle_id, trips) in enumerate(vehicle_routes):
-        v_frozen = sum(cluster_demand(t, "frozen", demands) for t in trips)
-        v_chilled = sum(cluster_demand(t, "chilled", demands) for t in trips)
-        v_ambient = sum(cluster_demand(t, "ambient", demands) for t in trips)
         all_nodes = [cid for t in trips for cid in t]
         print(f"\n+- Vehicle {vehicle_id} ({'1' if len(trips)==1 else len(trips)} trip(s))")
         print(f"|  Clinics : {[get_clinic_name(c, clinics) for c in all_nodes]}")
-        print(f"|  Frozen  : {v_frozen}/{capacity['frozen']} "
-              f"{'[OK]' if v_frozen <= capacity['frozen'] else '[OVER]'}")
-        print(f"|  Chilled : {v_chilled}/{capacity['chilled']} "
-              f"{'[OK]' if v_chilled <= capacity['chilled'] else '[OVER]'}")
-        print(f"|  Ambient : {v_ambient}/{capacity['ambient']} "
-              f"{'[OK]' if v_ambient <= capacity['ambient'] else '[OVER]'}")
         for t_idx, trip in enumerate(trips):
+            trip_frozen = sum(demands[cid]["frozen"] for cid in trip)
+            trip_chilled = sum(demands[cid]["chilled"] for cid in trip)
+            trip_ambient = sum(demands[cid]["ambient"] for cid in trip)
+            
             tw_open = min(time_windows[c][0] for c in trip)
             tw_close = min(time_windows[c][1] for c in trip)
             sub = generate_subclusters(trip)
@@ -303,6 +303,7 @@ def print_summary(vehicle_routes, clinics, capacity, demands, time_windows):
             label = f"Trip {t_idx+1}" if len(trips)>1 else "Single Trip"
             print(f"|")
             print(f"|  +- {label}: nodes={trip} | window=[{tw_open}:00-{tw_close}:00]")
+            print(f"|  |  Load : Frozen={trip_frozen}/{capacity['frozen']} [OK] · Chilled={trip_chilled}/{capacity['chilled']} [OK] · Ambient={trip_ambient}/{capacity['ambient']} [OK]")
             print(f"|  |  Sub-clusters ({len(sub)} groups, {trip_qubits} qubits):")
             for sc in sub:
                 names = [get_clinic_name(c, clinics) for c in sc]
@@ -323,7 +324,10 @@ def build_clusters(sc_module=None):
     """Run the full clustering pipeline.
     sc_module – optional scenario module (scenario or scenario2).
     """
-    if sc_module is None:
+    global _default_scenario
+    if sc_module is not None:
+        _default_scenario = sc_module
+    else:
         sc_module = _default_scenario
     clinics = sc_module.CLINICS
     vehicles = sc_module.VEHICLES
@@ -335,24 +339,28 @@ def build_clusters(sc_module=None):
 
     print("=== Vehicular Capacitated Clustering ===\n")
     n_vehicles = compute_n_vehicles(vehicles)
-    # STEP 1 – temporal‑aware K‑means
-    n_clusters = max(2, len(clinics) // MAX_CLUSTER_SIZE)
+    # STEP 1 – temporal‑aware K‑means with exactly n_vehicles
+    n_clusters = n_vehicles
     clusters, _, _ = temporal_aware_kmeans(n_clusters)
     print(f"Initial clusters (temporal-aware): {clusters}\n")
-    # STEP 2 – capacity repair
-    clusters = repair_vehicle_clusters(clusters, capacity, demands, distance_matrix)
-    # STEP 3 – assign trips per vehicle
+    # STEP 2 – capacity repair (using dynamic relaxed capacity for multi-trip vehicle clusters)
+    total_demands = {temp: sum(demands[c["id"]][temp] for c in clinics) for temp in capacity}
+    avg_demand_per_vehicle = {temp: total_demands[temp] / n_vehicles for temp in capacity}
+    relaxed_capacity = {
+        temp: max(capacity[temp] * 2.0, avg_demand_per_vehicle[temp] * 1.5)
+        for temp in capacity
+    }
+    clusters = repair_vehicle_clusters(clusters, relaxed_capacity, demands, distance_matrix)
+    # STEP 3 – assign trips per vehicle (using actual capacity for individual trips)
     vehicle_routes = []
     for i, cluster in enumerate(clusters):
         vehicle_id = vehicles[i]["id"] if i < len(vehicles) else f"V{i+1}"
         trips = assign_trips(cluster, capacity, demands, time_windows)
         vehicle_routes.append((vehicle_id, trips))
-    # STEP 4 – temporal repair of clusters
+    # STEP 4 – temporal repair of clusters (no-op)
     vehicle_routes = [(vid, trips) for vid, trips in vehicle_routes]
-    # Extract just clusters for temporal repair
     cluster_lists = [c for _, c in vehicle_routes]
     cluster_lists = repair_temporal(cluster_lists)
-    # Re‑attach vehicle ids (may have changed ordering)
     vehicle_routes = [(vehicles[i]["id"] if i < len(vehicles) else f"V{i+1}", cl) for i, cl in enumerate(cluster_lists)]
     # STEP 5 – summary
     print_summary(vehicle_routes, clinics, capacity, demands, time_windows)

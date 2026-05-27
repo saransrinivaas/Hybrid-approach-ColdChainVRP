@@ -24,7 +24,11 @@ import time
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, BASE_DIR)
-from classical_solver import solve_scenario
+from classical_solver import solve_scenario as solve_classical
+import ortools_solver
+import gurobi_solver
+import pulp_solver
+import alns_solver
 
 import scenario as SC2
 try:
@@ -36,14 +40,18 @@ except Exception:
     SC1 = SC2
     print("[INFO] Falling back to default static scenario")
 
+import scenario3 as SC3
+
 SCENARIO_MODULES = {
     "easy":  SC1,
     "tough": SC2,
+    "tough3": SC3,
 }
 
 SCENARIO_LABELS = {
     "easy":  f"Scenario 1 - {len(SC1.CLINICS)} Clinics / {len(SC1.VEHICLES)} Vehicles",
     "tough": f"Scenario 2 - {len(SC2.CLINICS)} Clinics / {len(SC2.VEHICLES)} Vehicles",
+    "tough3": f"Scenario 3 - {len(SC3.CLINICS)} Clinics / {len(SC3.VEHICLES)} Vehicles (Stress Test)",
 }
 
 
@@ -90,7 +98,9 @@ def _run_qaoa_on_scenario(sc_module) -> dict:
 
     assignments = {}
     for vehicle_id, trips in vehicle_routes:
-        assignments[vehicle_id] = [cid for trip in trips for cid in trip]
+        for t_idx, trip in enumerate(trips):
+            trip_id = f"{vehicle_id}_{t_idx+1}" if len(trips) > 1 else vehicle_id
+            assignments[trip_id] = trip
     print(f"  Clustering: {assignments}")
 
 
@@ -128,10 +138,7 @@ def _run_qaoa_on_scenario(sc_module) -> dict:
     MAX_SC = 4  # sub-cluster size (qubit budget)
 
     def gen_subclusters(ids):
-        n = len(ids)
-        if n >= MAX_SC:
-            return [list(c) for c in itertools.combinations(ids, MAX_SC)]
-        return [list(ids)]
+        return _cl.generate_subclusters(ids)
 
     qaoa_results = {}
     total_start  = time.time()
@@ -241,34 +248,39 @@ def _run_qaoa_on_scenario(sc_module) -> dict:
             for cid in route
         ]
 
+        energy_rate = sc_module.ENERGY_RATE
+        refrig_cost = sum(energy_rate[temp] * cum for temp in ("frozen", "chilled", "ambient"))
+
         routes_out[vid] = {
             "route":            route,
             "stops":            stops,
             "distance_km":      round(dist, 4),
             "spoilage_rs":      round(spoil_cost, 4),
-            "refrigeration_rs": 0.0,
-            "total_cost_rs":    round(dist + spoil_cost, 4),
+            "refrigeration_rs": round(refrig_cost, 4),
+            "total_cost_rs":    round(dist + spoil_cost + refrig_cost, 4),
             "feasible":         feasible,
             "capacity":         cap_check,
             "computation_time": total_time,
-            "solver":           "QAOA (p=2)",
+            "solver":           "QAOA (p=3)",
         }
 
     fleet_dist  = sum(v["distance_km"]  for v in routes_out.values())
     fleet_spoil = sum(v["spoilage_rs"]  for v in routes_out.values())
-    fleet_total = round(fleet_dist + fleet_spoil, 4)
+    fleet_refrig = sum(v["refrigeration_rs"] for v in routes_out.values())
+    fleet_total = round(fleet_dist + fleet_spoil + fleet_refrig, 4)
 
     print(f"\n  Fleet distance : {fleet_dist:.2f} km")
     print(f"  Fleet spoilage : Rs {fleet_spoil:.4f}")
+    print(f"  Fleet refrig   : Rs {fleet_refrig:.4f}")
     print(f"  Fleet total    : Rs {fleet_total:.4f}")
     print(f"  Total time     : {total_time:.3f}s")
 
     return {
-        "solver":              "QAOA (p=2)",
+        "solver":              "QAOA (p=3)",
         "routes":              routes_out,
         "fleet_distance":      round(fleet_dist, 4),
         "fleet_spoilage":      round(fleet_spoil, 4),
-        "fleet_refrigeration": 0.0,
+        "fleet_refrigeration": round(fleet_refrig, 4),
         "fleet_total_cost":    fleet_total,
         "total_time":          total_time,
         "status":              "ok",
@@ -278,7 +290,7 @@ def _run_qaoa_on_scenario(sc_module) -> dict:
 # ─────────────────────────────────────────
 # MAIN COMPARISON RUNNER
 # ─────────────────────────────────────────
-def run_comparison(with_qaoa: bool = False) -> dict:
+def run_comparison(with_qaoa: bool = False, target_scenario: str = None) -> dict:
     """
     Run Classical (always) and optionally QAOA on both scenarios.
     Saves compare_results.json and returns the dict.
@@ -287,6 +299,8 @@ def run_comparison(with_qaoa: bool = False) -> dict:
     pass
 
     for key, sc_module in SCENARIO_MODULES.items():
+        if target_scenario and key != target_scenario:
+            continue
         label = SCENARIO_LABELS[key]
         print(f"\n{'#'*55}")
         print(f"  SCENARIO: {label}")
@@ -297,11 +311,45 @@ def run_comparison(with_qaoa: bool = False) -> dict:
 
         # ── Classical ──
         print("\n--- Classical Solver (NN + 2-opt + OR-opt) ---")
-        entry["classical"] = solve_scenario(sc_module)
+        entry["classical"] = solve_classical(sc_module)
+
+        # ── OR-Tools ──
+        print("\n--- OR-Tools Solver ---")
+        try:
+            entry["ortools"] = ortools_solver.solve_scenario(sc_module)
+        except Exception as e:
+            print(f"  [WARN] OR-Tools failed for {key}: {e}")
+            entry["ortools"] = {"solver": "Google OR-Tools (Routing) — FAILED", "status": "failed", "error": str(e)}
+
+        # ── Gurobi ──
+        print("\n--- Gurobi Solver ---")
+        try:
+            entry["gurobi"] = gurobi_solver.solve_scenario(sc_module)
+        except Exception as e:
+            print(f"  [WARN] Gurobi failed for {key}: {e}")
+            entry["gurobi"] = {"solver": "Gurobi (ILP) — FAILED", "status": "failed", "error": str(e)}
+
+
+
+        # ── PuLP ──
+        print("\n--- PuLP/CBC Solver ---")
+        try:
+            entry["pulp_cbc"] = pulp_solver.solve_scenario(sc_module)
+        except Exception as e:
+            print(f"  [WARN] PuLP failed for {key}: {e}")
+            entry["pulp_cbc"] = {"solver": "PuLP/CBC (ILP) — FAILED", "status": "failed", "error": str(e)}
+
+        # ── ALNS Metaheuristic ──
+        print("\n--- ALNS Metaheuristic ---")
+        try:
+            entry["alns"] = alns_solver.solve_scenario(sc_module)
+        except Exception as e:
+            print(f"  [WARN] ALNS failed for {key}: {e}")
+            entry["alns"] = {"solver": "ALNS Metaheuristic — FAILED", "status": "failed", "error": str(e)}
 
         # ── QAOA ──
         if with_qaoa:
-            print("\n--- QAOA Solver (p=2) ---")
+            print("\n--- QAOA Solver (p=3) ---")
             try:
                 entry["qaoa"] = _run_qaoa_on_scenario(sc_module)
             except Exception as e:
@@ -317,10 +365,29 @@ def run_comparison(with_qaoa: bool = False) -> dict:
 
         # ── Summary ──
         cl = entry["classical"]
+        ort = entry.get("ortools", {"status": "skipped"})
+        gur = entry.get("gurobi", {"status": "skipped"})
+        plp = entry.get("pulp_cbc", {"status": "skipped"})
+        alns = entry.get("alns", {"status": "skipped"})
         qa = entry["qaoa"]
         print(f"\n  ┌─ {label}")
-        print(f"  │  Classical : Rs {cl['fleet_total_cost']:.4f}  "
-              f"({cl['total_time']:.3f}s)")
+        print(f"  │  Classical : Rs {cl.get('fleet_total_cost', 0.0):.4f}  ({cl.get('total_time', 0.0):.3f}s)")
+        if ort.get("status") not in ("failed", "skipped", "unavailable"):
+            print(f"  │  OR-Tools  : Rs {ort.get('fleet_total_cost', 0.0):.4f}  ({ort.get('total_time', 0.0):.3f}s)")
+        else:
+            print(f"  │  OR-Tools  : {ort.get('note', ort.get('status'))}")
+        if gur.get("status") not in ("failed", "skipped", "unavailable"):
+            print(f"  │  Gurobi    : Rs {gur.get('fleet_total_cost', 0.0):.4f}  ({gur.get('total_time', 0.0):.3f}s)")
+        else:
+            print(f"  │  Gurobi    : {gur.get('note', gur.get('status'))}")
+        if plp.get("status") not in ("failed", "skipped", "unavailable"):
+            print(f"  │  PuLP/CBC  : Rs {plp.get('fleet_total_cost', 0.0):.4f}  ({plp.get('total_time', 0.0):.3f}s)")
+        else:
+            print(f"  │  PuLP/CBC  : {plp.get('note', plp.get('status'))}")
+        if alns.get("status") not in ("failed", "skipped", "unavailable"):
+            print(f"  │  ALNS      : Rs {alns.get('fleet_total_cost', 0.0):.4f}  ({alns.get('total_time', 0.0):.3f}s)")
+        else:
+            print(f"  │  ALNS      : {alns.get('note', alns.get('status'))}")
         if qa.get("status") not in ("failed", "skipped"):
             diff = cl["fleet_total_cost"] - qa["fleet_total_cost"]
             pct  = (diff / cl["fleet_total_cost"] * 100) if cl["fleet_total_cost"] else 0
@@ -331,9 +398,22 @@ def run_comparison(with_qaoa: bool = False) -> dict:
             print(f"  │  QAOA      : {qa.get('note', qa.get('status'))}")
         print(f"  └─")
 
+    # Save merged results locally on disk as well (fallback/redundancy)
+    try:
+        out_path = os.path.join(BASE_DIR, "compare_results.json")
+        existing_data = {}
+        if os.path.exists(out_path):
+            with open(out_path, "r", encoding="utf-8") as f:
+                existing_data = json.load(f)
+        existing_data.update(results)
+        with open(out_path, "w", encoding="utf-8") as f:
+            json.dump(existing_data, f, indent=2)
+        print(f"\n[OK] Persisted results locally to disk -> {out_path}")
+    except Exception as e:
+        print(f"\n[WARN] Failed to persist results locally to disk: {e}")
+
     # Submit to volatile memory via HTTP
     import urllib.request
-    import json
     port = os.environ.get('FLASK_PORT', '5000')
     req = urllib.request.Request(
         f"http://localhost:{port}/api/submit-results?type=compare",
@@ -357,5 +437,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Compare Classical vs QAOA solvers")
     parser.add_argument("--with-qaoa", action="store_true",
                         help="Also run QAOA solver (slow, 10-20 min)")
+    parser.add_argument("--scenario", type=str, choices=["easy", "tough", "tough3"], default=None,
+                        help="Run comparison for a specific scenario only")
     args = parser.parse_args()
-    run_comparison(with_qaoa=args.with_qaoa)
+    run_comparison(with_qaoa=args.with_qaoa, target_scenario=args.scenario)

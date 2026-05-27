@@ -13,8 +13,15 @@ def main():
     # 1. Start Flask Server (Backend)
     print("Starting Flask Backend...")
     backend_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "backend")
+    
+    venv_python = os.path.join(backend_dir, 'venv', 'Scripts', 'python.exe')
+    if not os.path.exists(venv_python):
+        venv_python = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'venv', 'Scripts', 'python.exe')
+    if not os.path.exists(venv_python):
+        venv_python = sys.executable
+        
     backend = subprocess.Popen(
-        [sys.executable, "server.py"],
+        [venv_python, "server.py"],
         stdout=subprocess.PIPE,
         stderr=subprocess.STDOUT,
         cwd=backend_dir

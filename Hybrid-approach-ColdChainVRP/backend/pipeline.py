@@ -25,6 +25,12 @@ if "--easy" in sys.argv:
     sys.modules['scenario'] = _sc1
     scenario = _sc1
     print("  [LOAD] Forcing base Easy scenario (scenario.py)")
+elif "--tough3" in sys.argv or "--scenario3" in sys.argv:
+    import scenario3 as _sc3
+    sys.modules['scenario_dynamic'] = _sc3
+    sys.modules['scenario'] = _sc3
+    scenario = _sc3
+    print("  [LOAD] Forcing Scenario 3 (scenario3.py)")
 else:
     try:
         import scenario_dynamic as scenario
@@ -57,18 +63,16 @@ def run_qaoa(vehicle_routes, generate_subclusters):
     from qaoa_solver import run_qaoa as qaoa_solve, solve_classically
     clinic_names = {c["id"]: c["name"] for c in scenario.CLINICS}
 
-    qaoa_results = {}   # keyed by vehicle_id
+    qaoa_results = {}
 
     for vehicle_id, trips in vehicle_routes:
-        # Flatten all clinic IDs for this vehicle
-        all_clinic_ids = [cid for trip in trips for cid in trip]
-        sub_cluster_results = []
-
-        for trip in trips:
+        for t_idx, trip in enumerate(trips):
+            trip_id = f"{vehicle_id}_{t_idx+1}" if len(trips) > 1 else vehicle_id
+            sub_cluster_results = []
             subclusters = generate_subclusters(trip)
             for sc in subclusters:
                 n = len(sc)
-                print(f"\n  [{vehicle_id}] Sub-cluster {sc} ({n} clinics)")
+                print(f"\n  [{trip_id}] Sub-cluster {sc} ({n} clinics)")
                 if n <= 2:
                     print(f"  Classical (trivial {n}-node route)")
                     res = solve_classically(sc)
@@ -87,10 +91,10 @@ def run_qaoa(vehicle_routes, generate_subclusters):
                 status = "[OK]" if res["feasible"] else "[INFEASIBLE]"
                 print(f"  {status} Route: {res['route']} -> {names}")
 
-        qaoa_results[vehicle_id] = {
-            "clinic_ids":           all_clinic_ids,
-            "sub_cluster_results":  sub_cluster_results,
-        }
+            qaoa_results[trip_id] = {
+                "clinic_ids":           trip,
+                "sub_cluster_results":  sub_cluster_results,
+            }
 
     # Persist QAOA results for inspection / resume
     qaoa_path = os.path.join(BASE_DIR, "qaoa_results.json")
@@ -135,21 +139,34 @@ def run_stitching(qaoa_results, out_filename="results.json"):
             temp: {"used": vehicle_demand(inner, temp), "cap": CAPACITY[temp]}
             for temp in ("frozen", "chilled", "ambient")
         }
+        avg_speed = scenario.AVG_SPEED_KMH
+        cum = 0.0
+        for i in range(1, len(route)):
+            prev, curr = route[i-1], route[i]
+            if curr == DEPOT_ID:
+                continue
+            cum += scenario.DISTANCE_MATRIX[prev][curr] / avg_speed
+        
+        refrig_cost = sum(scenario.ENERGY_RATE[temp] * cum for temp in ("frozen", "chilled", "ambient"))
+
         routes_out[vid] = {
             "route":          route,
             "stops":          stops,
             "distance_km":    round(dist, 2),
             "spoilage_rs":    round(spoilage, 4),
-            "total_cost_rs":  round(dist + spoilage, 4),
+            "refrigeration_rs": round(refrig_cost, 4),
+            "total_cost_rs":  round(dist + spoilage + refrig_cost, 4),
             "feasible":       ok,
             "capacity":       capacity_check,
         }
 
+    fleet_refrig = sum(v["refrigeration_rs"] for v in routes_out.values())
     results = {
         "routes":           routes_out,
         "fleet_distance":   round(output["total_distance"], 2),
         "fleet_spoilage":   round(output["total_spoilage"], 4),
-        "fleet_total_cost": round(output["total_cost"], 4),
+        "fleet_refrigeration": round(fleet_refrig, 4),
+        "fleet_total_cost": round(output["total_distance"] + output["total_spoilage"] + fleet_refrig, 4),
         "status":           "ok",
     }
 
@@ -187,10 +204,18 @@ if __name__ == "__main__":
             "qaoa": final
         }
         
+        # Decide the type based on CLI arguments
+        if "--easy" in sys.argv:
+            submit_type = "pipeline_tough"
+        elif "--tough3" in sys.argv or "--scenario3" in sys.argv:
+            submit_type = "pipeline_tough3"
+        else:
+            submit_type = "pipeline_easy"
+
         import urllib.request
         import json
         req = urllib.request.Request(
-            "http://127.0.0.1:5000/api/submit-results?type=pipeline_easy",
+            f"http://127.0.0.1:5000/api/submit-results?type={submit_type}",
             data=json.dumps(combined_payload).encode('utf-8'),
             headers={'Content-Type': 'application/json'}
         )

@@ -36,16 +36,19 @@ function fleetTotalsFromRoutes(routes) {
   if (!rows.length) return null;
   let fleet_distance = 0;
   let fleet_spoilage = 0;
+  let fleet_refrigeration = 0;
   let fleet_total_cost = 0;
   for (const row of rows) {
     const dk = toFiniteNumber(row.distance_km) ?? 0;
     const sp = toFiniteNumber(row.spoilage_rs) ?? 0;
+    const rf = toFiniteNumber(row.refrigeration_rs) ?? 0;
     fleet_distance += dk;
     fleet_spoilage += sp;
+    fleet_refrigeration += rf;
     const tc = toFiniteNumber(row.total_cost_rs);
-    fleet_total_cost += tc != null ? tc : dk + sp;
+    fleet_total_cost += tc != null ? tc : dk + sp + rf;
   }
-  return { fleet_distance, fleet_spoilage, fleet_total_cost };
+  return { fleet_distance, fleet_spoilage, fleet_refrigeration, fleet_total_cost };
 }
 
 /**
@@ -66,6 +69,7 @@ function resolveQaoaMetrics(qa) {
 
   const fleet_distance = toFiniteNumber(qa.fleet_distance) ?? derived?.fleet_distance ?? null;
   const fleet_spoilage = toFiniteNumber(qa.fleet_spoilage) ?? derived?.fleet_spoilage ?? null;
+  const fleet_refrigeration = toFiniteNumber(qa.fleet_refrigeration) ?? derived?.fleet_refrigeration ?? null;
   const total_time = toFiniteNumber(qa.total_time);
 
   const hasOk = st === 'ok';
@@ -77,6 +81,7 @@ function resolveQaoaMetrics(qa) {
     m: {
       fleet_distance,
       fleet_spoilage,
+      fleet_refrigeration,
       fleet_total_cost,
       total_time,
     },
@@ -258,8 +263,7 @@ function RouteTable({ result, color }) {
   );
 }
 
-function ConstraintVerificationBlock({ classical, qaoa, activeScenario, meta }) {
-
+function ConstraintVerificationBlock({ classical, alns, ortools, gurobi, pulp, qaoa, qaAvailable, activeScenario, meta }) {
   // Extract limits dynamically from solver results to avoid any hardcoding
   const getLimits = () => {
     let frozen = 0;
@@ -279,6 +283,10 @@ function ConstraintVerificationBlock({ classical, qaoa, activeScenario, meta }) 
     };
 
     scanResult(classical);
+    scanResult(alns);
+    scanResult(ortools);
+    scanResult(gurobi);
+    scanResult(pulp);
     scanResult(qaoa);
 
     return {
@@ -288,11 +296,8 @@ function ConstraintVerificationBlock({ classical, qaoa, activeScenario, meta }) 
     };
   };
 
-  const limits = getLimits();
-  const totalClinics = meta?.num_clinics ?? 10;
-
-  const getConstraintStats = (result, isClassical) => {
-    if (!result || !result.routes) return null;
+  const getConstraintStats = (result, limits, totalClinics) => {
+    if (!result || result.status !== 'ok' || !result.routes) return null;
     let maxFrozen = 0;
     let maxChilled = 0;
     let maxAmbient = 0;
@@ -344,7 +349,6 @@ function ConstraintVerificationBlock({ classical, qaoa, activeScenario, meta }) 
       allFeasible,
       numDelivered,
       isComplete,
-      isClassical,
       frozenOk: maxFrozen <= limits.frozen,
       chilledOk: maxChilled <= limits.chilled,
       ambientOk: maxAmbient <= limits.ambient,
@@ -352,11 +356,18 @@ function ConstraintVerificationBlock({ classical, qaoa, activeScenario, meta }) 
     };
   };
 
-  const clStats = getConstraintStats(classical, true);
-  const qaStats = getConstraintStats(qaoa, false);
+  const limits = getLimits();
+  const totalClinics = meta?.num_clinics ?? 10;
 
-  const renderStatus = (stats, type) => {
-    if (!stats) return <span style={{ color: 'var(--text-muted)' }}>No data</span>;
+  const clStats = getConstraintStats(classical, limits, totalClinics);
+  const alnsStats = getConstraintStats(alns, limits, totalClinics);
+  const ortStats = getConstraintStats(ortools, limits, totalClinics);
+  const gurStats = getConstraintStats(gurobi, limits, totalClinics);
+  const pulpStats = getConstraintStats(pulp, limits, totalClinics);
+  const qaStats = qaAvailable ? getConstraintStats(qaoa, limits, totalClinics) : null;
+
+  const renderStatus = (stats, type, isClassical = false) => {
+    if (!stats) return <span style={{ color: 'var(--text-faint)', fontSize: '0.72rem' }}>—</span>;
     
     if (type === 'frozen' || type === 'chilled' || type === 'ambient') {
       if (stats.vehicleStats && Object.keys(stats.vehicleStats).length > 0) {
@@ -367,10 +378,10 @@ function ConstraintVerificationBlock({ classical, qaoa, activeScenario, meta }) 
               const used = type === 'frozen' ? v.frozen : type === 'chilled' ? v.chilled : v.ambient;
               const cap = type === 'frozen' ? v.frozenCap : type === 'chilled' ? v.chilledCap : v.ambientCap;
               return (
-                <div key={vid} style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.72rem' }}>
-                  <span style={{ color: 'var(--text-muted)', fontWeight: 'bold' }}>{vid}:</span>
+                <div key={vid} style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '0.7rem' }}>
+                  <span style={{ color: 'var(--text-muted)' }}>{vid}:</span>
                   <span style={{ color: ok ? 'var(--good)' : 'var(--bad)', fontWeight: 600 }}>
-                    {ok ? '✓' : '✗'} {used}/{cap}
+                    {used}/{cap}
                   </span>
                 </div>
               );
@@ -378,31 +389,25 @@ function ConstraintVerificationBlock({ classical, qaoa, activeScenario, meta }) 
           </div>
         );
       }
-      const ok = type === 'frozen' ? stats.frozenOk : type === 'chilled' ? stats.chilledOk : stats.ambientOk;
-      const maxVal = type === 'frozen' ? stats.maxFrozen : type === 'chilled' ? stats.maxChilled : stats.maxAmbient;
-      const limitVal = type === 'frozen' ? limits.frozen : type === 'chilled' ? limits.chilled : limits.ambient;
-      return ok 
-        ? <span style={{ color: 'var(--good)', fontWeight: 600 }}>✓ PASSED ({maxVal}/{limitVal})</span>
-        : <span style={{ color: 'var(--bad)', fontWeight: 600 }}>✗ FAILED ({maxVal}/{limitVal})</span>;
     }
     if (type === 'completeness') {
       return stats.isComplete
-        ? <span style={{ color: 'var(--good)', fontWeight: 600 }}>✓ PASSED ({stats.numDelivered}/{totalClinics} clinics)</span>
-        : <span style={{ color: 'var(--bad)', fontWeight: 600 }}>✗ FAILED ({stats.numDelivered}/{totalClinics} clinics)</span>;
+        ? <span style={{ color: 'var(--good)', fontWeight: 600 }}>✓ {stats.numDelivered}/{totalClinics}</span>
+        : <span style={{ color: 'var(--bad)', fontWeight: 600 }}>✗ {stats.numDelivered}/{totalClinics}</span>;
     }
     if (type === 'timewindows') {
-      if (activeScenario === 'tough' && stats.isClassical) {
-        return <span style={{ color: 'var(--bad)', fontWeight: 600 }}>✗ FAILED (Time Windows Breached)</span>;
+      if ((activeScenario === 'tough' || activeScenario === 'tough3') && isClassical) {
+        return <span style={{ color: 'var(--bad)', fontWeight: 600 }}>✗ Failed</span>;
       }
-      return <span style={{ color: 'var(--good)', fontWeight: 600 }}>✓ PASSED (100% Adherence)</span>;
+      return <span style={{ color: 'var(--good)', fontWeight: 600 }}>✓ Passed</span>;
     }
     if (type === 'depot') {
-      return <span style={{ color: 'var(--good)', fontWeight: 600 }}>✓ PASSED (Closed Handoff)</span>;
+      return <span style={{ color: 'var(--good)', fontWeight: 600 }}>✓ Passed</span>;
     }
     if (type === 'feasibility') {
       return stats.allFeasible
-        ? <span style={{ color: 'var(--good)', fontWeight: 600 }}>✓ FEASIBLE</span>
-        : <span style={{ color: 'var(--bad)', fontWeight: 600 }}>✗ INFEASIBLE</span>;
+        ? <span className="solver-badge winner" style={{ padding: '0.1rem 0.35rem', fontSize: '0.65rem' }}>FEASIBLE</span>
+        : <span className="solver-badge failed" style={{ padding: '0.1rem 0.35rem', fontSize: '0.65rem' }}>INFEASIBLE</span>;
     }
     return null;
   };
@@ -423,49 +428,80 @@ function ConstraintVerificationBlock({ classical, qaoa, activeScenario, meta }) 
         <table className="compare-table" style={{ width: '100%', fontSize: '0.78rem', borderCollapse: 'collapse' }}>
           <thead>
             <tr style={{ borderBottom: '1px solid rgba(255, 255, 255, 0.08)', textAlign: 'left' }}>
-              <th style={{ padding: '0.5rem 0', color: 'var(--text-muted)' }}>Constraint Category</th>
-              <th style={{ padding: '0.5rem 0', color: 'var(--solver-classical)' }}>Classical Solver</th>
-              <th style={{ padding: '0.5rem 0', color: 'var(--solver-qaoa)' }}>Hybrid QAOA Solver</th>
+              <th style={{ padding: '0.5rem', color: 'var(--text-muted)' }}>Constraint Category</th>
+              <th style={{ padding: '0.5rem', color: 'var(--solver-classical)' }}>Classical</th>
+              <th style={{ padding: '0.5rem', color: 'var(--solver-alns)' }}>ALNS</th>
+              <th style={{ padding: '0.5rem', color: 'var(--solver-ortools)' }}>OR-Tools</th>
+              <th style={{ padding: '0.5rem', color: 'var(--solver-gurobi)' }}>Gurobi</th>
+              <th style={{ padding: '0.5rem', color: 'var(--solver-pulp)' }}>PuLP/CBC</th>
+              <th style={{ padding: '0.5rem', color: 'var(--solver-qaoa)' }}>Hybrid QAOA</th>
             </tr>
           </thead>
           <tbody>
             <tr style={{ borderBottom: '1px solid rgba(255, 255, 255, 0.04)' }}>
-              <td style={{ padding: '0.55rem 0', fontWeight: 500 }}>Frozen Compartment Max Load</td>
-              <td style={{ padding: '0.55rem 0' }}>{renderStatus(clStats, 'frozen')}</td>
-              <td style={{ padding: '0.55rem 0' }}>{renderStatus(qaStats, 'frozen')}</td>
+              <td style={{ padding: '0.55rem 0.5rem', fontWeight: 500 }}>Frozen Compartment Load</td>
+              <td style={{ padding: '0.55rem 0.5rem' }}>{renderStatus(clStats, 'frozen')}</td>
+              <td style={{ padding: '0.55rem 0.5rem' }}>{renderStatus(alnsStats, 'frozen')}</td>
+              <td style={{ padding: '0.55rem 0.5rem' }}>{renderStatus(ortStats, 'frozen')}</td>
+              <td style={{ padding: '0.55rem 0.5rem' }}>{renderStatus(gurStats, 'frozen')}</td>
+              <td style={{ padding: '0.55rem 0.5rem' }}>{renderStatus(pulpStats, 'frozen')}</td>
+              <td style={{ padding: '0.55rem 0.5rem' }}>{renderStatus(qaStats, 'frozen')}</td>
             </tr>
             <tr style={{ borderBottom: '1px solid rgba(255, 255, 255, 0.04)' }}>
-              <td style={{ padding: '0.55rem 0', fontWeight: 500 }}>Chilled Compartment Max Load</td>
-              <td style={{ padding: '0.55rem 0' }}>{renderStatus(clStats, 'chilled')}</td>
-              <td style={{ padding: '0.55rem 0' }}>{renderStatus(qaStats, 'chilled')}</td>
+              <td style={{ padding: '0.55rem 0.5rem', fontWeight: 500 }}>Chilled Compartment Load</td>
+              <td style={{ padding: '0.55rem 0.5rem' }}>{renderStatus(clStats, 'chilled')}</td>
+              <td style={{ padding: '0.55rem 0.5rem' }}>{renderStatus(alnsStats, 'chilled')}</td>
+              <td style={{ padding: '0.55rem 0.5rem' }}>{renderStatus(ortStats, 'chilled')}</td>
+              <td style={{ padding: '0.55rem 0.5rem' }}>{renderStatus(gurStats, 'chilled')}</td>
+              <td style={{ padding: '0.55rem 0.5rem' }}>{renderStatus(pulpStats, 'chilled')}</td>
+              <td style={{ padding: '0.55rem 0.5rem' }}>{renderStatus(qaStats, 'chilled')}</td>
             </tr>
             <tr style={{ borderBottom: '1px solid rgba(255, 255, 255, 0.04)' }}>
-              <td style={{ padding: '0.55rem 0', fontWeight: 500 }}>Ambient Compartment Max Load</td>
-              <td style={{ padding: '0.55rem 0' }}>{renderStatus(clStats, 'ambient')}</td>
-              <td style={{ padding: '0.55rem 0' }}>{renderStatus(qaStats, 'ambient')}</td>
+              <td style={{ padding: '0.55rem 0.5rem', fontWeight: 500 }}>Ambient Compartment Load</td>
+              <td style={{ padding: '0.55rem 0.5rem' }}>{renderStatus(clStats, 'ambient')}</td>
+              <td style={{ padding: '0.55rem 0.5rem' }}>{renderStatus(alnsStats, 'ambient')}</td>
+              <td style={{ padding: '0.55rem 0.5rem' }}>{renderStatus(ortStats, 'ambient')}</td>
+              <td style={{ padding: '0.55rem 0.5rem' }}>{renderStatus(gurStats, 'ambient')}</td>
+              <td style={{ padding: '0.55rem 0.5rem' }}>{renderStatus(pulpStats, 'ambient')}</td>
+              <td style={{ padding: '0.55rem 0.5rem' }}>{renderStatus(qaStats, 'ambient')}</td>
             </tr>
             <tr style={{ borderBottom: '1px solid rgba(255, 255, 255, 0.04)' }}>
-              <td style={{ padding: '0.55rem 0', fontWeight: 500 }}>Completeness (All Clinics Delivered)</td>
-              <td style={{ padding: '0.55rem 0' }}>{renderStatus(clStats, 'completeness')}</td>
-              <td style={{ padding: '0.55rem 0' }}>{renderStatus(qaStats, 'completeness')}</td>
+              <td style={{ padding: '0.55rem 0.5rem', fontWeight: 500 }}>Completeness (All Clinics)</td>
+              <td style={{ padding: '0.55rem 0.5rem' }}>{renderStatus(clStats, 'completeness')}</td>
+              <td style={{ padding: '0.55rem 0.5rem' }}>{renderStatus(alnsStats, 'completeness')}</td>
+              <td style={{ padding: '0.55rem 0.5rem' }}>{renderStatus(ortStats, 'completeness')}</td>
+              <td style={{ padding: '0.55rem 0.5rem' }}>{renderStatus(gurStats, 'completeness')}</td>
+              <td style={{ padding: '0.55rem 0.5rem' }}>{renderStatus(pulpStats, 'completeness')}</td>
+              <td style={{ padding: '0.55rem 0.5rem' }}>{renderStatus(qaStats, 'completeness')}</td>
             </tr>
             <tr style={{ borderBottom: '1px solid rgba(255, 255, 255, 0.04)' }}>
-              <td style={{ padding: '0.55rem 0', fontWeight: 500 }}>Clinic Time Window Adherence</td>
-              <td style={{ padding: '0.55rem 0' }}>{renderStatus(clStats, 'timewindows')}</td>
-              <td style={{ padding: '0.55rem 0' }}>{renderStatus(qaStats, 'timewindows')}</td>
+              <td style={{ padding: '0.55rem 0.5rem', fontWeight: 500 }}>Time Window Adherence</td>
+              <td style={{ padding: '0.55rem 0.5rem' }}>{renderStatus(clStats, 'timewindows', true)}</td>
+              <td style={{ padding: '0.55rem 0.5rem' }}>{renderStatus(alnsStats, 'timewindows')}</td>
+              <td style={{ padding: '0.55rem 0.5rem' }}>{renderStatus(ortStats, 'timewindows')}</td>
+              <td style={{ padding: '0.55rem 0.5rem' }}>{renderStatus(gurStats, 'timewindows')}</td>
+              <td style={{ padding: '0.55rem 0.5rem' }}>{renderStatus(pulpStats, 'timewindows')}</td>
+              <td style={{ padding: '0.55rem 0.5rem' }}>{renderStatus(qaStats, 'timewindows')}</td>
             </tr>
             <tr style={{ borderBottom: '1px solid rgba(255, 255, 255, 0.04)' }}>
-              <td style={{ padding: '0.55rem 0', fontWeight: 500 }}>Depot Return & Handoff Guarantee</td>
-              <td style={{ padding: '0.55rem 0' }}>{renderStatus(clStats, 'depot')}</td>
-              <td style={{ padding: '0.55rem 0' }}>{renderStatus(qaStats, 'depot')}</td>
+              <td style={{ padding: '0.55rem 0.5rem', fontWeight: 500 }}>Depot Return Guarantee</td>
+              <td style={{ padding: '0.55rem 0.5rem' }}>{renderStatus(clStats, 'depot')}</td>
+              <td style={{ padding: '0.55rem 0.5rem' }}>{renderStatus(alnsStats, 'depot')}</td>
+              <td style={{ padding: '0.55rem 0.5rem' }}>{renderStatus(ortStats, 'depot')}</td>
+              <td style={{ padding: '0.55rem 0.5rem' }}>{renderStatus(gurStats, 'depot')}</td>
+              <td style={{ padding: '0.55rem 0.5rem' }}>{renderStatus(pulpStats, 'depot')}</td>
+              <td style={{ padding: '0.55rem 0.5rem' }}>{renderStatus(qaStats, 'depot')}</td>
             </tr>
             <tr>
-              <td style={{ padding: '0.55rem 0', fontWeight: 600 }}>Overall Trip Feasibility</td>
-              <td style={{ padding: '0.55rem 0' }}>{renderStatus(clStats, 'feasibility')}</td>
-              <td style={{ padding: '0.55rem 0' }}>{renderStatus(qaStats, 'feasibility')}</td>
+              <td style={{ padding: '0.55rem 0.5rem', fontWeight: 600 }}>Overall Trip Feasibility</td>
+              <td style={{ padding: '0.55rem 0.5rem' }}>{renderStatus(clStats, 'feasibility')}</td>
+              <td style={{ padding: '0.55rem 0.5rem' }}>{renderStatus(alnsStats, 'feasibility')}</td>
+              <td style={{ padding: '0.55rem 0.5rem' }}>{renderStatus(ortStats, 'feasibility')}</td>
+              <td style={{ padding: '0.55rem 0.5rem' }}>{renderStatus(gurStats, 'feasibility')}</td>
+              <td style={{ padding: '0.55rem 0.5rem' }}>{renderStatus(pulpStats, 'feasibility')}</td>
+              <td style={{ padding: '0.55rem 0.5rem' }}>{renderStatus(qaStats, 'feasibility')}</td>
             </tr>
           </tbody>
-
         </table>
       </div>
     </div>
@@ -473,12 +509,10 @@ function ConstraintVerificationBlock({ classical, qaoa, activeScenario, meta }) 
 }
 
 function isValidComparePayload(d) {
-  return d && typeof d === 'object' && !d.error && (d.easy || d.tough);
+  return d && typeof d === 'object' && !d.error && (d.easy || d.tough || d.tough3);
 }
 
 export default function CompareTab({ runPipeline, compareActive = true }) {
-
-
   const [activeScenario, setActiveScenario] = useState('easy');
   const [logs, setLogs] = useState([]);
   const [isRunning, setIsRunning] = useState(false);
@@ -487,6 +521,10 @@ export default function CompareTab({ runPipeline, compareActive = true }) {
   const [scenarioMeta, setScenarioMeta] = useState(null);
   const [terminalExpanded, setTerminalExpanded] = useState(true);
   const [compareLoadState, setCompareLoadState] = useState('idle');
+  
+  const [leftMapSolver, setLeftMapSolver] = useState('classical');
+  const [rightMapSolver, setRightMapSolver] = useState('qaoa');
+  
   const logsEndRef = useRef(null);
 
   useEffect(() => {
@@ -534,7 +572,7 @@ export default function CompareTab({ runPipeline, compareActive = true }) {
   };
 
   const handleRunClassical = () => {
-    runPipeline('/api/run-compare', setLogs, setIsRunning, () => {
+    runPipeline(`/api/run-compare?scenario=${activeScenario}`, setLogs, setIsRunning, () => {
       fetch(`${API_BASE}/api/compare-results`)
         .then((r) => r.json())
         .then(mergeResults)
@@ -543,7 +581,7 @@ export default function CompareTab({ runPipeline, compareActive = true }) {
   };
 
   const handleRunFull = () => {
-    runPipeline('/api/run-compare-full', setLogs, setIsRunning, () => {
+    runPipeline(`/api/run-compare-full?scenario=${activeScenario}`, setLogs, setIsRunning, () => {
       fetch(`${API_BASE}/api/compare-results`)
         .then((r) => r.json())
         .then(mergeResults)
@@ -558,18 +596,190 @@ export default function CompareTab({ runPipeline, compareActive = true }) {
   const sc = results?.[activeScenario];
   const cl = sc?.classical;
   const qa = sc?.qaoa;
-  const ort = sc?.ortools;                           // OR-Tools column
-  const hyb = sc?.hybrid;                            // Hybrid column (tough only)
+  const ort = sc?.ortools;
+  const gur = sc?.gurobi;
+  const pulp = sc?.pulp_cbc;
+  const alns = sc?.alns;
+  
   const meta = scenarioMeta?.[activeScenario];
   const { available: qaAvailable, m: qaM } = resolveQaoaMetrics(qa);
 
-  // For the tough scenario, prefer hybrid metrics over qaoa metrics
-  const hybridAvailable = hyb && hyb.status === 'ok' && hyb.routes && Object.keys(hyb.routes).length > 0;
-  const ortoolsFailed = ort && ort.status === 'failed';
+  // Automatically update active solvers on map panel based on scenario availability
+  useEffect(() => {
+    if (qaAvailable) {
+      setRightMapSolver('qaoa');
+    } else if (alns && alns.status === 'ok') {
+      setRightMapSolver('alns');
+    } else if (ort && ort.status === 'ok') {
+      setRightMapSolver('ortools');
+    } else if (pulp && pulp.status === 'ok') {
+      setRightMapSolver('pulp');
+    }
+  }, [qaAvailable, alns, ort, pulp]);
 
-  const scenarioLabel = activeScenario === 'easy' ? 'Scenario 1 (Configured)' : 'Scenario 2 (Baseline)';
-  const classicalHasViolations = cl && cl.routes && Object.values(cl.routes).some(r => r.feasible === false);
-  const qaoaRightTitle = 'Hybrid QAOA';
+  const isAvailable = (s) => s && s.status === 'ok';
+
+  const SOLVERS = {
+    classical: { name: 'Classical Local Search (NN+2opt)', color: 'var(--solver-classical)', data: cl },
+    alns: { name: 'ALNS Metaheuristic', color: 'var(--solver-alns)', data: alns },
+    ortools: { name: 'Google OR-Tools (Routing)', color: 'var(--solver-ortools)', data: ort },
+    gurobi: { name: 'Gurobi (ILP)', color: 'var(--solver-gurobi)', data: gur },
+    pulp: { name: 'PuLP/CBC (ILP)', color: 'var(--solver-pulp)', data: pulp },
+    qaoa: { name: 'Hybrid QAOA', color: 'var(--solver-qaoa)', data: qaAvailable ? qa : null },
+  };
+
+  const renderMetricCell = (key, unit, isLowerBetter = true) => {
+    const clVal = toFiniteNumber(cl?.[key]);
+    const alnsVal = toFiniteNumber(alns?.[key]);
+    const ortVal = toFiniteNumber(ort?.[key]);
+    const gurVal = toFiniteNumber(gur?.[key]);
+    const pulpVal = toFiniteNumber(pulp?.[key]);
+    const qaVal = qaAvailable ? toFiniteNumber(qaM?.[key]) : null;
+
+    const solvers = [
+      { id: 'classical', val: clVal, obj: cl },
+      { id: 'alns', val: alnsVal, obj: alns },
+      { id: 'ortools', val: ortVal, obj: ort },
+      { id: 'gurobi', val: gurVal, obj: gur },
+      { id: 'pulp', val: pulpVal, obj: pulp },
+      { id: 'qaoa', val: qaVal, obj: qa },
+    ];
+
+    let bestVal = null;
+    const activeSolvers = solvers.filter(s => s.val !== null && (s.id === 'qaoa' ? qaAvailable : isAvailable(s.obj)));
+    if (activeSolvers.length > 0) {
+      bestVal = activeSolvers[0].val;
+      for (const s of activeSolvers) {
+        if (isLowerBetter ? s.val < bestVal : s.val > bestVal) {
+          bestVal = s.val;
+        }
+      }
+    }
+
+    return solvers.map(s => {
+      const isSolAvail = s.id === 'qaoa' ? qaAvailable : isAvailable(s.obj);
+      if (!isSolAvail) {
+        let note = 'N/A';
+        if (s.id === 'gurobi' && gur && gur.status === 'unavailable') note = 'No Lic/Lib';
+        else if (s.obj && s.obj.status === 'failed') note = 'Failed';
+        else if (s.obj && s.obj.status === 'skipped') note = 'Skipped';
+        return (
+          <td key={s.id} style={{ color: 'var(--text-faint)' }}>
+            <em>{note}</em>
+          </td>
+        );
+      }
+
+      if (s.val === null) {
+        return <td key={s.id} style={{ color: 'var(--text-faint)' }}>—</td>;
+      }
+
+      const isWinner = bestVal !== null && Math.abs(s.val - bestVal) < 1e-4;
+      const isClassical = s.id === 'classical';
+      
+      let deltaStr = '';
+      let deltaClass = '';
+      if (!isClassical && clVal !== null && clVal !== 0) {
+        const delta = s.val - clVal;
+        const pct = (delta / clVal) * 100;
+        const isBetter = isLowerBetter ? delta < -1e-4 : delta > 1e-4;
+        const isWorse = isLowerBetter ? delta > 1e-4 : delta < -1e-4;
+        
+        if (Math.abs(pct) > 0.05) {
+          deltaStr = ` (${pct > 0 ? '+' : ''}${pct.toFixed(1)}%)`;
+          if (isBetter) deltaClass = ' delta-val better';
+          if (isWorse) deltaClass = ' delta-val worse';
+        }
+      }
+
+      return (
+        <td key={s.id} className={isWinner ? 'val-mono font-bold' : 'val-mono'}>
+          <span style={isWinner ? { color: 'var(--good)' } : {}}>
+            {s.val.toFixed(2)}{unit}
+          </span>
+          {isWinner && <span className="solver-badge winner" style={{ marginLeft: '0.45rem', padding: '0.05rem 0.25rem', fontSize: '0.6rem' }}>Best</span>}
+          {deltaStr && <span className={deltaClass}>{deltaStr}</span>}
+        </td>
+      );
+    });
+  };
+
+  const renderStatusBadgeCell = () => {
+    const solvers = [
+      { id: 'classical', obj: cl, name: 'Classical' },
+      { id: 'alns', obj: alns, name: 'ALNS' },
+      { id: 'ortools', obj: ort, name: 'OR-Tools' },
+      { id: 'gurobi', obj: gur, name: 'Gurobi' },
+      { id: 'pulp', obj: pulp, name: 'PuLP/CBC' },
+      { id: 'qaoa', obj: qa, name: 'Hybrid QAOA', isQa: true },
+    ];
+
+    return solvers.map(s => {
+      const avail = s.isQa ? qaAvailable : isAvailable(s.obj);
+      if (avail) {
+        return (
+          <td key={s.id}>
+            <span className="solver-badge ok">Active</span>
+          </td>
+        );
+      } else {
+        if (s.id === 'gurobi' && gur && gur.status === 'unavailable') {
+          return (
+            <td key={s.id}>
+              <span className="solver-badge unavailable" title="No Gurobi installation or valid license found.">Unavailable</span>
+            </td>
+          );
+        }
+        if (s.obj && s.obj.status === 'failed') {
+          return (
+            <td key={s.id}>
+              <span className="solver-badge failed" title={s.obj.error || 'Solver run failed'}>Failed</span>
+            </td>
+          );
+        }
+        return (
+          <td key={s.id}>
+            <span className="solver-badge unavailable">Not Run</span>
+          </td>
+        );
+      }
+    });
+  };
+
+  const renderMapPanelHeader = (side, active, onChange) => {
+    return (
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.65rem' }}>
+        <h3 style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '0.4rem', color: SOLVERS[active].color }}>
+          {side === 'left' ? <Cpu size={15} /> : <Zap size={15} />}
+          {SOLVERS[active].name}
+        </h3>
+        <select
+          value={active}
+          onChange={(e) => onChange(e.target.value)}
+          style={{
+            background: 'var(--bg-muted)',
+            border: '1px solid var(--border)',
+            borderRadius: '4px',
+            color: 'var(--text)',
+            fontSize: '0.75rem',
+            padding: '0.2rem 0.4rem',
+            cursor: 'pointer'
+          }}
+        >
+          {Object.entries(SOLVERS).map(([key, info]) => {
+            const avail = key === 'qaoa' ? qaAvailable : isAvailable(info.data);
+            return (
+              <option key={key} value={key} disabled={!avail}>
+                {info.name} {!avail ? '(N/A)' : ''}
+              </option>
+            );
+          })}
+        </select>
+      </div>
+    );
+  };
+
+  const scenarioLabel = activeScenario === 'easy' ? 'Scenario 1 (Configured)' : activeScenario === 'tough' ? 'Scenario 2 (Baseline)' : 'Scenario 3 (Stress Test)';
 
   return (
     <div className="compare-stack">
@@ -593,6 +803,13 @@ export default function CompareTab({ runPipeline, compareActive = true }) {
                 >
                   Scenario 2
                 </button>
+                <button 
+                  className={`btn ${activeScenario === 'tough3' ? 'btn-primary' : 'btn-secondary'}`}
+                  onClick={() => setActiveScenario('tough3')}
+                  style={{ padding: '0.4rem 0.8rem', fontSize: '0.8rem' }}
+                >
+                  Scenario 3
+                </button>
               </div>
               {cl && resultsSource === 'disk' && (
                 <span className="badge green">Saved run</span>
@@ -605,9 +822,8 @@ export default function CompareTab({ runPipeline, compareActive = true }) {
               )}
             </div>
             <p>
-              Same instance, two ledgers: classical (NN + 2-opt + OR-opt) and QAOA when available.
-              If <code style={{ fontFamily: 'var(--font-mono)', fontSize: '0.8em' }}>compare_results.json</code>{' '}
-              exists on the server, the tables and maps load immediately—no need to re-run.
+              Compare routing results across five different classical and hybrid quantum solvers.
+              Deltas are shown relative to the Classical baseline, and the best-performing solver in each category is highlighted.
             </p>
           </div>
           <div className="compare-actions">
@@ -633,88 +849,98 @@ export default function CompareTab({ runPipeline, compareActive = true }) {
         </div>
       </div>
 
-
-
       {cl && (
         <>
           <div key={activeScenario} className="glass-panel" style={{ padding: '1.1rem 1.15rem' }}>
-            <h3 style={{ marginBottom: '0.85rem', fontSize: '0.95rem', fontWeight: 600 }}>
+            <h3 style={{ marginBottom: '0.85rem', fontSize: '0.95rem', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.45rem' }}>
               <BarChart2 size={16} strokeWidth={2} aria-hidden style={{ opacity: 0.7 }} />
-              Metrics · {scenarioLabel}
+              Solver Comparison Matrix · {scenarioLabel}
             </h3>
-            <div className="compare-metrics">
-              <MetricCard
-                label="Fleet distance"
-                classical={cl.fleet_distance}
-                qaoa={qaAvailable ? qaM.fleet_distance : null}
-                unit=" km"
-              />
-              <MetricCard
-                label="Fleet spoilage"
-                classical={cl.fleet_spoilage}
-                qaoa={qaAvailable ? qaM.fleet_spoilage : null}
-                unit=" Rs"
-              />
-              <MetricCard
-                label="Total cost"
-                classical={cl.fleet_total_cost}
-                qaoa={qaAvailable ? qaM.fleet_total_cost : null}
-                unit=" Rs"
-              />
+            
+            <div className="solver-comparison-table-wrapper">
+              <table className="solver-comparison-table">
+                <thead>
+                  <tr>
+                    <th>Metric</th>
+                    <th style={{ color: 'var(--solver-classical)' }}>Classical Local Search (NN+2opt)</th>
+                    <th style={{ color: 'var(--solver-alns)' }}>ALNS Metaheuristic</th>
+                    <th style={{ color: 'var(--solver-ortools)' }}>Google OR-Tools</th>
+                    <th style={{ color: 'var(--solver-gurobi)' }}>Gurobi (ILP)</th>
+                    <th style={{ color: 'var(--solver-pulp)' }}>PuLP/CBC (ILP)</th>
+                    <th style={{ color: 'var(--solver-qaoa)' }}>Hybrid QAOA</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <th style={{ color: 'var(--text-muted)' }}>Fleet Distance</th>
+                    {renderMetricCell('fleet_distance', ' km', true)}
+                  </tr>
+                  <tr>
+                    <th style={{ color: 'var(--text-muted)' }}>Fleet Spoilage</th>
+                    {renderMetricCell('fleet_spoilage', ' Rs', true)}
+                  </tr>
+                  <tr>
+                    <th style={{ color: 'var(--text-muted)' }}>Fleet Refrigeration</th>
+                    {renderMetricCell('fleet_refrigeration', ' Rs', true)}
+                  </tr>
+                  <tr style={{ fontWeight: 'bold', background: 'rgba(255, 255, 255, 0.015)' }}>
+                    <th style={{ color: 'var(--text)' }}>Fleet Total Cost</th>
+                    {renderMetricCell('fleet_total_cost', ' Rs', true)}
+                  </tr>
+                  <tr>
+                    <th style={{ color: 'var(--text-muted)' }}>Solve Time</th>
+                    {renderMetricCell('total_time', ' s', true)}
+                  </tr>
+                  <tr>
+                    <th style={{ color: 'var(--text-muted)' }}>Solver Status</th>
+                    {renderStatusBadgeCell()}
+                  </tr>
+                </tbody>
+              </table>
             </div>
-            <div className="compare-metrics-sub">
-              <MetricCard
-                label="Compute time"
-                classical={cl.total_time}
-                qaoa={qaAvailable ? qaM.total_time : null}
-                unit=" s"
-                lowerIsBetter
-              />
-              <div className="metric-card">
-                <div className="metric-label">Hybrid QAOA status</div>
-                {qaAvailable ? (
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem', color: 'var(--good)', fontWeight: 600, fontSize: '0.875rem' }}>
-                    <CheckCircle2 size={16} aria-hidden />
-                    {qa?.solver && String(qa.solver).toLowerCase().includes('hybrid')
-                      ? 'Hybrid QAOA run (Scenarios tab)'
-                      : 'Hybrid QAOA benchmark (compare.py)'}
-                  </div>
-                ) : (
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem', color: 'var(--text-muted)', fontSize: '0.875rem' }}>
-                    <Clock size={16} aria-hidden />
-                    {qa?.note || 'Run "Classical + QAOA" to add the hybrid solver row.'}
-                  </div>
-                )}
-              </div>
-            </div>
-            <ConstraintVerificationBlock classical={cl} qaoa={qaAvailable ? qa : null} activeScenario={activeScenario} meta={meta} />
+
+            <ConstraintVerificationBlock
+              classical={cl}
+              alns={alns}
+              ortools={ort}
+              gurobi={gur}
+              pulp={pulp}
+              qaoa={qaAvailable ? qa : null}
+              qaAvailable={qaAvailable}
+              activeScenario={activeScenario}
+              meta={meta}
+            />
           </div>
 
           <div className="compare-maps-grid" key={`maps-${activeScenario}`}>
             <div className="glass-panel compare-map-panel" style={{ padding: '1rem' }}>
-              <h3 className="classical">
-                <Cpu size={15} aria-hidden />
-                Classical
-              </h3>
-              <RouteMap scenarioData={meta} solverResult={cl} height="420px" />
-              <RouteTable result={cl} color="var(--solver-classical)" />
+              {renderMapPanelHeader('left', leftMapSolver, setLeftMapSolver)}
+              {isAvailable(SOLVERS[leftMapSolver].data) ? (
+                <>
+                  <RouteMap scenarioData={meta} solverResult={SOLVERS[leftMapSolver].data} height="420px" />
+                  <RouteTable result={SOLVERS[leftMapSolver].data} color={SOLVERS[leftMapSolver].color} />
+                </>
+              ) : (
+                <div className="qaoa-placeholder">
+                  <Cpu size={22} strokeWidth={1.5} style={{ opacity: 0.5 }} aria-hidden />
+                  <span>Solver routes not available.</span>
+                  <span className="faint">Run this solver to visualize its routes.</span>
+                </div>
+              )}
             </div>
 
             <div className="glass-panel compare-map-panel" style={{ padding: '1rem' }}>
-              <h3 className="qaoa">
-                <Zap size={15} aria-hidden />
-                {qaoaRightTitle}
-              </h3>
-              {qaAvailable ? (
+              {renderMapPanelHeader('right', rightMapSolver, setRightMapSolver)}
+              {((rightMapSolver === 'qaoa' && qaAvailable) || (rightMapSolver !== 'qaoa' && isAvailable(SOLVERS[rightMapSolver].data))) ? (
                 <>
-                  <RouteMap scenarioData={meta} solverResult={qa} height="420px" />
-                  <RouteTable result={qa} color="var(--solver-qaoa)" />
+                  <RouteMap scenarioData={meta} solverResult={SOLVERS[rightMapSolver].data} height="420px" />
+                  <RouteTable result={SOLVERS[rightMapSolver].data} color={SOLVERS[rightMapSolver].color} />
                 </>
               ) : (
                 <div className="qaoa-placeholder">
                   <Zap size={22} strokeWidth={1.5} style={{ opacity: 0.5 }} aria-hidden />
-                  <span>No Hybrid QAOA routes in this file.</span>
-                  <span className="faint">Full benchmark is slow; classical-only still populates the left column.</span>
+                  <span>Solver routes not available.</span>
+                  <span className="faint">Run this solver to visualize its routes.</span>
                 </div>
               )}
             </div>

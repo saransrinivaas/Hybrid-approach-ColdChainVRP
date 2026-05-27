@@ -139,7 +139,7 @@ def solve_scenario(sc_module: Any) -> dict:
     params.local_search_metaheuristic = (
         routing_enums_pb2.LocalSearchMetaheuristic.GUIDED_LOCAL_SEARCH
     )
-    params.time_limit.FromSeconds(45)
+    params.time_limit.FromSeconds(5)
 
     t0 = time.time()
     solution = routing.SolveWithParameters(params)
@@ -234,8 +234,12 @@ def solve_scenario(sc_module: Any) -> dict:
 
 if __name__ == "__main__":
     import scenario as sc1
-    import scenario2 as sc2
+    try:
+        import scenario_dynamic as sc2
+    except ImportError:
+        sc2 = sc1
 
     for sc in (sc1, sc2):
-        r = solve_scenario(sc)
-        print(f"\n[{sc.__name__}] OR-Tools fleet total: Rs {r['fleet_total_cost']:.4f}")
+        if sc:
+            r = solve_scenario(sc)
+            print(f"\n[{getattr(sc, '__name__', 'scenario')}] OR-Tools fleet total: Rs {r['fleet_total_cost']:.4f}")

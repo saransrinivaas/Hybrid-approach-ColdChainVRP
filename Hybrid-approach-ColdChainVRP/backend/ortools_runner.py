@@ -15,7 +15,13 @@ import json
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, BASE_DIR)
 
-import scenario2 as SC2
+try:
+    import scenario_dynamic as SC2
+    if not hasattr(SC2, 'CLINICS'):
+        raise ImportError()
+except ImportError:
+    import scenario as SC2
+
 from ortools_solver import solve_scenario
 
 if __name__ == "__main__":

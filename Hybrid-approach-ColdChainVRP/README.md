@@ -56,8 +56,11 @@ This project closes that gap with three specific contributions:
 **Contribution 1 — Spoilage physics inside the quantum cost function**
 The decay equation `cost = value × alpha × cumulative_time × quantity` is encoded directly as a term in the QUBO Hamiltonian. The optimizer minimizes actual monetary loss, not just distance.
 
-**Contribution 2 — Vehicular capacitated clustering with overlapping sub-clusters**
-Temperature compatibility is enforced as a hard classical pre-filter before any quantum computation. Vehicular K-means assigns clinics to vehicles respecting per-compartment capacity limits across all three temperature classes. Within each vehicle trip, overlapping C(n,3) sub-clusters are generated as quantum-ready sub-problems, each fitting within the qubit budget.
+**Contribution 2 — Cap-Bounded Multi-Trip Fleet Clustering**
+Instead of assigning clinics to routes purely by distance or creating too many routes, this system uses a smart two-level classical planner:
+* **Strict Fleet Capping**: Clinics are grouped strictly into the actual number of vehicles in the fleet (e.g., exactly 2 or 3). Clinics are grouped together only if they are close geographically AND have compatible delivery windows.
+* **Multi-Compartment Load Balancing**: The system dynamically balances the total demand of clinics across the fleet, allowing a vehicle's total demand to exceed single-trip capacity because vehicles can make multiple trips.
+* **First-Fit Trip Splitting**: A greedy bin-packing algorithm automatically divides a vehicle's clinics into multiple trips. Each individual trip is guaranteed to fit perfectly under the vehicle's three multi-compartment capacity limits (frozen, chilled, and ambient).
 
 **Contribution 3 — First bridge between quantum VRP and cold-chain logistics research**
 Quantum VRP researchers and cold-chain logistics researchers publish in entirely different fields and have never connected. This project extends the Dash et al. 2025 hierarchical QAOA architecture into the multi-compartment cold-chain domain for the first time.
@@ -109,8 +112,11 @@ CPLEX               ↓
 **Contribution 1 — Spoilage physics in quantum Hamiltonian**
 No published quantum VRP paper has encoded temperature-dependent spoilage decay as a term in the cost function. The decay equation `value × alpha × cumulative_time × quantity` is encoded directly as a Hamiltonian term, making the optimizer minimize actual monetary loss rather than just distance.
 
-**Contribution 2 — Vehicular capacitated clustering with overlapping sub-clusters**
-Two-level clustering hierarchy: Level 1 assigns clinics to vehicles (n_clusters = n_vehicles) with multi-compartment capacity enforcement. Level 2 generates all C(n,3) overlapping 3-node sub-clusters per trip for quantum Hamiltonian construction. Qubit requirements scale as n² × 3 per sub-cluster.
+**Contribution 2 — Cap-Bounded Multi-Trip Fleet Clustering**
+A classical two-level hierarchical planner manages fleet constraints and subproblem routing:
+* **Strict Fleet Capping**: The Level-1 geographic K-means algorithm groups clinics strictly into the actual fleet size (`n_clusters = n_vehicles`), repelling clinics with incompatible delivery windows.
+* **Dynamic Load Repair**: Vehicle clusters are balanced using a dynamically scaled relaxed capacity based on the scenario's average vehicle load, allowing a vehicle to carry a higher total demand over multiple trips.
+* **First-Fit Trip Splitting**: A greedy bin-packing algorithm dynamically splits each vehicle's cluster into multiple trips. Each individual trip is guaranteed to fit perfectly under the three compartment capacity limits (frozen, chilled, and ambient), and is then split into overlapping 3-node subproblems (Level 2) for the quantum solver.
 
 **Contribution 3 — First quantum-classical cold-chain bridge**
 Extends the Dash et al. 2025 hierarchical QAOA architecture into multi-compartment cold-chain VRP — connecting two research communities that have never intersected.
