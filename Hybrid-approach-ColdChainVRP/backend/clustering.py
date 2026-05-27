@@ -184,11 +184,38 @@ def repair_vehicle_clusters(clusters, capacity, demands, distance_matrix):
     return [c for c in clusters if c]
 
 # ─────────────────────────────────────────
-# STEP 3 – Assign trips (existing logic with capacity overflow handling)
+# STEP 3 – Assign trips (urgency-aware with capacity overflow handling)
 # ─────────────────────────────────────────
+def _clinic_urgency(cid, demands, spoilage, time_windows):
+    """
+    Composite urgency score — higher means serve this clinic first.
+      = spoilage_rate * demand_weight + time_pressure
+    spoilage_rate = sum over temps of alpha * value * demand
+    time_pressure = 1 / (close_window)   so tight windows rank high
+    """
+    decay = sum(
+        spoilage[t]["alpha"] * spoilage[t]["value"] * demands[cid][t]
+        for t in ("frozen", "chilled", "ambient")
+    )
+    close_time = time_windows[cid][1]
+    time_pressure = 1.0 / max(close_time, 1.0)
+    return decay + time_pressure
+
+
 def assign_trips(clinic_ids, capacity, demands, time_windows):
-    # Sort by closing time (most urgent first)
-    sorted_ids = sorted(clinic_ids, key=lambda cid: time_windows[cid][1])
+    # Sort by composite urgency: high spoilage + tight window first
+    import scenario_dynamic as _sc
+    try:
+        spoilage = _sc.SPOILAGE
+    except AttributeError:
+        import scenario as _sc2
+        spoilage = _sc2.SPOILAGE
+
+    sorted_ids = sorted(
+        clinic_ids,
+        key=lambda cid: _clinic_urgency(cid, demands, spoilage, time_windows),
+        reverse=True  # most urgent first
+    )
     trips = []
     for cid in sorted_ids:
         placed = False

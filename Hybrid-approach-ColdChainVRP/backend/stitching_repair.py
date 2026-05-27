@@ -77,15 +77,23 @@ def route_feasible(inner_route: list):
     return True, None
 
 def compute_spoilage(route: list) -> float:
-    """Cumulative spoilage cost for a route with depot endpoints."""
+    """
+    Cumulative spoilage cost for a route with depot endpoints.
+    Uses real hop-by-hop arrival time per clinic (not average-hop estimation).
+    When a return-to-depot leg is encountered, the clock resets to 0 for the
+    next trip leg so multi-trip virtual vehicles are handled correctly.
+    """
     total    = 0.0
     cum_time = 0.0
     for i in range(1, len(route)):
         prev = route[i - 1]
         curr = route[i]
+        leg_time = DISTANCE_MATRIX[prev][curr] / AVG_SPEED
+        cum_time += leg_time
         if curr == DEPOT_ID:
+            # Starting a new trip leg — reset cumulative clock
+            cum_time = 0.0
             continue
-        cum_time += DISTANCE_MATRIX[prev][curr] / AVG_SPEED
         for temp in ("frozen", "chilled", "ambient"):
             alpha  = SPOILAGE[temp]["alpha"]
             value  = SPOILAGE[temp]["value"]
@@ -160,9 +168,15 @@ def repair_sub_cluster(result: dict) -> dict:
 # ─────────────────────────────────────────
 def build_consensus_route(sub_results: list, all_clinic_ids: list) -> list:
     """
-    Pairwise voting: for each pair (a, b), count how many
-    sub-cluster routes visit a before b.
-    Majority wins; ties broken by depot distance.
+    Quality-weighted pairwise voting: for each pair (a, b), accumulate
+    votes weighted by sub-cluster quality.
+    
+    Weight rules:
+      - Feasible without repair  → weight 3
+      - Feasible after repair    → weight 1
+      - Infeasible / has None    → weight 0 (skip)
+    
+    Ties broken first by spoilage urgency, then by depot proximity.
     Returns ordered list of clinic IDs.
     """
     n = len(all_clinic_ids)
@@ -175,25 +189,31 @@ def build_consensus_route(sub_results: list, all_clinic_ids: list) -> list:
         # Closer to depot goes first
         return [a, b] if DISTANCE_MATRIX[0][a] <= DISTANCE_MATRIX[0][b] else [b, a]
 
-    # Build pairwise preference counts
-    pref = {(a, b): 0 for a in all_clinic_ids for b in all_clinic_ids if a != b}
+    # Build pairwise preference weights
+    pref = {(a, b): 0.0 for a in all_clinic_ids for b in all_clinic_ids if a != b}
 
     for res in sub_results:
         route = res.get("route", [])
         if not route or None in route:
             continue
+        # Quality weight: pristine feasible sub-clusters carry 3× weight
+        was_repaired = res.get("repaired", False)
+        is_feasible  = res.get("feasible", False)
+        if not is_feasible:
+            continue
+        vote_weight = 1.0 if was_repaired else 3.0
         for i in range(len(route)):
             for j in range(i + 1, len(route)):
                 key = (route[i], route[j])
                 if key in pref:
-                    pref[key] += 1
+                    pref[key] += vote_weight
 
     def compare(a, b):
-        ab = pref.get((a, b), 0)
-        ba = pref.get((b, a), 0)
-        if ab > ba:
+        ab = pref.get((a, b), 0.0)
+        ba = pref.get((b, a), 0.0)
+        if ab > ba + 1e-9:
             return -1      # a before b
-        if ba > ab:
+        if ba > ab + 1e-9:
             return 1       # b before a
         # Tie: place higher-spoilage clinic first to minimise decay time
         def spoilage_urgency(cid):
@@ -202,7 +222,7 @@ def build_consensus_route(sub_results: list, all_clinic_ids: list) -> list:
                 for t in ("frozen", "chilled", "ambient")
             )
         sa, sb = spoilage_urgency(a), spoilage_urgency(b)
-        if sa != sb:
+        if abs(sa - sb) > 1e-9:
             return -1 if sa > sb else 1  # higher urgency goes first
         # Final tie: closer to depot goes first
         return -1 if DISTANCE_MATRIX[0][a] <= DISTANCE_MATRIX[0][b] else 1
@@ -238,6 +258,46 @@ def two_opt(route: list) -> list:
                 c = full_cost(new_inner)
                 if c < best_cost - 1e-9:
                     inner     = new_inner
+                    best_cost = c
+                    improved  = True
+                    break
+            if improved:
+                break
+
+    return [0] + inner + [0]
+
+
+def or_opt(route: list) -> list:
+    """
+    Or-opt (single-node relocation) within a route.
+    Tries moving each interior clinic to every other interior position.
+    Keeps the move with the best improvement in (distance + spoilage).
+    Depot endpoints are fixed. Repeats until no improvement is found.
+    """
+    if len(route) <= 4:
+        return route
+
+    inner = route[1:-1]
+
+    def full_cost(inner_r):
+        r = [0] + inner_r + [0]
+        return route_distance(r) + compute_spoilage(r)
+
+    best_cost = full_cost(inner)
+    improved  = True
+
+    while improved:
+        improved = False
+        for i in range(len(inner)):
+            node     = inner[i]
+            without  = inner[:i] + inner[i + 1:]  # route without node
+            for j in range(len(without) + 1):     # insert before position j
+                if j == i:                          # same position, skip
+                    continue
+                candidate = without[:j] + [node] + without[j:]
+                c = full_cost(candidate)
+                if c < best_cost - 1e-9:
+                    inner     = candidate
                     best_cost = c
                     improved  = True
                     break
@@ -342,6 +402,90 @@ def repair_cross_vehicle(vehicle_routes: dict) -> dict:
 
     return vehicle_routes
 
+
+# ─────────────────────────────────────────
+# PHASE 5.5 — CROSS-VEHICLE OR-OPT
+# Relocate single clinics between vehicles
+# to reduce total fleet cost.
+# ─────────────────────────────────────────
+def cross_vehicle_or_opt(vehicle_routes: dict) -> dict:
+    """
+    For every (source_vehicle, clinic) pair, try inserting that clinic
+    into every feasible position of every other vehicle.
+    Accepts the move if it reduces total fleet (distance + spoilage).
+    Repeats until no improving move is found.
+    """
+    print("\n  [Cross-vehicle Or-opt]")
+
+    def route_cost(route):
+        return route_distance(route) + compute_spoilage(route)
+
+    improved = True
+    passes   = 0
+    while improved and passes < 10:
+        improved = False
+        passes  += 1
+        for src_vid in list(vehicle_routes.keys()):
+            src_route = vehicle_routes[src_vid]
+            src_inner = [c for c in src_route if c != DEPOT_ID]
+            if len(src_inner) <= 1:
+                continue  # keep at least 1 stop per vehicle
+            for node in list(src_inner):
+                src_without = [c for c in src_inner if c != node]
+                new_src     = add_depot(src_without)
+
+                # Verify feasibility of donor after removal
+                ok_src, _ = route_feasible(src_without)
+                if not ok_src:
+                    continue
+
+                src_cost_before = route_cost(src_route)
+                src_cost_after  = route_cost(new_src)
+
+                for dst_vid in vehicle_routes:
+                    if dst_vid == src_vid:
+                        continue
+                    dst_route = vehicle_routes[dst_vid]
+                    dst_inner = [c for c in dst_route if c != DEPOT_ID]
+
+                    # Only insert if capacity allows
+                    ok_dst, _ = route_feasible(dst_inner + [node])
+                    if not ok_dst:
+                        continue
+
+                    dst_cost_before = route_cost(dst_route)
+
+                    # Find best insertion position in dst
+                    best_delta = 0.0
+                    best_new_dst = None
+                    for pos in range(len(dst_inner) + 1):
+                        candidate_inner = dst_inner[:pos] + [node] + dst_inner[pos:]
+                        candidate_route = add_depot(candidate_inner)
+                        delta = (route_cost(candidate_route) - dst_cost_before
+                                 + src_cost_after - src_cost_before)
+                        if delta < best_delta - 1e-9:
+                            best_delta   = delta
+                            best_new_dst = candidate_route
+
+                    if best_new_dst is not None:
+                        vehicle_routes[src_vid] = new_src
+                        vehicle_routes[dst_vid] = best_new_dst
+                        # Apply 2-opt + or-opt to both affected routes
+                        vehicle_routes[src_vid] = or_opt(two_opt(vehicle_routes[src_vid]))
+                        vehicle_routes[dst_vid] = or_opt(two_opt(vehicle_routes[dst_vid]))
+                        print(f"    Moved Clinic {node}: {src_vid} → {dst_vid}  "
+                              f"(fleet saving {-best_delta:.2f})")
+                        improved = True
+                        break  # restart from fresh pass
+                if improved:
+                    break
+            if improved:
+                break
+
+    print(f"  Cross-vehicle Or-opt: {passes} pass(es)")
+    return vehicle_routes
+
+
 # ─────────────────────────────────────────
 # MAIN — STITCH AND REPAIR
 # ─────────────────────────────────────────
@@ -409,18 +553,24 @@ def stitch_and_repair(qaoa_results: dict) -> dict:
         # Phase 3: Add depot
         full = add_depot(consensus)
 
-        # Phase 4: 2-opt
-        before = route_distance(full)
-        full   = two_opt(full)
-        after  = route_distance(full)
-        print(f"  2-opt: {before:.2f} → {after:.2f} km  "
-              f"(saved {before - after:.2f} km)")
+        # Phase 4a: 2-opt
+        cost_before = route_distance(full) + compute_spoilage(full)
+        full        = two_opt(full)
+        # Phase 4b: Or-opt (single-node relocation within route)
+        full        = or_opt(full)
+        cost_after  = route_distance(full) + compute_spoilage(full)
+        print(f"  2-opt + Or-opt: cost {cost_before:.2f} → {cost_after:.2f}  "
+              f"(saved {cost_before - cost_after:.2f})")
         print(f"  Route: {full}")
 
         vehicle_routes[vid] = full
 
     # Phase 5: Cross-vehicle repair
     vehicle_routes = repair_cross_vehicle(vehicle_routes)
+
+    # Phase 6: Cross-vehicle Or-opt — try relocating a single clinic
+    # from one vehicle to another when it reduces total fleet cost.
+    vehicle_routes = cross_vehicle_or_opt(vehicle_routes)
 
     # ── Final summary ──
     clinic_names   = {c["id"]: c["name"] for c in CLINICS}
