@@ -690,13 +690,11 @@ export default function CompareTab({ runPipeline, compareActive = true }) {
         return <td key={s.id} style={{ color: 'var(--text-faint)' }}>—</td>;
       }
 
-      // Infeasible solver: grey out, no "Best" badge, strikethrough
+      // Infeasible solver: show value normally but skip "Best" competition
       if (!isFeasible) {
         return (
-          <td key={s.id} style={{ opacity: 0.4 }}>
-            <span style={{ textDecoration: 'line-through', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)', fontSize: '0.82rem' }}>
-              {s.val.toFixed(2)}{unit}
-            </span>
+          <td key={s.id} className="val-mono">
+            <span>{s.val.toFixed(2)}{unit}</span>
             <span className="solver-badge failed" style={{ marginLeft: '0.4rem', padding: '0.05rem 0.25rem', fontSize: '0.58rem', verticalAlign: 'middle' }}>INFEASIBLE</span>
           </td>
         );
