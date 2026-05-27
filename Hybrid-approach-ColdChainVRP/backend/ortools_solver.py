@@ -44,7 +44,7 @@ def solve_scenario(sc_module: Any) -> dict:
     clinic_names = {c["id"]: c["name"] for c in clinics}
     node_ids     = _matrix_node_ids(sc_module)
 
-    num_locations = dm.shape[0]
+    num_locations = len(node_ids)
     num_vehicles  = len(vehicles)
     depot_idx     = 0
 
@@ -52,11 +52,17 @@ def solve_scenario(sc_module: Any) -> dict:
     cap_c = [vehicles[v]["compartments"]["chilled"]["capacity"] for v in range(num_vehicles)]
     cap_a = [vehicles[v]["compartments"]["ambient"]["capacity"] for v in range(num_vehicles)]
 
+    # Map DM to smaller sequential matrix to support custom, non-sequential clinic IDs
+    dm_small = np.zeros((num_locations, num_locations))
+    for i in range(num_locations):
+        for j in range(num_locations):
+            dm_small[i, j] = dm[node_ids[i], node_ids[j]]
+
     # Integer arc costs: meters (km * 1000) — keeps OR-Tools in int64 comfortably
-    dist_int = np.rint(dm * 1000.0).astype(np.int64)
+    dist_int = np.rint(dm_small * 1000.0).astype(np.int64)
 
     # Travel time in whole minutes (ceil) for time dimension
-    time_mat = np.ceil(dm / max(avg_speed, 1e-6) * 60.0).astype(np.int64)
+    time_mat = np.ceil(dm_small / max(avg_speed, 1e-6) * 60.0).astype(np.int64)
     time_mat[time_mat < 0] = 0
 
     # Time windows in minutes from midnight-style horizon [0, 24h)
