@@ -619,6 +619,16 @@ export default function CompareTab({ runPipeline, compareActive = true }) {
 
   const isAvailable = (s) => s && s.status === 'ok';
 
+  /** True only if the solver ran successfully AND every vehicle is feasible */
+  const isSolverFeasible = (s, isQa = false) => {
+    if (isQa) {
+      if (!qaAvailable || !s || !s.routes) return false;
+      return Object.values(s.routes).every(r => r.feasible !== false);
+    }
+    if (!s || s.status !== 'ok' || !s.routes) return false;
+    return Object.values(s.routes).every(r => r.feasible !== false);
+  };
+
   const SOLVERS = {
     classical: { name: 'Classical Local Search (NN+2opt)', color: 'var(--solver-classical)', data: cl },
     alns: { name: 'ALNS Metaheuristic', color: 'var(--solver-alns)', data: alns },
@@ -629,39 +639,45 @@ export default function CompareTab({ runPipeline, compareActive = true }) {
   };
 
   const renderMetricCell = (key, unit, isLowerBetter = true) => {
-    const clVal = toFiniteNumber(cl?.[key]);
+    const clVal  = toFiniteNumber(cl?.[key]);
     const alnsVal = toFiniteNumber(alns?.[key]);
-    const ortVal = toFiniteNumber(ort?.[key]);
-    const gurVal = toFiniteNumber(gur?.[key]);
+    const ortVal  = toFiniteNumber(ort?.[key]);
+    const gurVal  = toFiniteNumber(gur?.[key]);
     const pulpVal = toFiniteNumber(pulp?.[key]);
-    const qaVal = qaAvailable ? toFiniteNumber(qaM?.[key]) : null;
+    const qaVal   = qaAvailable ? toFiniteNumber(qaM?.[key]) : null;
 
     const solvers = [
-      { id: 'classical', val: clVal, obj: cl },
-      { id: 'alns', val: alnsVal, obj: alns },
-      { id: 'ortools', val: ortVal, obj: ort },
-      { id: 'gurobi', val: gurVal, obj: gur },
-      { id: 'pulp', val: pulpVal, obj: pulp },
-      { id: 'qaoa', val: qaVal, obj: qa },
+      { id: 'classical', val: clVal,  obj: cl   },
+      { id: 'alns',      val: alnsVal, obj: alns  },
+      { id: 'ortools',   val: ortVal,  obj: ort   },
+      { id: 'gurobi',    val: gurVal,  obj: gur   },
+      { id: 'pulp',      val: pulpVal, obj: pulp  },
+      { id: 'qaoa',      val: qaVal,   obj: qa    },
     ];
 
+    // Only feasible, active solvers compete for "Best"
     let bestVal = null;
-    const activeSolvers = solvers.filter(s => s.val !== null && (s.id === 'qaoa' ? qaAvailable : isAvailable(s.obj)));
-    if (activeSolvers.length > 0) {
-      bestVal = activeSolvers[0].val;
-      for (const s of activeSolvers) {
-        if (isLowerBetter ? s.val < bestVal : s.val > bestVal) {
-          bestVal = s.val;
-        }
+    const eligibleSolvers = solvers.filter(s => {
+      if (s.val === null) return false;
+      const avail   = s.id === 'qaoa' ? qaAvailable : isAvailable(s.obj);
+      const feasible = s.id === 'qaoa' ? isSolverFeasible(s.obj, true) : isSolverFeasible(s.obj);
+      return avail && feasible;
+    });
+    if (eligibleSolvers.length > 0) {
+      bestVal = eligibleSolvers[0].val;
+      for (const s of eligibleSolvers) {
+        if (isLowerBetter ? s.val < bestVal : s.val > bestVal) bestVal = s.val;
       }
     }
 
     return solvers.map(s => {
-      const isSolAvail = s.id === 'qaoa' ? qaAvailable : isAvailable(s.obj);
+      const isSolAvail  = s.id === 'qaoa' ? qaAvailable : isAvailable(s.obj);
+      const isFeasible  = s.id === 'qaoa' ? isSolverFeasible(s.obj, true) : isSolverFeasible(s.obj);
+
       if (!isSolAvail) {
         let note = 'N/A';
         if (s.id === 'gurobi' && gur && gur.status === 'unavailable') note = 'No Lic/Lib';
-        else if (s.obj && s.obj.status === 'failed') note = 'Failed';
+        else if (s.obj && s.obj.status === 'failed')  note = 'Failed';
         else if (s.obj && s.obj.status === 'skipped') note = 'Skipped';
         return (
           <td key={s.id} style={{ color: 'var(--text-faint)' }}>
@@ -674,21 +690,32 @@ export default function CompareTab({ runPipeline, compareActive = true }) {
         return <td key={s.id} style={{ color: 'var(--text-faint)' }}>—</td>;
       }
 
-      const isWinner = bestVal !== null && Math.abs(s.val - bestVal) < 1e-4;
+      // Infeasible solver: grey out, no "Best" badge, strikethrough
+      if (!isFeasible) {
+        return (
+          <td key={s.id} style={{ opacity: 0.4 }}>
+            <span style={{ textDecoration: 'line-through', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)', fontSize: '0.82rem' }}>
+              {s.val.toFixed(2)}{unit}
+            </span>
+            <span className="solver-badge failed" style={{ marginLeft: '0.4rem', padding: '0.05rem 0.25rem', fontSize: '0.58rem', verticalAlign: 'middle' }}>INFEASIBLE</span>
+          </td>
+        );
+      }
+
+      const isWinner    = bestVal !== null && Math.abs(s.val - bestVal) < 1e-4;
       const isClassical = s.id === 'classical';
-      
-      let deltaStr = '';
+
+      let deltaStr  = '';
       let deltaClass = '';
       if (!isClassical && clVal !== null && clVal !== 0) {
         const delta = s.val - clVal;
-        const pct = (delta / clVal) * 100;
+        const pct   = (delta / clVal) * 100;
         const isBetter = isLowerBetter ? delta < -1e-4 : delta > 1e-4;
-        const isWorse = isLowerBetter ? delta > 1e-4 : delta < -1e-4;
-        
+        const isWorse  = isLowerBetter ? delta > 1e-4  : delta < -1e-4;
         if (Math.abs(pct) > 0.05) {
           deltaStr = ` (${pct > 0 ? '+' : ''}${pct.toFixed(1)}%)`;
           if (isBetter) deltaClass = ' delta-val better';
-          if (isWorse) deltaClass = ' delta-val worse';
+          if (isWorse)  deltaClass = ' delta-val worse';
         }
       }
 
@@ -704,19 +731,28 @@ export default function CompareTab({ runPipeline, compareActive = true }) {
     });
   };
 
+
   const renderStatusBadgeCell = () => {
     const solvers = [
-      { id: 'classical', obj: cl, name: 'Classical' },
-      { id: 'alns', obj: alns, name: 'ALNS' },
-      { id: 'ortools', obj: ort, name: 'OR-Tools' },
-      { id: 'gurobi', obj: gur, name: 'Gurobi' },
-      { id: 'pulp', obj: pulp, name: 'PuLP/CBC' },
-      { id: 'qaoa', obj: qa, name: 'Hybrid QAOA', isQa: true },
+      { id: 'classical', obj: cl,   name: 'Classical'   },
+      { id: 'alns',      obj: alns,  name: 'ALNS'        },
+      { id: 'ortools',   obj: ort,   name: 'OR-Tools'    },
+      { id: 'gurobi',    obj: gur,   name: 'Gurobi'      },
+      { id: 'pulp',      obj: pulp,  name: 'PuLP/CBC'    },
+      { id: 'qaoa',      obj: qa,    name: 'Hybrid QAOA', isQa: true },
     ];
 
     return solvers.map(s => {
-      const avail = s.isQa ? qaAvailable : isAvailable(s.obj);
+      const avail    = s.isQa ? qaAvailable : isAvailable(s.obj);
+      const feasible = s.isQa ? isSolverFeasible(s.obj, true) : isSolverFeasible(s.obj);
       if (avail) {
+        if (!feasible) {
+          return (
+            <td key={s.id}>
+              <span className="solver-badge failed" title="Solution violates one or more vehicle capacity constraints.">Infeasible</span>
+            </td>
+          );
+        }
         return (
           <td key={s.id}>
             <span className="solver-badge ok">Active</span>
@@ -745,6 +781,7 @@ export default function CompareTab({ runPipeline, compareActive = true }) {
       }
     });
   };
+
 
   const renderMapPanelHeader = (side, active, onChange) => {
     return (
@@ -862,12 +899,28 @@ export default function CompareTab({ runPipeline, compareActive = true }) {
                 <thead>
                   <tr>
                     <th>Metric</th>
-                    <th style={{ color: 'var(--solver-classical)' }}>Classical Local Search (NN+2opt)</th>
-                    <th style={{ color: 'var(--solver-alns)' }}>ALNS Metaheuristic</th>
-                    <th style={{ color: 'var(--solver-ortools)' }}>Google OR-Tools</th>
-                    <th style={{ color: 'var(--solver-gurobi)' }}>Gurobi (ILP)</th>
-                    <th style={{ color: 'var(--solver-pulp)' }}>PuLP/CBC (ILP)</th>
-                    <th style={{ color: 'var(--solver-qaoa)' }}>Hybrid QAOA</th>
+                    {[
+                      { id: 'classical', label: 'Classical Local Search (NN+2opt)', color: 'var(--solver-classical)', obj: cl,   isQa: false },
+                      { id: 'alns',      label: 'ALNS Metaheuristic',               color: 'var(--solver-alns)',       obj: alns,  isQa: false },
+                      { id: 'ortools',   label: 'Google OR-Tools',                  color: 'var(--solver-ortools)',    obj: ort,   isQa: false },
+                      { id: 'gurobi',    label: 'Gurobi (ILP)',                     color: 'var(--solver-gurobi)',     obj: gur,   isQa: false },
+                      { id: 'pulp',      label: 'PuLP/CBC (ILP)',                   color: 'var(--solver-pulp)',       obj: pulp,  isQa: false },
+                      { id: 'qaoa',      label: 'Hybrid QAOA',                      color: 'var(--solver-qaoa)',       obj: qa,    isQa: true  },
+                    ].map(({ id, label, color, obj, isQa }) => {
+                      const avail    = isQa ? qaAvailable : isAvailable(obj);
+                      const feasible = avail && (isQa ? isSolverFeasible(obj, true) : isSolverFeasible(obj));
+                      const infeasible = avail && !feasible;
+                      return (
+                        <th key={id} style={infeasible ? { color: 'var(--text-faint)', opacity: 0.5 } : { color }}>
+                          {label}
+                          {infeasible && (
+                            <div style={{ fontSize: '0.62rem', fontWeight: 400, color: 'var(--bad)', marginTop: '2px', letterSpacing: '0.04em' }}>
+                              ⚠ INFEASIBLE
+                            </div>
+                          )}
+                        </th>
+                      );
+                    })}
                   </tr>
                 </thead>
                 <tbody>
