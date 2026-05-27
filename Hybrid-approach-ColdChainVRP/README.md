@@ -51,7 +51,7 @@ Every commercial and open-source routing tool in production today — OR-Tools, 
 
 None of them encode the actual physics of product degradation into the optimization objective. They do not know that a frozen vaccine loses value exponentially with time. They do not know that a slightly longer route delivering frozen vaccines first can save more money than the distance costs. They treat all cargo the same.
 
-This project closes that gap with three specific contributions:
+This project closes that gap with four specific contributions:
 
 **Contribution 1 — Spoilage physics inside the quantum cost function**
 The decay equation `cost = value × alpha × cumulative_time × quantity` is encoded directly as a term in the QUBO Hamiltonian. The optimizer minimizes actual monetary loss, not just distance.
@@ -59,10 +59,15 @@ The decay equation `cost = value × alpha × cumulative_time × quantity` is enc
 **Contribution 2 — Cap-Bounded Multi-Trip Fleet Clustering**
 Instead of assigning clinics to routes purely by distance or creating too many routes, this system uses a smart two-level classical planner:
 * **Strict Fleet Capping**: Clinics are grouped strictly into the actual number of vehicles in the fleet (e.g., exactly 2 or 3). Clinics are grouped together only if they are close geographically AND have compatible delivery windows.
-* **Multi-Compartment Load Balancing**: The system dynamically balances the total demand of clinics across the fleet, allowing a vehicle's total demand to exceed single-trip capacity because vehicles can make multiple trips.
-* **First-Fit Trip Splitting**: A greedy bin-packing algorithm automatically divides a vehicle's clinics into multiple trips. Each individual trip is guaranteed to fit perfectly under the vehicle's three multi-compartment capacity limits (frozen, chilled, and ambient).
+* **Multi-Compartment Load Balancing & Presorting**: The system dynamically balances total demand and scales capacity limits to allow multi-trip route optimization, coupled with heat-risk urgency queue presorting.
+* **First-Fit Trip Splitting**: A greedy bin-packing algorithm automatically divides a vehicle's clinics into multiple trips, ensuring each individual trip strictly satisfies the frozen, chilled, and ambient capacity limits.
 
-**Contribution 3 — First bridge between quantum VRP and cold-chain logistics research**
+**Contribution 3 — Hybrid Local Search & Quality-Weighted Voting**
+* **Quality-Weighted Consensus Voting**: Accumulates multiple samples from the QAOA optimizer, assigning higher confidence weights to pristine quantum runs ($3\times$) compared to classically repaired runs ($1\times$) to choose optimal base routes.
+* **Intra-Route Or-Opt**: Repositioning individual clinics within a trip route to minimize transit times and heat spoilage.
+* **Cross-Vehicle Or-Opt**: Relocating clinics across different vehicle routes and trips to balance overall load, avoid compartment limit violations, and optimize refrigeration costs.
+
+**Contribution 4 — First bridge between quantum VRP and cold-chain logistics research**
 Quantum VRP researchers and cold-chain logistics researchers publish in entirely different fields and have never connected. This project extends the Dash et al. 2025 hierarchical QAOA architecture into the multi-compartment cold-chain domain for the first time.
 
 ---
@@ -115,10 +120,15 @@ No published quantum VRP paper has encoded temperature-dependent spoilage decay 
 **Contribution 2 — Cap-Bounded Multi-Trip Fleet Clustering**
 A classical two-level hierarchical planner manages fleet constraints and subproblem routing:
 * **Strict Fleet Capping**: The Level-1 geographic K-means algorithm groups clinics strictly into the actual fleet size (`n_clusters = n_vehicles`), repelling clinics with incompatible delivery windows.
-* **Dynamic Load Repair**: Vehicle clusters are balanced using a dynamically scaled relaxed capacity based on the scenario's average vehicle load, allowing a vehicle to carry a higher total demand over multiple trips.
+* **Dynamic Load Repair & Urgency Presorting**: Vehicle clusters are balanced using a dynamically scaled relaxed capacity based on the scenario's average vehicle load, allowing a vehicle to carry a higher total demand over multiple trips. Clinic delivery queues are presorted based on time-window deadlines and thermal risk.
 * **First-Fit Trip Splitting**: A greedy bin-packing algorithm dynamically splits each vehicle's cluster into multiple trips. Each individual trip is guaranteed to fit perfectly under the three compartment capacity limits (frozen, chilled, and ambient), and is then split into overlapping 3-node subproblems (Level 2) for the quantum solver.
 
-**Contribution 3 — First quantum-classical cold-chain bridge**
+**Contribution 3 — Hybrid Local Search & Quality-Weighted Voting**
+* **Quality-Weighted Consensus Voting**: Accumulates multiple samples from the QAOA optimizer, assigning higher confidence weights to pristine quantum runs ($3\times$) compared to classically repaired runs ($1\times$) to choose optimal base routes.
+* **Intra-Route Or-Opt**: Repositioning individual clinics within a trip route to minimize transit times and heat spoilage.
+* **Cross-Vehicle Or-Opt**: Relocating clinics across different vehicle routes and trips to balance overall load, avoid compartment limit violations, and optimize refrigeration costs.
+
+**Contribution 4 — First quantum-classical cold-chain bridge**
 Extends the Dash et al. 2025 hierarchical QAOA architecture into multi-compartment cold-chain VRP — connecting two research communities that have never intersected.
 
 ---
