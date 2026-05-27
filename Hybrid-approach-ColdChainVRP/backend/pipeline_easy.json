@@ -61,7 +61,7 @@
             "cap": 15
           }
         },
-        "computation_time": 0.001,
+        "computation_time": 0.0006,
         "solver": "Classical (NN+2opt+ORopt)"
       },
       "V2": {
@@ -165,7 +165,7 @@
             "cap": 15
           }
         },
-        "computation_time": 0.0353,
+        "computation_time": 0.011,
         "solver": "Classical (NN+2opt+ORopt)"
       }
     },
@@ -173,7 +173,7 @@
     "fleet_spoilage": 93.2718,
     "fleet_refrigeration": 0.2388,
     "fleet_total_cost": 211.6303,
-    "total_time": 0.0363,
+    "total_time": 0.0116,
     "status": "ok"
   },
   "qaoa": {
@@ -181,6 +181,8 @@
       "V1": {
         "route": [
           0,
+          5,
+          6,
           3,
           2,
           1,
@@ -192,6 +194,18 @@
             "name": "Depot",
             "lat": 13.0827,
             "lon": 80.2707
+          },
+          {
+            "id": 5,
+            "name": "Adyar Clinic",
+            "lat": 13.0012,
+            "lon": 80.2565
+          },
+          {
+            "id": 6,
+            "name": "Velachery PHC",
+            "lat": 12.9815,
+            "lon": 80.218
           },
           {
             "id": 3,
@@ -218,10 +232,10 @@
             "lon": 80.2707
           }
         ],
-        "distance_km": 51.48,
-        "spoilage_rs": 21.844,
-        "refrigeration_rs": 0.078,
-        "total_cost_rs": 73.4066,
+        "distance_km": 54.64,
+        "spoilage_rs": 33.0751,
+        "refrigeration_rs": 0.0874,
+        "total_cost_rs": 87.8025,
         "feasible": true,
         "capacity": {
           "frozen": {
@@ -229,11 +243,11 @@
             "cap": 10
           },
           "chilled": {
-            "used": 5,
+            "used": 10,
             "cap": 12
           },
           "ambient": {
-            "used": 5,
+            "used": 9,
             "cap": 15
           }
         }
@@ -242,9 +256,8 @@
         "route": [
           0,
           12,
-          6,
           7,
-          10,
+          8,
           0
         ],
         "stops": [
@@ -261,22 +274,16 @@
             "lon": 80.2609
           },
           {
-            "id": 6,
-            "name": "Velachery PHC",
-            "lat": 12.9815,
-            "lon": 80.218
-          },
-          {
             "id": 7,
             "name": "Porur Clinic",
             "lat": 13.035,
             "lon": 80.1567
           },
           {
-            "id": 10,
-            "name": "Poonamallee PHC",
-            "lat": 13.0467,
-            "lon": 80.0956
+            "id": 8,
+            "name": "Ambattur PHC",
+            "lat": 13.1143,
+            "lon": 80.1548
           },
           {
             "id": 0,
@@ -285,22 +292,22 @@
             "lon": 80.2707
           }
         ],
-        "distance_km": 47.73,
-        "spoilage_rs": 21.7096,
-        "refrigeration_rs": 0.085,
-        "total_cost_rs": 69.5245,
+        "distance_km": 36.84,
+        "spoilage_rs": 8.6313,
+        "refrigeration_rs": 0.0714,
+        "total_cost_rs": 45.5423,
         "feasible": true,
         "capacity": {
           "frozen": {
-            "used": 10,
+            "used": 7,
             "cap": 10
           },
           "chilled": {
-            "used": 12,
+            "used": 8,
             "cap": 12
           },
           "ambient": {
-            "used": 6,
+            "used": 3,
             "cap": 15
           }
         }
@@ -310,9 +317,8 @@
           0,
           11,
           9,
-          8,
+          10,
           4,
-          5,
           0
         ],
         "stops": [
@@ -335,10 +341,10 @@
             "lon": 80.095
           },
           {
-            "id": 8,
-            "name": "Ambattur PHC",
-            "lat": 13.1143,
-            "lon": 80.1548
+            "id": 10,
+            "name": "Poonamallee PHC",
+            "lat": 13.0467,
+            "lon": 80.0956
           },
           {
             "id": 4,
@@ -347,43 +353,37 @@
             "lon": 80.2206
           },
           {
-            "id": 5,
-            "name": "Adyar Clinic",
-            "lat": 13.0012,
-            "lon": 80.2565
-          },
-          {
             "id": 0,
             "name": "Depot",
             "lat": 13.0827,
             "lon": 80.2707
           }
         ],
-        "distance_km": 54.02,
-        "spoilage_rs": 35.2798,
-        "refrigeration_rs": 0.1345,
-        "total_cost_rs": 89.4374,
+        "distance_km": 51.4,
+        "spoilage_rs": 29.0773,
+        "refrigeration_rs": 0.1241,
+        "total_cost_rs": 80.6063,
         "feasible": true,
         "capacity": {
           "frozen": {
-            "used": 7,
+            "used": 10,
             "cap": 10
           },
           "chilled": {
-            "used": 8,
+            "used": 7,
             "cap": 12
           },
           "ambient": {
-            "used": 11,
+            "used": 10,
             "cap": 15
           }
         }
       }
     },
-    "fleet_distance": 153.24,
-    "fleet_spoilage": 78.8334,
-    "fleet_refrigeration": 0.2975,
-    "fleet_total_cost": 232.3685,
+    "fleet_distance": 142.88,
+    "fleet_spoilage": 70.7837,
+    "fleet_refrigeration": 0.2829,
+    "fleet_total_cost": 213.951,
     "status": "ok"
   }
 }

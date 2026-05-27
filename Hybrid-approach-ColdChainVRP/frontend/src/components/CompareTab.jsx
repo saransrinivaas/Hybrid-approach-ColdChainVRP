@@ -694,7 +694,7 @@ export default function CompareTab({ runPipeline, compareActive = true }) {
       if (!isFeasible) {
         return (
           <td key={s.id} className="val-mono">
-            <span>{s.val.toFixed(2)}{unit}</span>
+            <span style={{ textDecoration: 'line-through' }}>{s.val.toFixed(2)}{unit}</span>
             <span className="solver-badge failed" style={{ marginLeft: '0.4rem', padding: '0.05rem 0.25rem', fontSize: '0.58rem', verticalAlign: 'middle' }}>INFEASIBLE</span>
           </td>
         );
@@ -909,7 +909,7 @@ export default function CompareTab({ runPipeline, compareActive = true }) {
                       const feasible = avail && (isQa ? isSolverFeasible(obj, true) : isSolverFeasible(obj));
                       const infeasible = avail && !feasible;
                       return (
-                        <th key={id} style={infeasible ? { color: 'var(--text-faint)', opacity: 0.5 } : { color }}>
+                        <th key={id} style={{ color }}>
                           {label}
                           {infeasible && (
                             <div style={{ fontSize: '0.62rem', fontWeight: 400, color: 'var(--bad)', marginTop: '2px', letterSpacing: '0.04em' }}>

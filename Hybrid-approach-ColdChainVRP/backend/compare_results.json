@@ -62,7 +62,7 @@
               "cap": 15
             }
           },
-          "computation_time": 0.002,
+          "computation_time": 0.001,
           "solver": "Classical (NN+2opt+ORopt)"
         },
         "V2": {
@@ -166,7 +166,7 @@
               "cap": 15
             }
           },
-          "computation_time": 0.0308,
+          "computation_time": 0.004,
           "solver": "Classical (NN+2opt+ORopt)"
         }
       },
@@ -174,7 +174,7 @@
       "fleet_spoilage": 93.2718,
       "fleet_refrigeration": 0.2388,
       "fleet_total_cost": 211.6303,
-      "total_time": 0.0328,
+      "total_time": 0.005,
       "status": "ok"
     },
     "ortools": {
@@ -184,7 +184,7 @@
       "fleet_spoilage": 0.0,
       "fleet_refrigeration": 0.0,
       "fleet_total_cost": 0.0,
-      "total_time": 5.0016,
+      "total_time": 5.0167,
       "status": "failed"
     },
     "gurobi": {
@@ -204,7 +204,7 @@
       "fleet_spoilage": 0.0,
       "fleet_refrigeration": 0.0,
       "fleet_total_cost": 0.0,
-      "total_time": 44.863,
+      "total_time": 45.2237,
       "status": "failed"
     },
     "alns": {
@@ -297,7 +297,7 @@
               "cap": 15
             }
           },
-          "computation_time": 0.1854,
+          "computation_time": 0.3361,
           "solver": "ALNS Metaheuristic"
         },
         "V2": {
@@ -373,7 +373,7 @@
               "cap": 15
             }
           },
-          "computation_time": 0.1854,
+          "computation_time": 0.3361,
           "solver": "ALNS Metaheuristic"
         }
       },
@@ -381,7 +381,7 @@
       "fleet_spoilage": 69.2523,
       "fleet_refrigeration": 0.2062,
       "fleet_total_cost": 176.7162,
-      "total_time": 0.1854,
+      "total_time": 0.3361,
       "status": "ok"
     },
     "qaoa": {
@@ -390,6 +390,8 @@
         "V1": {
           "route": [
             0,
+            5,
+            6,
             3,
             2,
             1,
@@ -399,6 +401,14 @@
             {
               "id": 0,
               "name": "Depot"
+            },
+            {
+              "id": 5,
+              "name": "Adyar Clinic"
+            },
+            {
+              "id": 6,
+              "name": "Velachery PHC"
             },
             {
               "id": 3,
@@ -417,10 +427,10 @@
               "name": "Depot"
             }
           ],
-          "distance_km": 51.4846,
-          "spoilage_rs": 21.844,
-          "refrigeration_rs": 0.078,
-          "total_cost_rs": 73.4066,
+          "distance_km": 54.64,
+          "spoilage_rs": 33.0751,
+          "refrigeration_rs": 0.0874,
+          "total_cost_rs": 87.8025,
           "feasible": true,
           "capacity": {
             "frozen": {
@@ -428,24 +438,23 @@
               "cap": 10
             },
             "chilled": {
-              "used": 5,
+              "used": 10,
               "cap": 12
             },
             "ambient": {
-              "used": 5,
+              "used": 9,
               "cap": 15
             }
           },
-          "computation_time": 3.2962,
+          "computation_time": 0.7087,
           "solver": "QAOA (p=3)"
         },
         "V2_1": {
           "route": [
             0,
             12,
-            6,
             7,
-            10,
+            8,
             0
           ],
           "stops": [
@@ -458,42 +467,38 @@
               "name": "Royapettah Hospital"
             },
             {
-              "id": 6,
-              "name": "Velachery PHC"
-            },
-            {
               "id": 7,
               "name": "Porur Clinic"
             },
             {
-              "id": 10,
-              "name": "Poonamallee PHC"
+              "id": 8,
+              "name": "Ambattur PHC"
             },
             {
               "id": 0,
               "name": "Depot"
             }
           ],
-          "distance_km": 47.7298,
-          "spoilage_rs": 21.7096,
-          "refrigeration_rs": 0.085,
-          "total_cost_rs": 69.5245,
+          "distance_km": 36.8395,
+          "spoilage_rs": 8.6313,
+          "refrigeration_rs": 0.0714,
+          "total_cost_rs": 45.5423,
           "feasible": true,
           "capacity": {
             "frozen": {
-              "used": 10,
+              "used": 7,
               "cap": 10
             },
             "chilled": {
-              "used": 12,
+              "used": 8,
               "cap": 12
             },
             "ambient": {
-              "used": 6,
+              "used": 3,
               "cap": 15
             }
           },
-          "computation_time": 3.2962,
+          "computation_time": 0.7087,
           "solver": "QAOA (p=3)"
         },
         "V2_2": {
@@ -501,9 +506,8 @@
             0,
             11,
             9,
-            8,
+            10,
             4,
-            5,
             0
           ],
           "stops": [
@@ -520,50 +524,46 @@
               "name": "Avadi Clinic"
             },
             {
-              "id": 8,
-              "name": "Ambattur PHC"
+              "id": 10,
+              "name": "Poonamallee PHC"
             },
             {
               "id": 4,
               "name": "Guindy Hospital"
             },
             {
-              "id": 5,
-              "name": "Adyar Clinic"
-            },
-            {
               "id": 0,
               "name": "Depot"
             }
           ],
-          "distance_km": 54.0231,
-          "spoilage_rs": 35.2798,
-          "refrigeration_rs": 0.1345,
-          "total_cost_rs": 89.4374,
+          "distance_km": 51.405,
+          "spoilage_rs": 29.0773,
+          "refrigeration_rs": 0.1241,
+          "total_cost_rs": 80.6063,
           "feasible": true,
           "capacity": {
             "frozen": {
-              "used": 7,
+              "used": 10,
               "cap": 10
             },
             "chilled": {
-              "used": 8,
+              "used": 7,
               "cap": 12
             },
             "ambient": {
-              "used": 11,
+              "used": 10,
               "cap": 15
             }
           },
-          "computation_time": 3.2962,
+          "computation_time": 0.7087,
           "solver": "QAOA (p=3)"
         }
       },
-      "fleet_distance": 153.2375,
-      "fleet_spoilage": 78.8334,
-      "fleet_refrigeration": 0.2975,
-      "fleet_total_cost": 232.3684,
-      "total_time": 3.2962,
+      "fleet_distance": 142.8845,
+      "fleet_spoilage": 70.7837,
+      "fleet_refrigeration": 0.2829,
+      "fleet_total_cost": 213.9511,
+      "total_time": 0.7087,
       "status": "ok"
     }
   },
