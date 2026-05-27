@@ -12,6 +12,20 @@ comparison with the hybrid pipeline in compare.py / the UI.
 No NN / 2-opt / OR-opt — only the external MIP/CP-SAT based routing search.
 """
 
+import os
+import sys
+
+# Inject virtual environment site-packages to support running globally
+BACKEND_DIR = os.path.dirname(os.path.abspath(__file__))
+venv_paths = [
+    os.path.join(BACKEND_DIR, '..', '..', 'venv', 'Lib', 'site-packages'),
+    os.path.join(BACKEND_DIR, 'venv', 'Lib', 'site-packages'),
+    os.path.join(BACKEND_DIR, '..', 'venv', 'Lib', 'site-packages')
+]
+for vp in venv_paths:
+    if os.path.exists(vp) and vp not in sys.path:
+        sys.path.insert(0, vp)
+
 from __future__ import annotations
 
 import time
