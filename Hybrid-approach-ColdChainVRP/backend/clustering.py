@@ -297,7 +297,7 @@ def print_summary(vehicle_routes, clinics, capacity, demands, time_windows):
             tw_open = min(time_windows[c][0] for c in trip)
             tw_close = min(time_windows[c][1] for c in trip)
             sub = generate_subclusters(trip)
-            trip_qubits = sum(len(sc)**2 * 3 for sc in sub)
+            trip_qubits = sum(len(sc)**2 for sc in sub)
             grand_qubits += trip_qubits
             grand_sub += len(sub)
             label = f"Trip {t_idx+1}" if len(trips)>1 else "Single Trip"
@@ -307,9 +307,9 @@ def print_summary(vehicle_routes, clinics, capacity, demands, time_windows):
             print(f"|  |  Sub-clusters ({len(sub)} groups, {trip_qubits} qubits):")
             for sc in sub:
                 names = [get_clinic_name(c, clinics) for c in sc]
-                print(f"|  |    {sc} -> {names}  [{len(sc)**2 * 3} qubits]")
+                print(f"|  |    {sc} -> {names}  [{len(sc)**2} qubits]")
         print("|")
-    max_qubits = (MAX_CLUSTER_SIZE**2 * 3) * grand_sub
+    max_qubits = (MAX_CLUSTER_SIZE**2) * grand_sub
     print("="*55)
     print(f"  Total sub-clusters : {grand_sub}")
     print(f"  Total qubits       : {grand_qubits}")
