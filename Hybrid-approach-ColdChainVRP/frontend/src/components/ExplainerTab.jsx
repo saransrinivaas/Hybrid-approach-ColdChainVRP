@@ -303,6 +303,47 @@ export default function ExplainerTab({ activeTab }) {
           </div>
         </div>
 
+        {/* Core Scientific Novelties & Mathematical Breakthroughs */}
+        <div className="card glass-panel" style={{ padding: '1.5rem' }}>
+          <h3 style={{ marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <Award size={18} style={{ color: 'var(--solver-qaoa)' }} />
+            Core Novel Contributions
+          </h3>
+          <p style={{ color: 'var(--text-secondary)', fontSize: '0.88rem', marginBottom: '1.25rem' }}>
+            This project bridges the gap between quantum VRP and cold-chain logistics research by introducing four primary contributions as detailed in our system blueprint:
+          </p>
+
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+            <div style={{ padding: '1rem', borderRadius: '8px', backgroundColor: 'rgba(99, 102, 241, 0.03)', border: '1px solid rgba(99, 102, 241, 0.15)' }}>
+              <h4 style={{ margin: '0 0 0.5rem 0', color: 'var(--solver-qaoa)' }}>Contribution 1 — Spoilage Physics inside Quantum Hamiltonian</h4>
+              <p style={{ margin: 0, fontSize: '0.82rem', color: 'var(--text-secondary)', lineHeight: '1.5' }}>
+                {'No published quantum VRP paper has encoded temperature-dependent spoilage decay as a term in the cost function. The decay equation (Value × Alpha × Cumulative_time × Quantity) is encoded directly as a Hamiltonian term, making the optimizer minimize actual monetary loss rather than just geographic distance.'}
+              </p>
+            </div>
+            
+            <div style={{ padding: '1rem', borderRadius: '8px', backgroundColor: 'rgba(216, 189, 127, 0.03)', border: '1px solid rgba(216, 189, 127, 0.15)' }}>
+              <h4 style={{ margin: '0 0 0.5rem 0', color: '#d8bd7f' }}>Contribution 2 — Cap-Bounded Multi-Trip Fleet Clustering</h4>
+              <p style={{ margin: 0, fontSize: '0.82rem', color: 'var(--text-secondary)', lineHeight: '1.5' }}>
+                {'A classical two-level hierarchical planner manages fleet constraints and subproblem routing. Geographic K-means groups clinics strictly into the actual fleet size (n_clusters = n_vehicles) while repelling incompatible delivery windows. Dynamic load repair presorts delivery queues by time deadlines, and a greedy first-fit bin-packing algorithm dynamically splits clusters into trips satisfying frozen, chilled, and ambient compartment capacities.'}
+              </p>
+            </div>
+
+            <div style={{ padding: '1rem', borderRadius: '8px', backgroundColor: 'rgba(236, 72, 153, 0.03)', border: '1px solid rgba(236, 72, 153, 0.15)' }}>
+              <h4 style={{ margin: '0 0 0.5rem 0', color: 'var(--solver-alns)' }}>Contribution 3 — Hybrid Local Search & Quality-Weighted Voting</h4>
+              <p style={{ margin: 0, fontSize: '0.82rem', color: 'var(--text-secondary)', lineHeight: '1.5' }}>
+                {'Integrates Quality-Weighted Consensus Voting which accumulates samples from the QAOA optimizer, assigning higher confidence weights to pristine quantum runs (3x) compared to repaired runs (1x). Symmetrizes the routing pipeline by feeding all paths into global duplicate repair and cross-vehicle Or-opt relocations to balance load and reduce refrigeration costs.'}
+              </p>
+            </div>
+
+            <div style={{ padding: '1rem', borderRadius: '8px', backgroundColor: 'rgba(16, 185, 129, 0.03)', border: '1px solid rgba(16, 185, 129, 0.15)' }}>
+              <h4 style={{ margin: '0 0 0.5rem 0', color: '#10b981' }}>Contribution 4 — First Quantum-Classical Cold-Chain Bridge</h4>
+              <p style={{ margin: 0, fontSize: '0.82rem', color: 'var(--text-secondary)', lineHeight: '1.5' }}>
+                {'Directly connects the quantum computing research community with the cold-chain logistics research community by extending the Dash et al. 2025 hierarchical QAOA template into the multi-compartment cold-chain domain for the very first time.'}
+              </p>
+            </div>
+          </div>
+        </div>
+
       </div>
 
       {/* Sidebar: Interactive SVG Charts */}
@@ -384,6 +425,15 @@ export default function ExplainerTab({ activeTab }) {
                 Hover over the chart to inspect simulated costs.
               </div>
             )}
+          </div>
+          
+          <div style={{ marginTop: '0.8rem', fontSize: '0.78rem', color: 'var(--text-muted)', lineHeight: '1.4' }}>
+            <strong>Curve Mechanics Explained:</strong>
+            <ul style={{ paddingLeft: '1rem', margin: '0.25rem 0 0 0', display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+              <li><span style={{ color: 'var(--solver-qaoa)' }}>● Frozen:</span> Shallow slope. Deep freezing preserves vaccines (low alpha decay), but high dose values make any long delays extremely costly.</li>
+              <li><span style={{ color: 'var(--solver-alns)' }}>● Chilled:</span> Moderate linear slope representing standard continuous degradation over the delivery window.</li>
+              <li><span style={{ color: 'var(--solver-ortools)' }}>● Ambient:</span> Very steep slope (5% per hour decay). Degrades rapidly if not delivered quickly due to high temperature exposure.</li>
+            </ul>
           </div>
         </div>
 
@@ -488,6 +538,14 @@ export default function ExplainerTab({ activeTab }) {
                 Hover over the size markers to see scaling dynamics.
               </div>
             )}
+          </div>
+          
+          <div style={{ marginTop: '0.8rem', fontSize: '0.78rem', color: 'var(--text-muted)', lineHeight: '1.4' }}>
+            <strong>Scaling Mechanics Explained:</strong>
+            <ul style={{ paddingLeft: '1rem', margin: '0.25rem 0 0 0', display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+              <li><span style={{ color: '#ef4444' }}>● Direct VRP:</span> Scales quadratically ($O(N^2)$). A 10-node route requires 100 qubits. Direct quantum simulation crosses the memory wall, crashing standard computers.</li>
+              <li><span style={{ color: 'var(--solver-ortools)' }}>● Hybrid VRP:</span> Capped at 16 qubits. No matter how large the vehicle's clinic cluster is, the sub-clustering algorithm bounds quantum resource complexity to a highly stable, NISQ-viable budget.</li>
+            </ul>
           </div>
         </div>
 
