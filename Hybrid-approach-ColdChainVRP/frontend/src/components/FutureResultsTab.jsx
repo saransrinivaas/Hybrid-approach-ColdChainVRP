@@ -159,7 +159,7 @@ export default function FutureResultsTab({ activeTab }) {
                 <span style={{ color: 'var(--solver-qaoa)' }}>Q.</span> Is it physically possible to simulate 100 qubits classically?
               </h4>
               <p style={{ color: 'var(--text-secondary)', margin: 0 }}>
-                **No, not at full statevector resolution.** Simulating a 10-node sub-cluster requires $10^2 = 100$ qubits. This creates a statevector size of $2^{100}$ complex amplitudes, which would require more physical memory than all hard drives on Earth combined. Standard classical computers will instantly crash.
+                {'No, not at full statevector resolution. Simulating a 10-node sub-cluster requires $10^2 = 100$ qubits. This creates a statevector size of $2^{100}$ complex amplitudes, which would require more physical memory than all hard drives on Earth combined. Standard classical computers will instantly crash.'}
               </p>
             </div>
 
@@ -214,7 +214,7 @@ export default function FutureResultsTab({ activeTab }) {
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
               <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'flex-start' }}>
                 <CheckCircle size={15} style={{ color: 'var(--solver-qaoa)', marginTop: '2px' }} />
-                <span><strong>Proposed 10-node Direct Solve</strong> searches the entire combinatorial space of $10! \approx 3.6 \text{ million}$ routes, starting the post-optimizer inside an extremely deep basin.</span>
+                <span><strong>Proposed 10-node Direct Solve</strong> {'searches the entire combinatorial space of $10! \\approx 3.6 \\text{ million}$ routes, starting the post-optimizer inside an extremely deep basin.'}</span>
               </div>
               <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'flex-start' }}>
                 <ShieldAlert size={15} style={{ color: 'var(--warn)', marginTop: '2px' }} />
