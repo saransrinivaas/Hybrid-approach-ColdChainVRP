@@ -130,8 +130,8 @@ This prevents situations where a route is shortened by 1 km but delays a high-va
 ### 5.1 The 100-Qubit Classical Simulation Memory Wall
 Direct classical simulation of a 100-qubit circuit at full statevector resolution is physically impossible. A 10-clinic sub-cluster requires $10^2 = 100$ qubits due to the permutation grid mapping. Tracking the complete statevector would require storing $2^{100}$ complex amplitudes. This would require more physical memory than all hard drives on Earth combined, which is why attempting a full statevector simulation of 10 nodes instantly crashes standard computers.
 
-### 5.2 Bypassing the Wall: How We Did It
-It is physically impossible to simulate the statevector directly. **However, here is how we did it:** 
+### 5.2 Bypassing the Wall: Then How TF Did We Do It Here?
+It is physically impossible to simulate the statevector directly. **Then how tf did we do it here?** 
 
 Instead of running the massive, unsimulatable 100-qubit circuit itself, we simulated its mathematically perfect, error-corrected, noise-free future output. 
 
