@@ -313,33 +313,33 @@ export default function FutureResultsTab({ activeTab }) {
               </p>
               
               <div style={{ padding: '1rem', background: 'rgba(0,0,0,0.2)', borderRadius: '6px', border: '1px solid rgba(255,255,255,0.05)', textAlign: 'center', margin: '0.5rem 0', overflowX: 'auto' }}>
-                <div style={{ color: 'var(--accent)' }}>
-                  {'$$\\mathcal{H} = \\mathcal{H}_{\\text{distance}} + \\mathcal{H}_{\\text{spoilage}} + \\mathcal{H}_{\\text{refrigeration}} + \\mathcal{H}_{\\text{visit}} + \\mathcal{H}_{\\text{position}}$$'}
-                </div>
+                <code style={{ fontFamily: 'var(--font-mono)', fontSize: '0.92rem', color: 'var(--accent)', letterSpacing: '0.5px' }}>
+                  H = H<sub>distance</sub> + H<sub>spoilage</sub> + H<sub>refrigeration</sub> + H<sub>visit</sub> + H<sub>position</sub>
+                </code>
               </div>
 
               <p style={{ color: 'var(--text-secondary)', margin: '0.8rem 0' }}>
-                In quantum mechanics, the lowest energy state (eigenstate corresponding to the minimum eigenvalue) of this Hamiltonian, denoted by {'$|\\psi_0\\rangle$'}, represents <strong>uniquely and precisely</strong> the absolute global optimum routing configuration:
+                In quantum mechanics, the lowest energy state (eigenstate corresponding to the minimum eigenvalue) of this Hamiltonian, denoted by <strong>|&psi;<sub>0</sub>&rang;</strong>, represents <strong>uniquely and precisely</strong> the absolute global optimum routing configuration:
               </p>
 
               <div style={{ padding: '1rem', background: 'rgba(0,0,0,0.2)', borderRadius: '6px', border: '1px solid rgba(255,255,255,0.05)', textAlign: 'center', margin: '0.5rem 0', overflowX: 'auto' }}>
-                <div style={{ color: 'var(--accent)' }}>
-                  {'$$\\mathcal{H} |\\psi_0\\rangle = E_{\\min} |\\psi_0\\rangle$$'}
-                </div>
+                <code style={{ fontFamily: 'var(--font-mono)', fontSize: '1.05rem', color: 'var(--accent)' }}>
+                  H |&psi;<sub>0</sub>&rang; = E<sub>min</sub> |&psi;<sub>0</sub>&rang;
+                </code>
               </div>
 
               <p style={{ color: 'var(--text-secondary)', margin: '0.8rem 0' }}>
-                The Quantum Approximate Optimization Algorithm (QAOA) operates by applying alternating parameterized layers of cost and mixer unitaries. Under the <strong>Adiabatic Theorem</strong>, as the circuit depth {'$p \\rightarrow \\infty$'}, the quantum state converges with probability 1 to this exact ground state:
+                The Quantum Approximate Optimization Algorithm (QAOA) operates by applying alternating parameterized layers of cost and mixer unitaries. Under the <strong>Adiabatic Theorem</strong>, as the circuit depth <strong><i>p</i> &rarr; &infin;</strong>, the quantum state converges with probability 1 to this exact ground state:
               </p>
 
               <div style={{ padding: '1rem', background: 'rgba(0,0,0,0.2)', borderRadius: '6px', border: '1px solid rgba(255,255,255,0.05)', textAlign: 'center', margin: '0.5rem 0', overflowX: 'auto' }}>
-                <div style={{ color: 'var(--accent)' }}>
-                  {'$$\\lim_{p \\rightarrow \\infty} |\\langle \\psi_0 | \\text{QAOA}(p) \\rangle|^2 = 1$$'}
-                </div>
+                <code style={{ fontFamily: 'var(--font-mono)', fontSize: '1.05rem', color: 'var(--accent)' }}>
+                  lim<sub>(<i>p</i> &rarr; &infin;)</sub> |&lang;&psi;<sub>0</sub> | QAOA(<i>p</i>)&rang;|<sup>2</sup> = 1
+                </code>
               </div>
 
               <p style={{ color: 'var(--text-secondary)', margin: '0.8rem 0 0 0' }}>
-                Because our high-performance classical solver exhaustively searches the permutation space to locate this identical, unique ground state {'$|\\psi_0\\rangle$'} for the 10-node sub-cluster, the resulting route is <strong>mathematically indistinguishable</strong> from the output of a perfect, error-corrected, noise-free physical quantum processor. It represents the exact physical upper bound of future quantum routing.
+                Because our high-performance classical solver exhaustively searches the permutation space to locate this identical, unique ground state <strong>|&psi;<sub>0</sub>&rang;</strong> for the 10-node sub-cluster, the resulting route is <strong>mathematically indistinguishable</strong> from the output of a perfect, error-corrected, noise-free physical quantum processor. It represents the exact physical upper bound of future quantum routing.
               </p>
             </div>
 
@@ -351,7 +351,7 @@ export default function FutureResultsTab({ activeTab }) {
                 Direct classical simulation of a 100-qubit circuit at full statevector resolution is physically impossible. A 10-clinic sub-cluster requires <strong>$10^2 = 100$ qubits</strong> due to the permutation grid mapping. Tracking the complete statevector would require storing <strong>$2^{100}$ complex amplitudes</strong>. This would require more physical memory than all hard drives on Earth combined, which is why attempting a full statevector simulation of 10 nodes instantly crashes standard computers.
               </p>
               <p style={{ color: 'var(--text-secondary)', marginTop: '0.5rem', marginBottom: 0 }}>
-                <strong>Then how tf did we do it here?</strong> {'Instead of running the massive, unsimulatable 100-qubit circuit, we simulated its mathematically perfect, error-corrected, noise-free quantum computer output. In quantum physics, a perfect adiabatic QAOA circuit (\\(p \\rightarrow \\infty\\)) is guaranteed to converge to the unique global optimum ground state (\\(E_{\\text{min}}\\)) of the cost Hamiltonian. By implementing a high-performance classical permutation/local search solver on the 10-node sub-cluster, we locate this identical unique ground state instantly. This produces routing outputs that are mathematically indistinguishable and 100% physically identical to what future physical quantum computers will deliver, bypassing the classical statevector memory wall while maintaining absolute scientific genuineness.'}
+                <strong>Then how tf did we do it here?</strong> Instead of running the massive, unsimulatable 100-qubit circuit, we simulated its mathematically perfect, error-corrected, noise-free quantum computer output. In quantum physics, a perfect adiabatic QAOA circuit <strong>(<i>p</i> &rarr; &infin;)</strong> is guaranteed to converge to the unique global optimum ground state <strong>(<i>E</i><sub>min</sub>)</strong> of the cost Hamiltonian. By implementing a high-performance classical permutation/local search solver on the 10-node sub-cluster, we locate this identical unique ground state instantly. This produces routing outputs that are mathematically indistinguishable and 100% physically identical to what future physical quantum computers will deliver, bypassing the classical statevector memory wall while maintaining absolute scientific genuineness.
               </p>
             </div>
           </div>
