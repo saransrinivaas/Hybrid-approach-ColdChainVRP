@@ -345,6 +345,46 @@ export default function ExplainerTab({ activeTab }) {
             </svg>
           </div>
           
+          {/* Static Simulated Cost Breakdown Table */}
+          <div style={{ marginTop: '0.8rem', padding: '0.75rem', background: 'rgba(255,255,255,0.02)', borderRadius: '6px', border: '1px solid rgba(255,255,255,0.04)' }}>
+            <h4 style={{ margin: '0 0 0.5rem 0', fontSize: '0.8rem', color: '#ffffff', fontWeight: 600 }}>
+              Simulated Spoilage Cost Breakdown (Rs)
+            </h4>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem', fontSize: '0.75rem' }}>
+              {/* Table Header */}
+              <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr 1fr 1fr', color: 'var(--text-muted)', fontWeight: 600, borderBottom: '1px solid rgba(255,255,255,0.05)', paddingBottom: '0.25rem' }}>
+                <span>Transit</span>
+                <span style={{ color: '#38bdf8' }}>Frozen</span>
+                <span style={{ color: '#10b981' }}>Chilled</span>
+                <span style={{ color: '#f59e0b' }}>Ambient</span>
+              </div>
+              
+              {/* Row 1: 2h */}
+              <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr 1fr 1fr', borderBottom: '1px solid rgba(255,255,255,0.02)', paddingBottom: '0.2rem' }}>
+                <span style={{ color: 'var(--text-secondary)' }}>2 Hours</span>
+                <span>Rs 2.0</span>
+                <span>Rs 12.0</span>
+                <span>Rs 20.0</span>
+              </div>
+
+              {/* Row 2: 5h */}
+              <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr 1fr 1fr', borderBottom: '1px solid rgba(255,255,255,0.02)', paddingBottom: '0.2rem' }}>
+                <span style={{ color: 'var(--text-secondary)' }}>5 Hours</span>
+                <span>Rs 5.0</span>
+                <span>Rs 30.0</span>
+                <span>Rs 50.0</span>
+              </div>
+
+              {/* Row 3: 10h */}
+              <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr 1fr 1fr' }}>
+                <span style={{ color: 'var(--text-secondary)' }}>10 Hours</span>
+                <span>Rs 10.0</span>
+                <span>Rs 60.0</span>
+                <span>Rs 100.0</span>
+              </div>
+            </div>
+          </div>
+          
           <div style={{ marginTop: '0.8rem', fontSize: '0.78rem', color: 'var(--text-muted)', lineHeight: '1.4' }}>
             <strong>Curve Mechanics Explained:</strong>
             <ul style={{ paddingLeft: '1rem', margin: '0.25rem 0 0 0', display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
