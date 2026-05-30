@@ -161,8 +161,8 @@ def solve_scenario(sc_module) -> dict:
                         prob += w[temp][i, k] + dem_j - w[temp][j, k] <= cap_val * (1 - x[i, j, k])
 
         # Solve the model using CBC solver with quiet option
-        # timeLimit=20 keeps response time reasonable; threads speeds up MIP search
-        solver = pulp.PULP_CBC_CMD(msg=False, timeLimit=45.0)
+        # timeLimit=15.0 keeps response time fast; gapRel=0.05 stops early once a good solution is found
+        solver = pulp.PULP_CBC_CMD(msg=False, timeLimit=15.0, gapRel=0.05)
         status = prob.solve(solver)
 
         if status != pulp.LpStatusOptimal and prob.sol_status != pulp.LpSolutionIntegerFeasible:

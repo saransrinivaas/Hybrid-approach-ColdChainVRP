@@ -1,9 +1,9 @@
-import { useState, useEffect } from 'react';
-import { MapContainer, TileLayer, Marker, Popup, Polyline, Polygon } from 'react-leaflet';
+import { useState, useEffect, useRef } from 'react';
+import { MapContainer, TileLayer, Marker, Popup, Polyline, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import {
   CheckCircle2, Circle, BarChart2, Cpu, Zap, GitMerge,
-  Route, Home, MapPin, Truck, Clock, Activity, ShieldAlert, AlertTriangle
+  Route, Home, MapPin, Truck, Clock, Activity, ShieldAlert, AlertTriangle, RefreshCw, Layers
 } from 'lucide-react';
 import { API_BASE, DEPOT } from '../data';
 
@@ -93,45 +93,167 @@ function ExplainCard({ children }) {
 
 // ── Cap utilization bar ───────────────────────────────────────────────────────
 function CapBar({ label, used, cap }) {
-  const pct = cap > 0 ? Math.min(100, (used / cap) * 100) : 0;
+  const pct      = cap > 0 ? (used / cap) * 100 : 0;
+  const over     = pct > 100;
+  const fillPct  = Math.min(100, pct);
+  const fillColor = over ? '#f87171' : pct > 80 ? '#fb923c' : '#fff';
   return (
-    <div className="cap-bar-wrapper">
+    <div className="cap-bar-wrapper" style={{ marginTop: over ? '10px' : '0' }}>
       <span className="cap-bar-label" style={{ fontSize: '0.68rem', color: 'var(--text-muted)' }}>{label}</span>
-      <div className="cap-bar-bg">
-        <div className="cap-bar-fill" style={{ width: `${pct}%`, background: '#fff' }} />
+      <div className="cap-bar-bg" style={{ position: 'relative', overflow: 'visible' }}>
+        <div className="cap-bar-fill" style={{ width: `${fillPct}%`, background: fillColor, transition: 'width 0.4s ease' }} />
+        {over && (
+          <div style={{
+            position: 'absolute',
+            top: '-15px',
+            right: '4px',
+            fontSize: '0.55rem',
+            color: '#f87171',
+            background: 'rgba(248, 113, 113, 0.12)',
+            border: '1px solid rgba(248, 113, 113, 0.3)',
+            padding: '1px 5px',
+            borderRadius: '4px',
+            fontWeight: 800,
+            whiteSpace: 'nowrap',
+            lineHeight: 1
+          }}>
+            +{Math.round(pct - 100)}% OVER
+          </div>
+        )}
       </div>
-      <span style={{ fontSize: '0.68rem', color: 'var(--text-faint)', width: '3rem', textAlign: 'right' }}>{used}/{cap}</span>
+      <span style={{ fontSize: '0.68rem', color: over ? '#f87171' : 'var(--text-faint)', width: '3rem', textAlign: 'right', fontWeight: over ? 700 : 400 }}>
+        {used}/{cap}
+      </span>
     </div>
   );
 }
 
 // ── Step 1: Input summary ─────────────────────────────────────────────────────
+const COMP_STYLE = {
+  frozen:  { color: '#60a5fa', label: 'Frozen',  icon: '❄️' },
+  chilled: { color: '#34d399', label: 'Chilled', icon: '🧊' },
+  ambient: { color: '#fbbf24', label: 'Ambient', icon: '📦' },
+};
+
 function Step1Input({ config }) {
   if (!config) return <div style={{ color: 'var(--text-muted)', padding: '2rem', textAlign: 'center' }}>No configuration loaded.</div>;
   const included = (config.clinics || []).filter(c => c.included);
+
+  // Compute per-compartment totals
+  const totals = { frozen: 0, chilled: 0, ambient: 0 };
+  included.forEach(c => {
+    const d = c.demand || {};
+    totals.frozen  += d.frozen  || 0;
+    totals.chilled += d.chilled || 0;
+    totals.ambient += d.ambient || 0;
+  });
+
+  // Vehicle capacity (sum across fleet)
+  const vehicles = config.vehicles || [];
+  const fleetCap = { frozen: 0, chilled: 0, ambient: 0 };
+  vehicles.forEach(v => {
+    const comp = v.compartments || {};
+    fleetCap.frozen  += comp.frozen  || 10;
+    fleetCap.chilled += comp.chilled || 12;
+    fleetCap.ambient += comp.ambient || 15;
+  });
+
   return (
     <div className="results-step-body">
       <ExplainCard>
-        Configuration submitted. {included.length} clinics, {config.num_vehicles} vehicles, {(config.vaccines || []).length} vaccine type(s).
+        Configuration submitted. {included.length} clinics across {config.num_vehicles} vehicle(s), {(config.vaccines || []).length} vaccine type(s).
         The pipeline will cluster clinics, build QUBO sub-problems, run QAOA at p=3, then stitch routes.
       </ExplainCard>
+
+      {/* Row 1 — Vaccines + Fleet Capacity */}
       <div className="results-grid-2">
+        {/* Vaccines */}
         <div className="glass-panel" style={{ padding: '1rem' }}>
-          <h3 style={{ fontSize: '0.85rem', marginBottom: '0.75rem' }}>Vaccines</h3>
+          <h3 style={{ fontSize: '0.85rem', marginBottom: '0.75rem', display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+            <Zap size={14} style={{ color: 'var(--accent)' }} /> Vaccines
+          </h3>
           {(config.vaccines || []).map(v => (
             <div key={v.id} className="result-row" style={{ padding: '0.4rem 0', borderBottom: '1px solid var(--border)' }}>
               <span style={{ fontSize: '0.82rem' }}>{v.id}</span>
-              <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>{v.compartment} · α={v.alpha}</span>
+              <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>
+                <span style={{ color: COMP_STYLE[v.compartment]?.color }}>{COMP_STYLE[v.compartment]?.icon} {v.compartment}</span>
+                {' '}· α={v.alpha}
+              </span>
             </div>
           ))}
         </div>
+
+        {/* Fleet Capacity vs Total Demand */}
         <div className="glass-panel" style={{ padding: '1rem' }}>
-          <h3 style={{ fontSize: '0.85rem', marginBottom: '0.75rem' }}>Included Clinics</h3>
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.35rem' }}>
-            {included.map(c => (
-              <span key={c.id} className="badge">{c.id}</span>
-            ))}
+          <h3 style={{ fontSize: '0.85rem', marginBottom: '0.3rem', display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+            <Truck size={14} style={{ color: 'var(--accent)' }} /> Fleet Capacity vs Demand
+          </h3>
+          <p style={{ fontSize: '0.68rem', color: 'var(--text-faint)', margin: '0 0 0.85rem' }}>
+            Total across {vehicles.length} vehicle(s). Red = demand exceeds fleet capacity.
+          </p>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+            {Object.entries(COMP_STYLE).map(([k, s]) => {
+              const over = totals[k] > (fleetCap[k] || 0);
+              return (
+                <CapBar
+                  key={k}
+                  label={<span style={{ display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
+                    <span>{s.icon}</span>
+                    <span style={{ color: s.color }}>{s.label}</span>
+                  </span>}
+                  used={totals[k]}
+                  cap={fleetCap[k] || 1}
+                  color={s.color}
+                />
+              );
+            })}
           </div>
+        </div>
+      </div>
+
+      {/* Row 2 — Demand per clinic table */}
+      <div className="glass-panel" style={{ padding: '1rem' }}>
+        <h3 style={{ fontSize: '0.85rem', marginBottom: '0.85rem', display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+          <MapPin size={14} style={{ color: 'var(--accent)' }} /> Demand per Clinic
+        </h3>
+        <div style={{ overflowX: 'auto' }}>
+          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.77rem' }}>
+            <thead>
+              <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
+                <th style={{ textAlign: 'left',   padding: '0.4rem 0.6rem', color: 'var(--text-muted)', fontWeight: 600 }}>Clinic</th>
+                <th style={{ textAlign: 'left',   padding: '0.4rem 0.6rem', color: 'var(--text-muted)', fontWeight: 600 }}>Name</th>
+                <th style={{ textAlign: 'center', padding: '0.4rem 0.6rem', color: COMP_STYLE.frozen.color,  fontWeight: 600 }}>❄️ Frozen</th>
+                <th style={{ textAlign: 'center', padding: '0.4rem 0.6rem', color: COMP_STYLE.chilled.color, fontWeight: 600 }}>🧊 Chilled</th>
+                <th style={{ textAlign: 'center', padding: '0.4rem 0.6rem', color: COMP_STYLE.ambient.color, fontWeight: 600 }}>📦 Ambient</th>
+                <th style={{ textAlign: 'center', padding: '0.4rem 0.6rem', color: 'var(--text-muted)', fontWeight: 600 }}><Clock size={11} /> Window</th>
+              </tr>
+            </thead>
+            <tbody>
+              {included.map((c, i) => {
+                const d  = c.demand || {};
+                const tw = c.time_window || [8, 18];
+                const isOdd = i % 2 === 1;
+                return (
+                  <tr key={c.id} style={{ background: isOdd ? 'rgba(255,255,255,0.02)' : 'transparent', borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
+                    <td style={{ padding: '0.38rem 0.6rem', fontFamily: 'var(--font-mono)', fontWeight: 700, color: 'var(--accent)' }}>#{c.id}</td>
+                    <td style={{ padding: '0.38rem 0.6rem', color: 'var(--text)' }}>{c.name || `Clinic ${c.id}`}</td>
+                    <td style={{ padding: '0.38rem 0.6rem', textAlign: 'center', color: COMP_STYLE.frozen.color,  fontFamily: 'var(--font-mono)' }}>{d.frozen  ?? 0}</td>
+                    <td style={{ padding: '0.38rem 0.6rem', textAlign: 'center', color: COMP_STYLE.chilled.color, fontFamily: 'var(--font-mono)' }}>{d.chilled ?? 0}</td>
+                    <td style={{ padding: '0.38rem 0.6rem', textAlign: 'center', color: COMP_STYLE.ambient.color, fontFamily: 'var(--font-mono)' }}>{d.ambient ?? 0}</td>
+                    <td style={{ padding: '0.38rem 0.6rem', textAlign: 'center', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)', fontSize: '0.7rem' }}>{tw[0]}:00–{tw[1]}:00</td>
+                  </tr>
+                );
+              })}
+              {/* Totals footer */}
+              <tr style={{ borderTop: '1px solid rgba(255,255,255,0.12)', fontWeight: 700 }}>
+                <td colSpan={2} style={{ padding: '0.4rem 0.6rem', color: 'var(--text-muted)', fontSize: '0.72rem' }}>TOTAL DEMAND</td>
+                <td style={{ padding: '0.4rem 0.6rem', textAlign: 'center', color: COMP_STYLE.frozen.color,  fontFamily: 'var(--font-mono)' }}>{totals.frozen}</td>
+                <td style={{ padding: '0.4rem 0.6rem', textAlign: 'center', color: COMP_STYLE.chilled.color, fontFamily: 'var(--font-mono)' }}>{totals.chilled}</td>
+                <td style={{ padding: '0.4rem 0.6rem', textAlign: 'center', color: COMP_STYLE.ambient.color, fontFamily: 'var(--font-mono)' }}>{totals.ambient}</td>
+                <td />
+              </tr>
+            </tbody>
+          </table>
         </div>
       </div>
     </div>
@@ -328,46 +450,172 @@ function Step4Stitching({ results, scenarioMeta, config }) {
   );
 }
 
-// ── Step 5: Comparison ────────────────────────────────────────────────────────
 const ROADMAP = [
   { year: '2026', status: 'active',  label: 'Today', desc: 'p=3, classical wins distance, QAOA wins constraint handling at ~85% approx. ratio on NISQ hardware.' },
   { year: '2027', status: 'future',  label: 'Near-term', desc: 'IBM Flamingo 1000+ qubits — full 10-node clusters, performance gap closes to ~2%.' },
   { year: '2029', status: 'future',  label: 'Long-term', desc: 'Fault-tolerant QC enables provably optimal cold-chain routing with full constraint satisfaction.' },
 ];
 
-function Step5Comparison({ results, compareResults, config, scenarioMeta }) {
-  const cl = results?.classical;
-  const qa = results?.qaoa;
-
-  const getNumDelivered = (res) => {
-    if (!res || !res.routes) return 0;
-    const clinicsDelivered = new Set();
-    Object.values(res.routes).forEach(r => {
-      if (r.stops) {
-        r.stops.forEach(s => {
-          if (s.id !== 0) clinicsDelivered.add(s.id);
-        });
-      }
-    });
-    return clinicsDelivered.size;
-  };
-
-  const totalClinics = cl ? getNumDelivered(cl) : 0;
-
-  if (!cl || !qa) {
-    return (
-      <div className="glass-panel" style={{ padding: '2rem', textAlign: 'center', color: 'var(--text-muted)', fontSize: '0.85rem', marginTop: '1rem' }}>
-        Run the pipeline to generate performance metrics.
-      </div>
+// ── Solver Route Map (reusable) ────────────────────────────────────────────────
+function FitBounds({ routes, depot }) {
+  const map = useMap();
+  useEffect(() => {
+    const pts = [];
+    if (depot?.lat) pts.push([depot.lat, depot.lon]);
+    Object.values(routes || {}).forEach(v =>
+      (v.stops || []).forEach(s => { if (typeof s.lat === 'number') pts.push([s.lat, s.lon]); })
     );
+    if (pts.length > 1) map.fitBounds(pts, { padding: [20, 20] });
+  }, [routes]);
+  return null;
+}
+
+function SolverRouteMap({ result, depot, label }) {
+  const center = [depot?.lat || 13.04, depot?.lon || 80.18];
+  const routes = result?.routes || {};
+  const hasRoutes = Object.keys(routes).length > 0;
+
+  return (
+    <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+      <div style={{ fontSize: '0.72rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--text-muted)', padding: '0 0.1rem' }}>
+        {label}
+      </div>
+      <div className="map-shell" style={{ height: '320px', borderRadius: '10px', overflow: 'hidden' }}>
+        <MapContainer center={center} zoom={11} style={{ height: '100%', width: '100%' }} scrollWheelZoom={false}>
+          <TileLayer url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png" attribution="&copy; OpenStreetMap &copy; CARTO" />
+          {hasRoutes && <FitBounds routes={routes} depot={depot} />}
+          {depot && typeof depot.lat === 'number' && (
+            <Marker position={[depot.lat, depot.lon]} icon={depotIcon}>
+              <Popup><strong>{depot.name || 'Depot'}</strong></Popup>
+            </Marker>
+          )}
+          {Object.entries(routes).map(([vid, vdata], idx) => {
+            const color = VEHICLE_COLORS[idx % VEHICLE_COLORS.length];
+            const positions = (vdata.stops || [])
+              .map(s => (typeof s.lat === 'number' && typeof s.lon === 'number') ? [s.lat, s.lon] : null)
+              .filter(Boolean);
+            return (
+              <Polyline key={vid} positions={positions}
+                pathOptions={{ color, weight: 3.5, opacity: 0.9, lineCap: 'round', lineJoin: 'round' }} />
+            );
+          })}
+          {Object.entries(routes).map(([vid, vdata], idx) => {
+            const color = VEHICLE_COLORS[idx % VEHICLE_COLORS.length];
+            return (vdata.stops || [])
+              .filter(s => s.name !== 'Depot' && typeof s.lat === 'number')
+              .map((s, i) => (
+                <Marker key={`${vid}-${s.id}-${i}`} position={[s.lat, s.lon]} icon={makeIcon(color, s.id)}>
+                  <Popup><strong>{s.name}</strong><br />{vid}</Popup>
+                </Marker>
+              ));
+          })}
+        </MapContainer>
+      </div>
+      {/* Route legend */}
+      {hasRoutes ? (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+          {Object.entries(routes).map(([vid, vdata], idx) => (
+            <div key={vid} style={{ display: 'flex', alignItems: 'center', gap: '0.45rem', fontSize: '0.7rem' }}>
+              <span style={{ width: 10, height: 10, borderRadius: '50%', background: VEHICLE_COLORS[idx % VEHICLE_COLORS.length], flexShrink: 0 }} />
+              <span style={{ color: 'var(--text)', fontWeight: 600 }}>{vid}</span>
+              <span style={{ color: 'var(--text-muted)', fontFamily: 'var(--font-mono)' }}>
+                {vdata.distance_km?.toFixed?.(2) ?? vdata.distance_km} km
+                {vdata.spoilage_rs != null && ` · ₹${Number(vdata.spoilage_rs).toFixed(2)}`}
+              </span>
+            </div>
+          ))}
+        </div>
+      ) : (
+        <div style={{ fontSize: '0.72rem', color: 'var(--text-faint)', textAlign: 'center', padding: '0.5rem' }}>No route data</div>
+      )}
+    </div>
+  );
+}
+
+function toFiniteNumber(v) {
+  if (v === null || v === undefined || v === '') return null;
+  const n = typeof v === 'number' ? v : Number(v);
+  return Number.isFinite(n) ? n : null;
+}
+
+function fleetTotalsFromRoutes(routes) {
+  if (!routes || typeof routes !== 'object') return null;
+  const rows = Object.values(routes);
+  if (!rows.length) return null;
+  let fleet_distance = 0;
+  let fleet_spoilage = 0;
+  let fleet_refrigeration = 0;
+  let fleet_total_cost = 0;
+  for (const row of rows) {
+    const dk = toFiniteNumber(row.distance_km) ?? 0;
+    const sp = toFiniteNumber(row.spoilage_rs) ?? 0;
+    const rf = toFiniteNumber(row.refrigeration_rs) ?? 0;
+    fleet_distance += dk;
+    fleet_spoilage += sp;
+    fleet_refrigeration += rf;
+    const tc = toFiniteNumber(row.total_cost_rs);
+    fleet_total_cost += tc != null ? tc : dk + sp + rf;
   }
+  return { fleet_distance, fleet_spoilage, fleet_refrigeration, fleet_total_cost };
+}
+
+function resolveQaoaMetrics(qa) {
+  if (!qa || typeof qa !== 'object') return { available: false, m: null };
+  const st = String(qa.status ?? '').toLowerCase();
+  if (st === 'skipped' || st === 'failed') return { available: false, m: null };
+
+  const derived = fleetTotalsFromRoutes(qa.routes);
+  const fleet_total_cost = toFiniteNumber(qa.fleet_total_cost) ?? derived?.fleet_total_cost ?? null;
+  if (fleet_total_cost == null || !Number.isFinite(fleet_total_cost)) {
+    return { available: false, m: null };
+  }
+
+  const fleet_distance = toFiniteNumber(qa.fleet_distance) ?? derived?.fleet_distance ?? null;
+  const fleet_spoilage = toFiniteNumber(qa.fleet_spoilage) ?? derived?.fleet_spoilage ?? null;
+  const fleet_refrigeration = toFiniteNumber(qa.fleet_refrigeration) ?? derived?.fleet_refrigeration ?? null;
+  const total_time = toFiniteNumber(qa.total_time);
+
+  return {
+    available: true,
+    m: {
+      fleet_distance,
+      fleet_spoilage,
+      fleet_refrigeration,
+      fleet_total_cost,
+      total_time,
+    },
+  };
+}
+
+const SOLVER_OPTIONS = [
+  { id: 'classical', label: 'Classical' },
+  { id: 'alns',      label: 'ALNS' },
+  { id: 'ortools',   label: 'OR-Tools' },
+  { id: 'gurobi',    label: 'Gurobi' },
+  { id: 'pulp_cbc',  label: 'PuLP/CBC' },
+  { id: 'qaoa',      label: 'Hybrid QAOA' },
+];
+
+function Step5Comparison({ results, compareResults, config, scenarioMeta, onRefreshCompare }) {
+  const sc = compareResults?.easy;
+  const cl = sc?.classical || results?.classical;
+  const alns = sc?.alns;
+  const ort = sc?.ortools;
+  const gur = sc?.gurobi;
+  const pulp = sc?.pulp_cbc;
+  const qa = sc?.qaoa || results?.qaoa;
+
+  const [leftSolver,  setLeftSolver]  = useState('classical');
+  const [rightSolver, setRightSolver] = useState('qaoa');
+
+  const { available: qaAvailable, m: qaM } = resolveQaoaMetrics(qa);
 
   const getLimits = () => {
     let frozen = scenarioMeta?.easy?.capacity?.frozen ?? 10;
     let chilled = scenarioMeta?.easy?.capacity?.chilled ?? 12;
     let ambient = scenarioMeta?.easy?.capacity?.ambient ?? 15;
     
-    const rData = cl?.routes || qa?.routes;
+    const rData = cl?.routes || qa?.routes || ort?.routes;
     if (rData) {
       const firstRoute = Object.values(rData)[0];
       if (firstRoute?.capacity) {
@@ -380,23 +628,48 @@ function Step5Comparison({ results, compareResults, config, scenarioMeta }) {
   };
 
   const limits = getLimits();
+  const totalClinics = config?.clinics ? config.clinics.filter(c => c.included).length : (scenarioMeta?.easy?.num_clinics ?? 10);
 
-  const getConstraintStats = (result, isClassical) => {
-    if (!result || !result.routes) return null;
+  const getConstraintStats = (result) => {
+    if (!result || result.status !== 'ok' || !result.routes) return null;
     let maxFrozen = 0;
     let maxChilled = 0;
     let maxAmbient = 0;
     let allFeasible = true;
+    let timeWindowOk = true;
     let clinicsDelivered = new Set();
+    const vehicleStats = {};
 
-    Object.values(result.routes).forEach(r => {
-      if (r.capacity) {
-        maxFrozen = Math.max(maxFrozen, r.capacity.frozen?.used ?? 0);
-        maxChilled = Math.max(maxChilled, r.capacity.chilled?.used ?? 0);
-        maxAmbient = Math.max(maxAmbient, r.capacity.ambient?.used ?? 0);
-      }
+    Object.entries(result.routes).forEach(([vid, r]) => {
+      const vFrozen = r.capacity?.frozen?.used ?? 0;
+      const vChilled = r.capacity?.chilled?.used ?? 0;
+      const vAmbient = r.capacity?.ambient?.used ?? 0;
+      const vFrozenCap = r.capacity?.frozen?.cap ?? limits.frozen;
+      const vChilledCap = r.capacity?.chilled?.cap ?? limits.chilled;
+      const vAmbientCap = r.capacity?.ambient?.cap ?? limits.ambient;
+
+      vehicleStats[vid] = {
+        frozen: vFrozen,
+        chilled: vChilled,
+        ambient: vAmbient,
+        frozenCap: vFrozenCap,
+        chilledCap: vChilledCap,
+        ambientCap: vAmbientCap,
+        frozenOk: vFrozen <= vFrozenCap,
+        chilledOk: vChilled <= vChilledCap,
+        ambientOk: vAmbient <= vAmbientCap,
+        timeWindowOk: r.time_window_feasible !== false,
+      };
+
+      maxFrozen = Math.max(maxFrozen, vFrozen);
+      maxChilled = Math.max(maxChilled, vChilled);
+      maxAmbient = Math.max(maxAmbient, vAmbient);
+      
       if (r.feasible === false) {
         allFeasible = false;
+      }
+      if (r.time_window_feasible === false) {
+        timeWindowOk = false;
       }
       if (r.stops) {
         r.stops.forEach(s => {
@@ -413,175 +686,384 @@ function Step5Comparison({ results, compareResults, config, scenarioMeta }) {
       maxChilled,
       maxAmbient,
       allFeasible,
+      timeWindowOk,
       numDelivered,
       isComplete,
-      isClassical,
       frozenOk: maxFrozen <= limits.frozen,
       chilledOk: maxChilled <= limits.chilled,
-      ambientOk: maxAmbient <= limits.ambient
+      ambientOk: maxAmbient <= limits.ambient,
+      vehicleStats
     };
   };
 
-  const clStats = getConstraintStats(cl, true);
-  const qaStats = getConstraintStats(qa, false);
+  const clStats = getConstraintStats(cl);
+  const alnsStats = getConstraintStats(alns);
+  const ortStats = getConstraintStats(ort);
+  const gurStats = getConstraintStats(gur);
+  const pulpStats = getConstraintStats(pulp);
+  const qaStats = qaAvailable ? getConstraintStats(qa) : null;
+
+  const isAvailable = (s) => s && s.status === 'ok';
+
+  const isSolverFeasible = (s, isQa = false) => {
+    if (isQa) {
+      if (!qaAvailable || !s || !s.routes) return false;
+      return Object.values(s.routes).every(r => r.feasible !== false);
+    }
+    if (!s || s.status !== 'ok' || !s.routes) return false;
+    return Object.values(s.routes).every(r => r.feasible !== false);
+  };
+
+  const renderMetricCell = (key, unit, isLowerBetter = true) => {
+    const clVal  = toFiniteNumber(cl?.[key]);
+    const alnsVal = toFiniteNumber(alns?.[key]);
+    const ortVal  = toFiniteNumber(ort?.[key]);
+    const gurVal  = toFiniteNumber(gur?.[key]);
+    const pulpVal = toFiniteNumber(pulp?.[key]);
+    const qaVal   = qaAvailable ? toFiniteNumber(qaM?.[key]) : null;
+
+    const solvers = [
+      { id: 'classical', val: clVal,  obj: cl   },
+      { id: 'alns',      val: alnsVal, obj: alns  },
+      { id: 'ortools',   val: ortVal,  obj: ort   },
+      { id: 'gurobi',    val: gurVal,  obj: gur   },
+      { id: 'pulp',      val: pulpVal, obj: pulp  },
+      { id: 'qaoa',      val: qaVal,   obj: qa    },
+    ];
+
+    let bestVal = null;
+    const eligibleSolvers = solvers.filter(s => {
+      if (s.val === null) return false;
+      const avail   = s.id === 'qaoa' ? qaAvailable : isAvailable(s.obj);
+      const feasible = s.id === 'qaoa' ? isSolverFeasible(s.obj, true) : isSolverFeasible(s.obj);
+      return avail && feasible;
+    });
+    if (eligibleSolvers.length > 0) {
+      bestVal = eligibleSolvers[0].val;
+      for (const s of eligibleSolvers) {
+        if (isLowerBetter ? s.val < bestVal : s.val > bestVal) bestVal = s.val;
+      }
+    }
+
+    return solvers.map(s => {
+      const isSolAvail  = s.id === 'qaoa' ? qaAvailable : isAvailable(s.obj);
+      const isFeasible  = s.id === 'qaoa' ? isSolverFeasible(s.obj, true) : isSolverFeasible(s.obj);
+
+      if (!isSolAvail) {
+        let note = 'N/A';
+        if (s.id === 'gurobi' && gur && gur.status === 'unavailable') note = 'No Lic/Lib';
+        else if (s.obj && s.obj.status === 'failed')  note = 'Failed';
+        else if (s.obj && s.obj.status === 'skipped') note = 'Skipped';
+        return (
+          <td key={s.id} style={{ color: 'var(--text-faint)' }}>
+            <em>{note}</em>
+          </td>
+        );
+      }
+
+      if (s.val === null) {
+        return <td key={s.id} style={{ color: 'var(--text-faint)' }}>—</td>;
+      }
+
+      if (!isFeasible) {
+        return (
+          <td key={s.id} className="val-mono">
+            <span style={{ textDecoration: 'line-through' }}>{s.val.toFixed(2)}{unit}</span>
+            <span className="solver-badge failed" style={{ marginLeft: '0.4rem', padding: '0.05rem 0.25rem', fontSize: '0.58rem', verticalAlign: 'middle' }}>INFEASIBLE</span>
+          </td>
+        );
+      }
+
+      const isWinner    = bestVal !== null && Math.abs(s.val - bestVal) < 1e-4;
+      const isClassical = s.id === 'classical';
+
+      let deltaStr  = '';
+      let deltaClass = '';
+      if (!isClassical && clVal !== null && clVal !== 0) {
+        const delta = s.val - clVal;
+        const pct   = (delta / clVal) * 100;
+        const isBetter = isLowerBetter ? delta < -1e-4 : delta > 1e-4;
+        const isWorse  = isLowerBetter ? delta > 1e-4  : delta < -1e-4;
+        if (Math.abs(pct) > 0.05) {
+          deltaStr = ` (${pct > 0 ? '+' : ''}${pct.toFixed(1)}%)`;
+          if (isBetter) deltaClass = ' delta-val better';
+          if (isWorse)  deltaClass = ' delta-val worse';
+        }
+      }
+
+      return (
+        <td key={s.id} className={isWinner ? 'val-mono font-bold' : 'val-mono'}>
+          <span style={isWinner ? { color: 'var(--good)' } : {}}>
+            {s.val.toFixed(2)}{unit}
+          </span>
+          {isWinner && <span className="solver-badge winner" style={{ marginLeft: '0.45rem', padding: '0.05rem 0.25rem', fontSize: '0.6rem' }}>Best</span>}
+          {deltaStr && <span className={deltaClass}>{deltaStr}</span>}
+        </td>
+      );
+    });
+  };
 
   const renderStatus = (stats, type) => {
-    if (!stats) return <span style={{ color: 'var(--text-muted)' }}>No data</span>;
+    if (!stats) return <span style={{ color: 'var(--text-faint)', fontSize: '0.72rem' }}>—</span>;
     
-    if (type === 'frozen') {
-      return stats.frozenOk 
-        ? <span style={{ color: 'var(--good)', fontWeight: 600 }}>✓ PASSED ({stats.maxFrozen}/{limits.frozen})</span>
-        : <span style={{ color: 'var(--bad)', fontWeight: 600 }}>✗ FAILED ({stats.maxFrozen}/{limits.frozen})</span>;
-    }
-    if (type === 'chilled') {
-      return stats.chilledOk 
-        ? <span style={{ color: 'var(--good)', fontWeight: 600 }}>✓ PASSED ({stats.maxChilled}/{limits.chilled})</span>
-        : <span style={{ color: 'var(--bad)', fontWeight: 600 }}>✗ FAILED ({stats.maxChilled}/{limits.chilled})</span>;
-    }
-    if (type === 'ambient') {
-      return stats.ambientOk 
-        ? <span style={{ color: 'var(--good)', fontWeight: 600 }}>✓ PASSED ({stats.maxAmbient}/{limits.ambient})</span>
-        : <span style={{ color: 'var(--bad)', fontWeight: 600 }}>✗ FAILED ({stats.maxAmbient}/{limits.ambient})</span>;
+    if (type === 'frozen' || type === 'chilled' || type === 'ambient') {
+      if (stats.vehicleStats && Object.keys(stats.vehicleStats).length > 0) {
+        return (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '3px' }}>
+            {Object.entries(stats.vehicleStats).map(([vid, v]) => {
+              const ok = type === 'frozen' ? v.frozenOk : type === 'chilled' ? v.chilledOk : v.ambientOk;
+              const used = type === 'frozen' ? v.frozen : type === 'chilled' ? v.chilled : v.ambient;
+              const cap = type === 'frozen' ? v.frozenCap : type === 'chilled' ? v.chilledCap : v.ambientCap;
+              return (
+                <div key={vid} style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '0.7rem' }}>
+                  <span style={{ color: 'var(--text-muted)' }}>{vid}:</span>
+                  <span style={{ color: ok ? 'var(--good)' : 'var(--bad)', fontWeight: 600 }}>
+                    {used}/{cap}
+                  </span>
+                </div>
+              );
+            })}
+          </div>
+        );
+      }
     }
     if (type === 'completeness') {
       return stats.isComplete
-        ? <span style={{ color: 'var(--good)', fontWeight: 600 }}>✓ PASSED ({stats.numDelivered}/{totalClinics} clinics)</span>
-        : <span style={{ color: 'var(--bad)', fontWeight: 600 }}>✗ FAILED ({stats.numDelivered}/{totalClinics} clinics)</span>;
+        ? <span style={{ color: 'var(--good)', fontWeight: 600 }}>✓ {stats.numDelivered}/{totalClinics}</span>
+        : <span style={{ color: 'var(--bad)', fontWeight: 600 }}>✗ {stats.numDelivered}/{totalClinics}</span>;
     }
     if (type === 'timewindows') {
-      if (stats.isClassical) {
-        return <span style={{ color: 'var(--bad)', fontWeight: 600 }}>✗ FAILED (Time Windows Breached)</span>;
-      }
-      return <span style={{ color: 'var(--good)', fontWeight: 600 }}>✓ PASSED (100% Adherence)</span>;
+      const allTwFeasible = Object.values(stats.vehicleStats || {}).every(v => v.timeWindowOk !== false) && stats.timeWindowOk !== false;
+      return allTwFeasible
+        ? <span style={{ color: 'var(--good)', fontWeight: 600 }}>✓ Passed</span>
+        : <span style={{ color: 'var(--bad)', fontWeight: 600 }}>✗ Failed</span>;
     }
     if (type === 'depot') {
-      return <span style={{ color: 'var(--good)', fontWeight: 600 }}>✓ PASSED (Closed Handoff)</span>;
+      return <span style={{ color: 'var(--good)', fontWeight: 600 }}>✓ Passed</span>;
     }
     if (type === 'feasibility') {
       return stats.allFeasible
-        ? <span style={{ color: 'var(--good)', fontWeight: 600 }}>✓ FEASIBLE</span>
-        : <span style={{ color: 'var(--bad)', fontWeight: 600 }}>✗ INFEASIBLE</span>;
+        ? <span className="solver-badge winner" style={{ padding: '0.1rem 0.35rem', fontSize: '0.65rem' }}>FEASIBLE</span>
+        : <span className="solver-badge failed" style={{ padding: '0.1rem 0.35rem', fontSize: '0.65rem' }}>INFEASIBLE</span>;
     }
     return null;
   };
 
+  const hasAnyData = cl || alns || ort || gur || pulp || qaAvailable;
+
+  if (!hasAnyData) {
+    return (
+      <div className="glass-panel" style={{ padding: '2rem', textAlign: 'center', color: 'var(--text-muted)', fontSize: '0.85rem', marginTop: '1rem', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1rem' }}>
+        <span>Run the pipeline to generate performance metrics, or refresh to re-run all solvers.</span>
+        {onRefreshCompare && (
+          <button className="btn btn-secondary" style={{ fontSize: '0.78rem', padding: '0.45rem 0.9rem' }} onClick={onRefreshCompare}>
+            <RefreshCw size={13} /> Refresh Solvers
+          </button>
+        )}
+      </div>
+    );
+  }
+
   return (
     <div className="results-step-body">
-      {/* Section 1 — Metrics table */}
-      {cl && (
-        <div className="glass-panel" style={{ padding: '1rem' }}>
-          <h3 style={{ fontSize: '0.85rem', marginBottom: '0.85rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-            <BarChart2 size={15} style={{ opacity: 0.7 }} />
-            Solver Comparison
+      <div className="glass-panel" style={{ padding: '1.25rem 1.4rem' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.95rem' }}>
+          <h3 style={{ fontSize: '0.88rem', fontWeight: 600, margin: 0, display: 'flex', alignItems: 'center', gap: '0.45rem', color: 'var(--text)' }}>
+            <BarChart2 size={16} style={{ color: 'var(--accent)' }} />
+            Solver Comparison Matrix (Custom Scenario)
           </h3>
-          <div style={{ overflowX: 'auto' }}>
-            <table className="compare-table">
-              <thead>
-                <tr>
-                  <th>Metric</th>
-                  <th>OR-Tools / Classical</th>
-                  <th>QAOA Hybrid</th>
-                  <th>Delta</th>
-                </tr>
-              </thead>
-              <tbody>
-                {[
-                  { label: 'Fleet Distance', clv: cl.fleet_distance, qv: qa?.fleet_distance, unit: ' km', lower: true },
-                  { label: 'Fleet Spoilage', clv: cl.fleet_spoilage,  qv: qa?.fleet_spoilage,  unit: ' Rs', lower: true },
-                  { label: 'Total Cost',     clv: cl.fleet_total_cost, qv: qa?.fleet_total_cost, unit: ' Rs', lower: true },
-                  { label: 'Compute Time',   clv: cl.total_time,       qv: qa?.total_time,       unit: ' s',  lower: true },
-                ].map(({ label, clv, qv, unit, lower }) => {
-                  const delta = clv != null && qv != null ? (clv - qv) : null;
-                  const better = delta !== null && (lower ? delta > 0 : delta < 0);
-                  return (
-                    <tr key={label}>
-                      <td>{label}</td>
-                      <td style={{ fontFamily: 'var(--font-mono)', color: 'var(--solver-classical)' }}>{clv != null ? `${Number(clv).toFixed(2)}${unit}` : '—'}</td>
-                      <td style={{ fontFamily: 'var(--font-mono)', color: 'var(--solver-qaoa)' }}>{qv != null ? `${Number(qv).toFixed(2)}${unit}` : '—'}</td>
-                      <td style={{ fontFamily: 'var(--font-mono)', color: delta !== null ? (better ? 'var(--good)' : 'var(--warn)') : 'var(--text-faint)' }}>
-                        {delta !== null ? `${delta > 0 ? '+' : ''}${delta.toFixed(2)}${unit}` : '—'}
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
+          {onRefreshCompare && (
+            <button
+              className="btn btn-secondary"
+              style={{ fontSize: '0.72rem', padding: '0.3rem 0.7rem', display: 'flex', alignItems: 'center', gap: '0.3rem' }}
+              onClick={onRefreshCompare}
+              title="Re-run all solvers on the current custom scenario"
+            >
+              <RefreshCw size={12} /> Refresh Solvers
+            </button>
+          )}
+        </div>
+        <div style={{ overflowX: 'auto' }}>
+          <table className="compare-table" style={{ width: '100%', fontSize: '0.78rem' }}>
+            <thead>
+              <tr style={{ borderBottom: '1px solid rgba(255, 255, 255, 0.08)' }}>
+                <th style={{ textAlign: 'left', padding: '0.5rem', color: 'var(--text-muted)' }}>Metric</th>
+                <th style={{ textAlign: 'left', padding: '0.5rem', color: 'var(--solver-classical)' }}>Classical</th>
+                <th style={{ textAlign: 'left', padding: '0.5rem', color: 'var(--solver-alns)' }}>ALNS</th>
+                <th style={{ textAlign: 'left', padding: '0.5rem', color: 'var(--solver-ortools)' }}>OR-Tools</th>
+                <th style={{ textAlign: 'left', padding: '0.5rem', color: 'var(--solver-gurobi)' }}>Gurobi</th>
+                <th style={{ textAlign: 'left', padding: '0.5rem', color: 'var(--solver-pulp)' }}>PuLP/CBC</th>
+                <th style={{ textAlign: 'left', padding: '0.5rem', color: 'var(--solver-qaoa)' }}>Hybrid QAOA</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr style={{ borderBottom: '1px solid rgba(255, 255, 255, 0.04)' }}>
+                <td style={{ padding: '0.65rem 0.5rem', fontWeight: 500 }}>Fleet Distance</td>
+                {renderMetricCell('fleet_distance', ' km', true)}
+              </tr>
+              <tr style={{ borderBottom: '1px solid rgba(255, 255, 255, 0.04)' }}>
+                <td style={{ padding: '0.65rem 0.5rem', fontWeight: 500 }}>Fleet Spoilage</td>
+                {renderMetricCell('fleet_spoilage', ' Rs', true)}
+              </tr>
+              <tr style={{ borderBottom: '1px solid rgba(255, 255, 255, 0.04)' }}>
+                <td style={{ padding: '0.65rem 0.5rem', fontWeight: 500 }}>Refrigeration Cost</td>
+                {renderMetricCell('fleet_refrigeration', ' Rs', true)}
+              </tr>
+              <tr style={{ borderBottom: '1px solid rgba(255, 255, 255, 0.04)' }}>
+                <td style={{ padding: '0.65rem 0.5rem', fontWeight: 500 }}>Combined Fleet Cost</td>
+                {renderMetricCell('fleet_total_cost', ' Rs', true)}
+              </tr>
+              <tr>
+                <td style={{ padding: '0.65rem 0.5rem', fontWeight: 500 }}>Execution Time</td>
+                {renderMetricCell('total_time', ' s', true)}
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        {compareResults?.ilp_computing && (
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem', marginTop: '0.85rem', color: 'var(--solver-qaoa)', fontSize: '0.72rem' }}>
+            <Activity className="spin" size={12} />
+            <span>Asynchronous ILP solvers (Gurobi & PuLP) are still solving in the background...</span>
           </div>
-          <p style={{ fontSize: '0.72rem', color: 'var(--text-faint)', marginTop: '0.65rem' }}>
-            QAOA at p=3 operates at ~85% approximation ratio on current NISQ hardware. Delta = classical − QAOA; positive = QAOA wins.
-          </p>
-        </div>
-      )}
+        )}
+      </div>
 
-      {/* Section 2 — Physical Constraint Ledger */}
-      {cl && (
-        <div className="glass-panel" style={{ padding: '1rem', marginTop: '1.25rem' }}>
-          <h3 style={{ fontSize: '0.85rem', marginBottom: '0.85rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-            <ShieldAlert size={15} style={{ opacity: 0.7 }} />
-            Physical Constraint Verification Ledger
-          </h3>
-          <div style={{ overflowX: 'auto' }}>
-            <table className="compare-table">
-              <thead>
-                <tr>
-                  <th style={{ color: 'var(--text-muted)' }}>Constraint Category</th>
-                  <th style={{ color: 'var(--solver-classical)' }}>Classical Solver</th>
-                  <th style={{ color: 'var(--solver-qaoa)' }}>Hybrid QAOA Solver</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr style={{ borderBottom: '1px solid rgba(255, 255, 255, 0.04)' }}>
-                  <td style={{ padding: '0.55rem 0', fontWeight: 500 }}>Frozen Compartment Max Load</td>
-                  <td style={{ padding: '0.55rem 0' }}>{renderStatus(clStats, 'frozen')}</td>
-                  <td style={{ padding: '0.55rem 0' }}>{renderStatus(qaStats, 'frozen')}</td>
-                </tr>
-                <tr style={{ borderBottom: '1px solid rgba(255, 255, 255, 0.04)' }}>
-                  <td style={{ padding: '0.55rem 0', fontWeight: 500 }}>Chilled Compartment Max Load</td>
-                  <td style={{ padding: '0.55rem 0' }}>{renderStatus(clStats, 'chilled')}</td>
-                  <td style={{ padding: '0.55rem 0' }}>{renderStatus(qaStats, 'chilled')}</td>
-                </tr>
-                <tr style={{ borderBottom: '1px solid rgba(255, 255, 255, 0.04)' }}>
-                  <td style={{ padding: '0.55rem 0', fontWeight: 500 }}>Ambient Compartment Max Load</td>
-                  <td style={{ padding: '0.55rem 0' }}>{renderStatus(clStats, 'ambient')}</td>
-                  <td style={{ padding: '0.55rem 0' }}>{renderStatus(qaStats, 'ambient')}</td>
-                </tr>
-                <tr style={{ borderBottom: '1px solid rgba(255, 255, 255, 0.04)' }}>
-                  <td style={{ padding: '0.55rem 0', fontWeight: 500 }}>Completeness (All Clinics Delivered)</td>
-                  <td style={{ padding: '0.55rem 0' }}>{renderStatus(clStats, 'completeness')}</td>
-                  <td style={{ padding: '0.55rem 0' }}>{renderStatus(qaStats, 'completeness')}</td>
-                </tr>
-                <tr style={{ borderBottom: '1px solid rgba(255, 255, 255, 0.04)' }}>
-                  <td style={{ padding: '0.55rem 0', fontWeight: 500 }}>Clinic Time Window Adherence</td>
-                  <td style={{ padding: '0.55rem 0' }}>{renderStatus(clStats, 'timewindows')}</td>
-                  <td style={{ padding: '0.55rem 0' }}>{renderStatus(qaStats, 'timewindows')}</td>
-                </tr>
-                <tr style={{ borderBottom: '1px solid rgba(255, 255, 255, 0.04)' }}>
-                  <td style={{ padding: '0.55rem 0', fontWeight: 500 }}>Depot Return & Handoff Guarantee</td>
-                  <td style={{ padding: '0.55rem 0' }}>{renderStatus(clStats, 'depot')}</td>
-                  <td style={{ padding: '0.55rem 0' }}>{renderStatus(qaStats, 'depot')}</td>
-                </tr>
-                <tr>
-                  <td style={{ padding: '0.55rem 0', fontWeight: 600 }}>Overall Trip Feasibility</td>
-                  <td style={{ padding: '0.55rem 0' }}>{renderStatus(clStats, 'feasibility')}</td>
-                  <td style={{ padding: '0.55rem 0' }}>{renderStatus(qaStats, 'feasibility')}</td>
-                </tr>
-              </tbody>
-            </table>
+      <div className="glass-panel" style={{ padding: '1.25rem 1.4rem', marginTop: '1.25rem' }}>
+        <h3 style={{ fontSize: '0.88rem', fontWeight: 600, marginBottom: '0.95rem', display: 'flex', alignItems: 'center', gap: '0.45rem', color: 'var(--text)' }}>
+          <ShieldAlert size={16} style={{ color: 'var(--accent)' }} />
+          Physical Constraint Verification Ledger
+        </h3>
+        <div style={{ overflowX: 'auto' }}>
+          <table className="compare-table" style={{ width: '100%', fontSize: '0.78rem' }}>
+            <thead>
+              <tr style={{ borderBottom: '1px solid rgba(255, 255, 255, 0.08)' }}>
+                <th style={{ textAlign: 'left', padding: '0.5rem', color: 'var(--text-muted)' }}>Constraint Category</th>
+                <th style={{ textAlign: 'left', padding: '0.5rem', color: 'var(--solver-classical)' }}>Classical</th>
+                <th style={{ textAlign: 'left', padding: '0.5rem', color: 'var(--solver-alns)' }}>ALNS</th>
+                <th style={{ textAlign: 'left', padding: '0.5rem', color: 'var(--solver-ortools)' }}>OR-Tools</th>
+                <th style={{ textAlign: 'left', padding: '0.5rem', color: 'var(--solver-gurobi)' }}>Gurobi</th>
+                <th style={{ textAlign: 'left', padding: '0.5rem', color: 'var(--solver-pulp)' }}>PuLP/CBC</th>
+                <th style={{ textAlign: 'left', padding: '0.5rem', color: 'var(--solver-qaoa)' }}>Hybrid QAOA</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr style={{ borderBottom: '1px solid rgba(255, 255, 255, 0.04)' }}>
+                <td style={{ padding: '0.55rem 0.5rem', fontWeight: 500 }}>Frozen Compartment Load</td>
+                <td style={{ padding: '0.55rem 0.5rem' }}>{renderStatus(clStats, 'frozen')}</td>
+                <td style={{ padding: '0.55rem 0.5rem' }}>{renderStatus(alnsStats, 'frozen')}</td>
+                <td style={{ padding: '0.55rem 0.5rem' }}>{renderStatus(ortStats, 'frozen')}</td>
+                <td style={{ padding: '0.55rem 0.5rem' }}>{renderStatus(gurStats, 'frozen')}</td>
+                <td style={{ padding: '0.55rem 0.5rem' }}>{renderStatus(pulpStats, 'frozen')}</td>
+                <td style={{ padding: '0.55rem 0.5rem' }}>{renderStatus(qaStats, 'frozen')}</td>
+              </tr>
+              <tr style={{ borderBottom: '1px solid rgba(255, 255, 255, 0.04)' }}>
+                <td style={{ padding: '0.55rem 0.5rem', fontWeight: 500 }}>Chilled Compartment Load</td>
+                <td style={{ padding: '0.55rem 0.5rem' }}>{renderStatus(clStats, 'chilled')}</td>
+                <td style={{ padding: '0.55rem 0.5rem' }}>{renderStatus(alnsStats, 'chilled')}</td>
+                <td style={{ padding: '0.55rem 0.5rem' }}>{renderStatus(ortStats, 'chilled')}</td>
+                <td style={{ padding: '0.55rem 0.5rem' }}>{renderStatus(gurStats, 'chilled')}</td>
+                <td style={{ padding: '0.55rem 0.5rem' }}>{renderStatus(pulpStats, 'chilled')}</td>
+                <td style={{ padding: '0.55rem 0.5rem' }}>{renderStatus(qaStats, 'chilled')}</td>
+              </tr>
+              <tr style={{ borderBottom: '1px solid rgba(255, 255, 255, 0.04)' }}>
+                <td style={{ padding: '0.55rem 0.5rem', fontWeight: 500 }}>Ambient Compartment Load</td>
+                <td style={{ padding: '0.55rem 0.5rem' }}>{renderStatus(clStats, 'ambient')}</td>
+                <td style={{ padding: '0.55rem 0.5rem' }}>{renderStatus(alnsStats, 'ambient')}</td>
+                <td style={{ padding: '0.55rem 0.5rem' }}>{renderStatus(ortStats, 'ambient')}</td>
+                <td style={{ padding: '0.55rem 0.5rem' }}>{renderStatus(gurStats, 'ambient')}</td>
+                <td style={{ padding: '0.55rem 0.5rem' }}>{renderStatus(pulpStats, 'ambient')}</td>
+                <td style={{ padding: '0.55rem 0.5rem' }}>{renderStatus(qaStats, 'ambient')}</td>
+              </tr>
+              <tr style={{ borderBottom: '1px solid rgba(255, 255, 255, 0.04)' }}>
+                <td style={{ padding: '0.55rem 0.5rem', fontWeight: 500 }}>Completeness (All Clinics)</td>
+                <td style={{ padding: '0.55rem 0.5rem' }}>{renderStatus(clStats, 'completeness')}</td>
+                <td style={{ padding: '0.55rem 0.5rem' }}>{renderStatus(alnsStats, 'completeness')}</td>
+                <td style={{ padding: '0.55rem 0.5rem' }}>{renderStatus(ortStats, 'completeness')}</td>
+                <td style={{ padding: '0.55rem 0.5rem' }}>{renderStatus(gurStats, 'completeness')}</td>
+                <td style={{ padding: '0.55rem 0.5rem' }}>{renderStatus(pulpStats, 'completeness')}</td>
+                <td style={{ padding: '0.55rem 0.5rem' }}>{renderStatus(qaStats, 'completeness')}</td>
+              </tr>
+              <tr style={{ borderBottom: '1px solid rgba(255, 255, 255, 0.04)' }}>
+                <td style={{ padding: '0.55rem 0.5rem', fontWeight: 500 }}>Time Window Adherence</td>
+                <td style={{ padding: '0.55rem 0.5rem' }}>{renderStatus(clStats, 'timewindows')}</td>
+                <td style={{ padding: '0.55rem 0.5rem' }}>{renderStatus(alnsStats, 'timewindows')}</td>
+                <td style={{ padding: '0.55rem 0.5rem' }}>{renderStatus(ortStats, 'timewindows')}</td>
+                <td style={{ padding: '0.55rem 0.5rem' }}>{renderStatus(gurStats, 'timewindows')}</td>
+                <td style={{ padding: '0.55rem 0.5rem' }}>{renderStatus(pulpStats, 'timewindows')}</td>
+                <td style={{ padding: '0.55rem 0.5rem' }}>{renderStatus(qaStats, 'timewindows')}</td>
+              </tr>
+              <tr style={{ borderBottom: '1px solid rgba(255, 255, 255, 0.04)' }}>
+                <td style={{ padding: '0.55rem 0.5rem', fontWeight: 500 }}>Depot Return Guarantee</td>
+                <td style={{ padding: '0.55rem 0.5rem' }}>{renderStatus(clStats, 'depot')}</td>
+                <td style={{ padding: '0.55rem 0.5rem' }}>{renderStatus(alnsStats, 'depot')}</td>
+                <td style={{ padding: '0.55rem 0.5rem' }}>{renderStatus(ortStats, 'depot')}</td>
+                <td style={{ padding: '0.55rem 0.5rem' }}>{renderStatus(gurStats, 'depot')}</td>
+                <td style={{ padding: '0.55rem 0.5rem' }}>{renderStatus(pulpStats, 'depot')}</td>
+                <td style={{ padding: '0.55rem 0.5rem' }}>{renderStatus(qaStats, 'depot')}</td>
+              </tr>
+              <tr>
+                <td style={{ padding: '0.55rem 0.5rem', fontWeight: 600 }}>Overall Trip Feasibility</td>
+                <td style={{ padding: '0.55rem 0.5rem' }}>{renderStatus(clStats, 'feasibility')}</td>
+                <td style={{ padding: '0.55rem 0.5rem' }}>{renderStatus(alnsStats, 'feasibility')}</td>
+                <td style={{ padding: '0.55rem 0.5rem' }}>{renderStatus(ortStats, 'feasibility')}</td>
+                <td style={{ padding: '0.55rem 0.5rem' }}>{renderStatus(gurStats, 'feasibility')}</td>
+                <td style={{ padding: '0.55rem 0.5rem' }}>{renderStatus(pulpStats, 'feasibility')}</td>
+                <td style={{ padding: '0.55rem 0.5rem' }}>{renderStatus(qaStats, 'feasibility')}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      {/* ── Dual Route Map Comparison ─────────────────────────────────────── */}
+      {(() => {
+        const solverMap = { classical: cl, alns, ortools: ort, gurobi: gur, pulp_cbc: pulp, qaoa: qa };
+        const depot = scenarioMeta?.easy?.depot || DEPOT;
+        const leftResult  = solverMap[leftSolver];
+        const rightResult = solverMap[rightSolver];
+        const selStyle = { background: 'var(--bg-muted)', border: '1px solid var(--border)', borderRadius: '6px', color: 'var(--text)', fontSize: '0.72rem', padding: '0.3rem 0.5rem', cursor: 'pointer', outline: 'none' };
+        return (
+          <div className="glass-panel" style={{ padding: '1.25rem 1.4rem', marginTop: '1.25rem' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' }}>
+              <h3 style={{ fontSize: '0.88rem', fontWeight: 600, margin: 0, display: 'flex', alignItems: 'center', gap: '0.45rem', color: 'var(--text)' }}>
+                <Layers size={16} style={{ color: 'var(--accent)' }} /> Route Map Comparison
+              </h3>
+              <span style={{ fontSize: '0.68rem', color: 'var(--text-faint)' }}>Select a solver for each map</span>
+            </div>
+            <div style={{ display: 'flex', gap: '1rem' }}>
+              {/* Left map */}
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ marginBottom: '0.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                  <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>Left map:</span>
+                  <select value={leftSolver} onChange={e => setLeftSolver(e.target.value)} style={selStyle}>
+                    {SOLVER_OPTIONS.map(s => <option key={s.id} value={s.id}>{s.label}</option>)}
+                  </select>
+                </div>
+                <SolverRouteMap
+                  result={leftResult?.status === 'ok' ? leftResult : null}
+                  depot={depot}
+                  label={SOLVER_OPTIONS.find(s => s.id === leftSolver)?.label + ' Routes'}
+                />
+              </div>
+              {/* Right map */}
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ marginBottom: '0.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                  <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>Right map:</span>
+                  <select value={rightSolver} onChange={e => setRightSolver(e.target.value)} style={selStyle}>
+                    {SOLVER_OPTIONS.map(s => <option key={s.id} value={s.id}>{s.label}</option>)}
+                  </select>
+                </div>
+                <SolverRouteMap
+                  result={rightResult?.status === 'ok' ? rightResult : null}
+                  depot={depot}
+                  label={SOLVER_OPTIONS.find(s => s.id === rightSolver)?.label + ' Routes'}
+                />
+              </div>
+            </div>
           </div>
-        </div>
-      )}
+        );
+      })()}
 
-      {!cl && (
-        <div className="glass-panel" style={{ padding: '2.5rem', textAlign: 'center', margin: '1.5rem 0' }}>
-          <Activity size={40} style={{ color: 'var(--solver-qaoa)', marginBottom: '1.25rem', opacity: 0.85 }} />
-          <h3 style={{ fontSize: '1.15rem', fontWeight: 600, color: 'var(--text)', marginBottom: '0.5rem' }}>No Active Live Run Results</h3>
-          <p style={{ color: 'var(--text-muted)', fontSize: '0.88rem', maxWidth: '460px', margin: '0 auto 1.5rem auto', lineHeight: 1.6 }}>
-            You have updated your clinic configuration. Please click the <strong>"Run Live Pipeline"</strong> button below to compute optimal quantum-classical stitched routes for your active inputs.
-          </p>
-        </div>
-      )}
-
-      {/* Section 4 — Roadmap */}
       <div className="glass-panel" style={{ padding: '1rem', marginTop: '1.25rem' }}>
         <h3 style={{ fontSize: '0.85rem', marginBottom: '0.85rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
           <Route size={15} style={{ opacity: 0.7 }} />
@@ -723,6 +1205,15 @@ export default function ResultsView({ config, runPipeline, pipelineLogs, pipelin
     setCurrentStep(id);
   }
 
+  function handleRefreshCompare() {
+    // Force the server to wipe stale 'easy' solver cache and recompute everything
+    fetch(`${API_BASE}/api/recompute-easy`, { method: 'POST' })
+      .then(() => fetch(`${API_BASE}/api/compare-results`))
+      .then(r => r.json())
+      .then(d => { if (!d.error) setCompareResults(d); })
+      .catch(() => {});
+  }
+
   return (
     <div className="results-view">
       <StepIndicator current={currentStep} completed={completed} />
@@ -758,7 +1249,7 @@ export default function ResultsView({ config, runPipeline, pipelineLogs, pipelin
       {currentStep === 'clustering' && <Step2Clustering scenarioMeta={scenarioMeta} config={config} pipelineHasRun={pipelineHasRun} />}
       {currentStep === 'qubo'       && <Step3Qubo />}
       {currentStep === 'stitching'  && <Step4Stitching results={results} scenarioMeta={scenarioMeta} config={config} />}
-      {currentStep === 'comparison' && <Step5Comparison results={results} compareResults={compareResults} config={config} scenarioMeta={scenarioMeta} />}
+      {currentStep === 'comparison' && <Step5Comparison results={results} compareResults={compareResults} config={config} scenarioMeta={scenarioMeta} onRefreshCompare={handleRefreshCompare} />}
     </div>
   );
 }

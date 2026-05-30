@@ -1,12 +1,14 @@
 import { useState, useEffect } from 'react';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
-import { Moon, Play, Sun, GitCompare, Settings, Activity } from 'lucide-react';
+import { Moon, Play, Sun, GitCompare, Settings, Activity, BookOpen, Sparkles } from 'lucide-react';
 
 import ScenarioPanel from './components/ScenarioPanel';
 import CompareTab    from './components/CompareTab';
 import InputTab      from './components/InputTab';
 import ResultsView   from './components/ResultsView';
+import ExplainerTab  from './components/ExplainerTab';
+import FutureResultsTab from './components/FutureResultsTab';
 import { API_BASE }  from './data';
 import { runSSE }    from './utils/sse';
 
@@ -80,6 +82,8 @@ export default function App() {
     { id: 'liverun',   label: 'Live Run',  icon: Activity  },
     { id: 'scenarios', label: 'Scenarios', icon: Play      },
     { id: 'compare',   label: 'Compare',   icon: GitCompare },
+    { id: 'explainer', label: 'Explainer', icon: BookOpen   },
+    { id: 'future',    label: 'Future Results', icon: Sparkles },
   ];
 
   return (
@@ -120,7 +124,7 @@ export default function App() {
 
       {/* ── Input tab ── */}
       <div style={{ display: activeTab === 'input' ? 'block' : 'none' }}>
-        <InputTab onConfigureAndRun={handleConfigureAndRun} />
+        <InputTab onConfigureAndRun={handleConfigureAndRun} pipelineRunning={pipelineRunning} />
       </div>
 
       {/* ── Live Run tab ── */}
@@ -180,6 +184,16 @@ export default function App() {
       {/* ── Compare tab ── */}
       <div style={{ display: activeTab === 'compare' ? 'block' : 'none' }}>
         <CompareTab runPipeline={runSSE} compareActive={activeTab === 'compare'} />
+      </div>
+
+      {/* ── Explainer tab ── */}
+      <div style={{ display: activeTab === 'explainer' ? 'block' : 'none' }}>
+        <ExplainerTab activeTab={activeTab} />
+      </div>
+
+      {/* ── Future Results tab ── */}
+      <div style={{ display: activeTab === 'future' ? 'block' : 'none' }}>
+        <FutureResultsTab activeTab={activeTab} />
       </div>
     </div>
   );

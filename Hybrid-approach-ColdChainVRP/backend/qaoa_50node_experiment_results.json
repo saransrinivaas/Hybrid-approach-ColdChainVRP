@@ -1,0 +1,454 @@
+{
+  "fleet_metrics": {
+    "proposed": {
+      "dist": 196.75292452400004,
+      "spoilage": 199.77619332407878,
+      "total": 396.5291178480788,
+      "time": 6.364869451522827
+    },
+    "old": {
+      "dist": 204.51643171846604,
+      "spoilage": 207.71991581105752,
+      "total": 412.2363475295235,
+      "time": 0.5543556213378906
+    },
+    "classical": {
+      "dist": 226.66510998188028,
+      "spoilage": 236.9196983719085,
+      "total": 463.5848083537888,
+      "time": 0.0
+    }
+  },
+  "vehicle_details": {
+    "V1": {
+      "clinics": [
+        22,
+        27,
+        29,
+        47,
+        14,
+        13,
+        3,
+        41,
+        1,
+        39,
+        43,
+        20,
+        26,
+        6,
+        31,
+        45,
+        35,
+        9,
+        50,
+        5,
+        15
+      ],
+      "proposed_qaoa": {
+        "route": [
+          0,
+          39,
+          22,
+          3,
+          6,
+          43,
+          29,
+          47,
+          15,
+          31,
+          13,
+          9,
+          20,
+          14,
+          27,
+          45,
+          5,
+          41,
+          1,
+          26,
+          35,
+          0
+        ],
+        "feasible": true,
+        "cost_breakdown": {
+          "distance": 43.44987160162499,
+          "spoilage": 87.81876318623061,
+          "total": 131.2686347878556
+        },
+        "time": 1.2729738903045653,
+        "solver": "Proposed-MPS-QAOA"
+      },
+      "classical_greedy": {
+        "route": [
+          0,
+          50,
+          39,
+          22,
+          3,
+          31,
+          15,
+          47,
+          29,
+          43,
+          6,
+          13,
+          45,
+          5,
+          27,
+          9,
+          14,
+          20,
+          41,
+          1,
+          26,
+          35,
+          0
+        ],
+        "feasible": true,
+        "cost_breakdown": {
+          "distance": 48.09446585840412,
+          "spoilage": 89.60503548174894,
+          "total": 137.69950134015306
+        },
+        "time": 0.0,
+        "solver": "Classical-Greedy"
+      },
+      "old_method": {
+        "route": [
+          0,
+          3,
+          31,
+          15,
+          47,
+          29,
+          6,
+          22,
+          50,
+          39,
+          35,
+          26,
+          1,
+          41,
+          5,
+          45,
+          27,
+          9,
+          14,
+          20,
+          13,
+          0
+        ],
+        "feasible": true,
+        "cost_breakdown": {
+          "distance": 44.01539805072794,
+          "spoilage": 93.01312589685477,
+          "total": 137.0285239475827
+        },
+        "time": 0.11087112426757813,
+        "solver": "Old-Method-Stitched"
+      }
+    },
+    "V2": {
+      "clinics": [
+        49,
+        34,
+        11,
+        24,
+        30,
+        36,
+        37,
+        46,
+        16,
+        28,
+        33,
+        42,
+        44,
+        2,
+        4,
+        21
+      ],
+      "proposed_qaoa": {
+        "route": [
+          0,
+          21,
+          44,
+          11,
+          42,
+          4,
+          28,
+          33,
+          2,
+          36,
+          0
+        ],
+        "feasible": true,
+        "cost_breakdown": {
+          "distance": 42.706698022899786,
+          "spoilage": 37.2381208536057,
+          "total": 79.94481887650548
+        },
+        "time": 1.2729738903045653,
+        "solver": "Proposed-MPS-QAOA"
+      },
+      "classical_greedy": {
+        "route": [
+          0,
+          49,
+          21,
+          44,
+          28,
+          33,
+          2,
+          36,
+          37,
+          34,
+          46,
+          30,
+          24,
+          16,
+          4,
+          11,
+          42,
+          0
+        ],
+        "feasible": true,
+        "cost_breakdown": {
+          "distance": 72.31466765355876,
+          "spoilage": 95.11203349250341,
+          "total": 167.42670114606216
+        },
+        "time": 0.0,
+        "solver": "Classical-Greedy"
+      },
+      "old_method": {
+        "route": [
+          0,
+          21,
+          44,
+          11,
+          42,
+          4,
+          28,
+          33,
+          2,
+          36,
+          0
+        ],
+        "feasible": true,
+        "cost_breakdown": {
+          "distance": 42.706698022899786,
+          "spoilage": 37.2381208536057,
+          "total": 79.94481887650548
+        },
+        "time": 0.11087112426757813,
+        "solver": "Old-Method-Stitched"
+      }
+    },
+    "V3": {
+      "clinics": [
+        18,
+        19,
+        7,
+        12,
+        17,
+        25,
+        40,
+        48
+      ],
+      "proposed_qaoa": {
+        "route": [
+          0,
+          50,
+          17,
+          12,
+          40,
+          19,
+          7,
+          25,
+          18,
+          0
+        ],
+        "feasible": true,
+        "cost_breakdown": {
+          "distance": 29.74872654484286,
+          "spoilage": 26.01612255867301,
+          "total": 55.76484910351587
+        },
+        "time": 1.2729738903045653,
+        "solver": "Proposed-MPS-QAOA"
+      },
+      "classical_greedy": {
+        "route": [
+          0,
+          17,
+          12,
+          25,
+          7,
+          19,
+          40,
+          48,
+          18,
+          0
+        ],
+        "feasible": true,
+        "cost_breakdown": {
+          "distance": 37.14670681849972,
+          "spoilage": 32.410015707966465,
+          "total": 69.55672252646619
+        },
+        "time": 0.0,
+        "solver": "Classical-Greedy"
+      },
+      "old_method": {
+        "route": [
+          0,
+          17,
+          12,
+          40,
+          19,
+          7,
+          25,
+          18,
+          0
+        ],
+        "feasible": true,
+        "cost_breakdown": {
+          "distance": 29.747500590706792,
+          "spoilage": 25.734237108491723,
+          "total": 55.48173769919852
+        },
+        "time": 0.11087112426757813,
+        "solver": "Old-Method-Stitched"
+      }
+    },
+    "V4": {
+      "clinics": [
+        8,
+        23,
+        10,
+        32
+      ],
+      "proposed_qaoa": {
+        "route": [
+          0,
+          48,
+          10,
+          32,
+          23,
+          8,
+          38,
+          0
+        ],
+        "feasible": true,
+        "cost_breakdown": {
+          "distance": 50.23474927310971,
+          "spoilage": 27.157833952007223,
+          "total": 77.39258322511694
+        },
+        "time": 1.2729738903045653,
+        "solver": "Proposed-MPS-QAOA"
+      },
+      "classical_greedy": {
+        "route": [
+          0,
+          32,
+          10,
+          23,
+          8,
+          0
+        ],
+        "feasible": true,
+        "cost_breakdown": {
+          "distance": 32.5562119507327,
+          "spoilage": 14.918872662931715,
+          "total": 47.47508461366442
+        },
+        "time": 0.0,
+        "solver": "Classical-Greedy"
+      },
+      "old_method": {
+        "route": [
+          0,
+          43,
+          8,
+          23,
+          32,
+          10,
+          48,
+          0
+        ],
+        "feasible": true,
+        "cost_breakdown": {
+          "distance": 33.58812557342714,
+          "spoilage": 21.566488532040253,
+          "total": 55.154614105467395
+        },
+        "time": 0.11087112426757813,
+        "solver": "Old-Method-Stitched"
+      }
+    },
+    "V5": {
+      "clinics": [
+        38
+      ],
+      "proposed_qaoa": {
+        "route": [
+          0,
+          49,
+          30,
+          46,
+          34,
+          37,
+          16,
+          24,
+          0
+        ],
+        "feasible": true,
+        "cost_breakdown": {
+          "distance": 30.612879081522685,
+          "spoilage": 21.54535277356223,
+          "total": 52.158231855084914
+        },
+        "time": 1.2729738903045653,
+        "solver": "Proposed-MPS-QAOA"
+      },
+      "classical_greedy": {
+        "route": [
+          0,
+          38,
+          0
+        ],
+        "feasible": true,
+        "cost_breakdown": {
+          "distance": 36.55305770068498,
+          "spoilage": 4.8737410267579975,
+          "total": 41.42679872744298
+        },
+        "time": 0.0,
+        "solver": "Classical-Greedy"
+      },
+      "old_method": {
+        "route": [
+          0,
+          49,
+          30,
+          46,
+          34,
+          24,
+          37,
+          16,
+          38,
+          0
+        ],
+        "feasible": true,
+        "cost_breakdown": {
+          "distance": 54.458709480704385,
+          "spoilage": 30.16794342006509,
+          "total": 84.62665290076947
+        },
+        "time": 0.11087112426757813,
+        "solver": "Old-Method-Stitched"
+      }
+    }
+  }
+}

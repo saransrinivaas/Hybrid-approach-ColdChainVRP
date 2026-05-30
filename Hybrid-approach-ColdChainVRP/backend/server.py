@@ -8,6 +8,42 @@ import json
 
 
 BACKEND_DIR = os.path.dirname(os.path.abspath(__file__))
+
+# Prevent loading incompatible compiled C-extensions if user runs with system Python (e.g. Python 3.9) instead of venv (Python 3.12)
+venv_cfg_path = os.path.abspath(os.path.join(BACKEND_DIR, '..', '..', 'venv', 'pyvenv.cfg'))
+if not os.path.exists(venv_cfg_path):
+    venv_cfg_path = os.path.abspath(os.path.join(BACKEND_DIR, '..', 'venv', 'pyvenv.cfg'))
+
+venv_version = None
+if os.path.exists(venv_cfg_path):
+    try:
+        with open(venv_cfg_path, 'r', encoding='utf-8') as f:
+            for line in f:
+                if line.strip().startswith('version'):
+                    venv_version = line.split('=')[1].strip()
+                    break
+    except Exception:
+        pass
+
+if venv_version:
+    running_ver = f"{sys.version_info.major}.{sys.version_info.minor}"
+    venv_ver_parts = venv_version.split('.')
+    if len(venv_ver_parts) >= 2:
+        venv_major_minor = f"{venv_ver_parts[0]}.{venv_ver_parts[1]}"
+        if running_ver != venv_major_minor:
+            print(f"\n" + "=" * 80)
+            print(f" [CRITICAL ERROR] PYTHON INTERPRETER MISMATCH DETECTED!")
+            print(f" =" * 40)
+            print(f" Running Interpreter : Python {sys.version.split()[0]} (from '{sys.executable}')")
+            print(f" Target Environment  : Python {venv_version} (built in '.\\venv')")
+            print(f"\n Injecting the Python 3.12 site-packages into a Python {running_ver} runtime is guaranteed")
+            print(f" to crash compiled binary modules (such as NumPy C-extensions, OR-Tools, etc.)!")
+            print(f"\n [FIX]: Please run the backend server using the virtual environment's python directly:")
+            print(f"        .\\venv\\Scripts\\python.exe backend\\server.py")
+            print(f"        (Or activate the virtual env first: .\\venv\\Scripts\\Activate.ps1)")
+            print("=" * 80 + "\n")
+            sys.exit(1)
+
 # Inject virtual environment site-packages to support running server.py globally
 venv_paths = [
     os.path.join(BACKEND_DIR, '..', '..', 'venv', 'Lib', 'site-packages'),
@@ -347,6 +383,137 @@ import threading as _threading
 _ilp_thread_lock = _threading.Lock()
 _ilp_running = False
 
+class RelaxedScenarioWrapper:
+    def __init__(self, original_sc):
+        self._orig = original_sc
+        self.__name__ = getattr(original_sc, "__name__", "scenario") + "_relaxed"
+        
+        # Expose all original fields
+        self.DEPOT = original_sc.DEPOT
+        self.CLINICS = original_sc.CLINICS
+        self.DEMANDS = original_sc.DEMANDS
+        self.DISTANCE_MATRIX = original_sc.DISTANCE_MATRIX
+        self.SPOILAGE = original_sc.SPOILAGE
+        self.ENERGY_RATE = original_sc.ENERGY_RATE
+        self.AVG_SPEED_KMH = original_sc.AVG_SPEED_KMH
+        
+        # Relaxed time windows: all clinics get [0, 24] (meaning 0 to 1440 minutes)
+        self.TIME_WINDOWS = {c["id"]: (0, 24) for c in original_sc.CLINICS}
+        
+        # Relaxed vehicles capacity: sum of all demands + safety margin for each compartment
+        total_frozen = sum(original_sc.DEMANDS[c["id"]]["frozen"] for c in original_sc.CLINICS)
+        total_chilled = sum(original_sc.DEMANDS[c["id"]]["chilled"] for c in original_sc.CLINICS)
+        total_ambient = sum(original_sc.DEMANDS[c["id"]]["ambient"] for c in original_sc.CLINICS)
+        
+        self.VEHICLES = []
+        for v in original_sc.VEHICLES:
+            v_relaxed = {
+                "id": v["id"],
+                "compartments": {
+                    "frozen": {"temp_c": -20, "capacity": int(max(v["compartments"]["frozen"]["capacity"], total_frozen + 10))},
+                    "chilled": {"temp_c": 4, "capacity": int(max(v["compartments"]["chilled"]["capacity"], total_chilled + 10))},
+                    "ambient": {"temp_c": 20, "capacity": int(max(v["compartments"]["ambient"]["capacity"], total_ambient + 10))},
+                }
+            }
+            self.VEHICLES.append(v_relaxed)
+
+def enrich_solver_result(result: dict, sc_module) -> dict:
+    """
+    Enriches the solver result with real physical constraint checks:
+      - capacity_feasible: per vehicle and compartment
+      - time_window_feasible: per vehicle based on operating windows
+      - overall_feasible (feasible): capacity_feasible and time_window_feasible
+    """
+    if not result or not result.get("routes"):
+        return result
+        
+    dm = sc_module.DISTANCE_MATRIX
+    tw = sc_module.TIME_WINDOWS
+    demands = sc_module.DEMANDS
+    vehicles = {v["id"]: v for v in sc_module.VEHICLES}
+    avg_speed = sc_module.AVG_SPEED_KMH
+    
+    fleet_feasible = True
+    
+    for vid, rdata in result["routes"].items():
+        route = rdata.get("route", [])
+        if not route:
+            continue
+            
+        # 1. Capacity Check
+        inner = [cid for cid in route if cid != 0]
+        cap_check = {}
+        veh_cap_feasible = True
+        
+        # Get vehicle info. Fallback to first vehicle if vid not found.
+        v_info = vehicles.get(vid, sc_module.VEHICLES[0])
+        
+        for temp in ("frozen", "chilled", "ambient"):
+            used = sum(demands[cid][temp] for cid in inner)
+            cap = v_info["compartments"][temp]["capacity"]
+            cap_check[temp] = {"used": used, "cap": cap}
+            if used > cap:
+                veh_cap_feasible = False
+                
+        # 2. Time Window Check
+        veh_tw_feasible = True
+        current_time = 8.0
+        for i in range(1, len(route)):
+            prev, curr = route[i-1], route[i]
+            travel_time = dm[prev][curr] / avg_speed
+            current_time += travel_time
+            if curr != 0:
+                open_h, close_h = tw[curr]
+                if current_time > close_h:
+                    veh_tw_feasible = False
+                elif current_time < open_h:
+                    current_time = open_h
+                    
+        rdata["capacity"] = cap_check
+        # We enrich with a "feasible" boolean representing strict physical compliance
+        rdata["feasible"] = veh_cap_feasible and veh_tw_feasible
+        rdata["time_window_feasible"] = veh_tw_feasible
+        
+        if not (veh_cap_feasible and veh_tw_feasible):
+            fleet_feasible = False
+            
+    result["feasible"] = fleet_feasible
+    result["status"] = "ok"
+    return result
+
+def run_solver_with_relaxed_fallback(solver_solve_func, sc_module):
+    """
+    Runs a solver. If it fails (returns status="failed" or status="unavailable"),
+    retries with a relaxed scenario to guarantee a route is produced.
+    Then applies enrichment to evaluate the path against original constraints.
+    """
+    try:
+        res = solver_solve_func(sc_module)
+        if res and res.get("status") == "unavailable":
+            return res
+        if not res or res.get("status") == "failed" or not res.get("routes"):
+            print(f"[RELAXATION] Solver failed or returned failed status. Attempting relaxed solve...")
+            relaxed_sc = RelaxedScenarioWrapper(sc_module)
+            res = solver_solve_func(relaxed_sc)
+            if res and res.get("status") == "unavailable":
+                return res
+            res["status"] = "ok"
+            res["was_relaxed"] = True
+        return enrich_solver_result(res, sc_module)
+    except Exception as e:
+        print(f"[RELAXATION] Error in solver execution: {e}. Retrying relaxed...")
+        try:
+            relaxed_sc = RelaxedScenarioWrapper(sc_module)
+            res = solver_solve_func(relaxed_sc)
+            if res and res.get("status") == "unavailable":
+                return res
+            res["status"] = "ok"
+            res["was_relaxed"] = True
+            return enrich_solver_result(res, sc_module)
+        except Exception as ex:
+            print(f"[RELAXATION] Critical: Relaxed solve also failed: {ex}")
+            return {"status": "failed", "routes": {}, "error": str(e)}
+
 def _start_ilp_background():
     """Launch Gurobi + PuLP in a daemon thread so they never block API responses."""
     global _ilp_running
@@ -369,9 +536,9 @@ def _start_ilp_background():
             import gurobi_solver as _gurobi, pulp_solver as _pulp
             for key, sc in [('easy', _SC1b), ('tough', _SC2b), ('tough3', _SC3b)]:
                 if COMPUTED_STATE.get(f'compare_gurobi_{key}') is None:
-                    COMPUTED_STATE[f'compare_gurobi_{key}'] = _gurobi.solve_scenario(sc)
+                    COMPUTED_STATE[f'compare_gurobi_{key}'] = run_solver_with_relaxed_fallback(_gurobi.solve_scenario, sc)
                 if COMPUTED_STATE.get(f'compare_pulp_{key}') is None:
-                    COMPUTED_STATE[f'compare_pulp_{key}'] = _pulp.solve_scenario(sc)
+                    COMPUTED_STATE[f'compare_pulp_{key}'] = run_solver_with_relaxed_fallback(_pulp.solve_scenario, sc)
         except Exception as e:
             print(f"[ILP Background] Error: {e}")
         finally:
@@ -410,8 +577,20 @@ def compare_results():
     cl_tough  = COMPUTED_STATE.get('compare_cl_tough')
     cl_tough3 = COMPUTED_STATE.get('compare_cl_tough3')
 
-    # If no fast-solver results yet, run them inline (classical + OR-Tools + ALNS are fast)
-    if cl_easy is None or cl_tough is None or cl_tough3 is None:
+    # Determine if any fast solver for any scenario needs computing.
+    # Each solver is checked INDEPENDENTLY so a silent failure in one doesn't
+    # permanently block retries for others on subsequent requests.
+    easy_pending  = (cl_easy is None
+                     or COMPUTED_STATE.get('compare_ort_easy')  is None
+                     or COMPUTED_STATE.get('compare_alns_easy') is None)
+    tough_pending  = (cl_tough is None
+                      or COMPUTED_STATE.get('compare_ort_tough')  is None
+                      or COMPUTED_STATE.get('compare_alns_tough') is None)
+    tough3_pending = (cl_tough3 is None
+                      or COMPUTED_STATE.get('compare_ort_tough3')  is None
+                      or COMPUTED_STATE.get('compare_alns_tough3') is None)
+
+    if easy_pending or tough_pending or tough3_pending:
         try:
             sys.path.insert(0, BACKEND_DIR)
             import importlib
@@ -425,79 +604,81 @@ def compare_results():
             importlib.reload(_SC2)
             importlib.reload(_SC3)
 
-            # Define inline functions safely inside
             from classical_solver import solve_scenario as solve_classical
             import ortools_solver
             import alns_solver
 
-            # Evaluate Classical (Scenario 1)
+            # ── Scenario 1 (custom dynamic) ──────────────────────────────────
             if cl_easy is None:
                 try:
-                    cl_easy = solve_classical(_SC1)
+                    cl_easy = run_solver_with_relaxed_fallback(solve_classical, _SC1)
                     COMPUTED_STATE['compare_cl_easy'] = cl_easy
                 except Exception as e:
                     print(f"[compare-results] Classical Easy failed: {e}")
-            # Evaluate Classical (Scenario 2)
+
+            if COMPUTED_STATE.get('compare_ort_easy') is None:
+                try:
+                    COMPUTED_STATE['compare_ort_easy'] = run_solver_with_relaxed_fallback(ortools_solver.solve_scenario, _SC1)
+                    print(f"[compare-results] OR-Tools Easy done: {COMPUTED_STATE['compare_ort_easy'].get('status')}")
+                except Exception as e:
+                    print(f"[compare-results] OR-Tools Easy failed: {e}")
+                    import traceback; traceback.print_exc()
+
+            if COMPUTED_STATE.get('compare_alns_easy') is None:
+                try:
+                    COMPUTED_STATE['compare_alns_easy'] = run_solver_with_relaxed_fallback(alns_solver.solve_scenario, _SC1)
+                    print(f"[compare-results] ALNS Easy done: {COMPUTED_STATE['compare_alns_easy'].get('status')}")
+                except Exception as e:
+                    print(f"[compare-results] ALNS Easy failed: {e}")
+                    import traceback; traceback.print_exc()
+
+            # ── Scenario 2 ───────────────────────────────────────────────────
             if cl_tough is None:
                 try:
-                    cl_tough = solve_classical(_SC2)
+                    cl_tough = run_solver_with_relaxed_fallback(solve_classical, _SC2)
                     COMPUTED_STATE['compare_cl_tough'] = cl_tough
                 except Exception as e:
                     print(f"[compare-results] Classical Tough failed: {e}")
-            # Evaluate Classical (Scenario 3)
+
+            if COMPUTED_STATE.get('compare_ort_tough') is None:
+                try:
+                    COMPUTED_STATE['compare_ort_tough'] = run_solver_with_relaxed_fallback(ortools_solver.solve_scenario, _SC2)
+                except Exception as e:
+                    print(f"[compare-results] OR-Tools Tough failed: {e}")
+
+            if COMPUTED_STATE.get('compare_alns_tough') is None:
+                try:
+                    COMPUTED_STATE['compare_alns_tough'] = run_solver_with_relaxed_fallback(alns_solver.solve_scenario, _SC2)
+                except Exception as e:
+                    print(f"[compare-results] ALNS Tough failed: {e}")
+
+            # ── Scenario 3 ───────────────────────────────────────────────────
             if cl_tough3 is None:
                 try:
-                    cl_tough3 = solve_classical(_SC3)
+                    cl_tough3 = run_solver_with_relaxed_fallback(solve_classical, _SC3)
                     COMPUTED_STATE['compare_cl_tough3'] = cl_tough3
                 except Exception as e:
                     print(f"[compare-results] Classical Tough3 failed: {e}")
 
-            # Evaluate OR-Tools (Scenario 1)
-            if COMPUTED_STATE.get('compare_ort_easy') is None:
-                try:
-                    COMPUTED_STATE['compare_ort_easy'] = ortools_solver.solve_scenario(_SC1)
-                except Exception as e:
-                    print(f"[compare-results] OR-Tools Easy failed: {e}")
-            # Evaluate OR-Tools (Scenario 2)
-            if COMPUTED_STATE.get('compare_ort_tough') is None:
-                try:
-                    COMPUTED_STATE['compare_ort_tough'] = ortools_solver.solve_scenario(_SC2)
-                except Exception as e:
-                    print(f"[compare-results] OR-Tools Tough failed: {e}")
-            # Evaluate OR-Tools (Scenario 3)
             if COMPUTED_STATE.get('compare_ort_tough3') is None:
                 try:
-                    COMPUTED_STATE['compare_ort_tough3'] = ortools_solver.solve_scenario(_SC3)
+                    COMPUTED_STATE['compare_ort_tough3'] = run_solver_with_relaxed_fallback(ortools_solver.solve_scenario, _SC3)
                 except Exception as e:
                     print(f"[compare-results] OR-Tools Tough3 failed: {e}")
 
-            # Evaluate ALNS (Scenario 1)
-            if COMPUTED_STATE.get('compare_alns_easy') is None:
-                try:
-                    COMPUTED_STATE['compare_alns_easy'] = alns_solver.solve_scenario(_SC1)
-                except Exception as e:
-                    print(f"[compare-results] ALNS Easy failed: {e}")
-            # Evaluate ALNS (Scenario 2)
-            if COMPUTED_STATE.get('compare_alns_tough') is None:
-                try:
-                    COMPUTED_STATE['compare_alns_tough'] = alns_solver.solve_scenario(_SC2)
-                except Exception as e:
-                    print(f"[compare-results] ALNS Tough failed: {e}")
-            # Evaluate ALNS (Scenario 3)
             if COMPUTED_STATE.get('compare_alns_tough3') is None:
                 try:
-                    COMPUTED_STATE['compare_alns_tough3'] = alns_solver.solve_scenario(_SC3)
+                    COMPUTED_STATE['compare_alns_tough3'] = run_solver_with_relaxed_fallback(alns_solver.solve_scenario, _SC3)
                 except Exception as e:
                     print(f"[compare-results] ALNS Tough3 failed: {e}")
 
-            # Auto-save computed fast-solver results to disk
+            # Save fast-solver results to disk and kick off ILP background thread
             _save_computed_state_to_disk()
-
-            # Kick off slow ILP solvers in background thread (non-blocking)
             _start_ilp_background()
 
         except Exception as e:
             print(f"[compare-results] Inline evaluation error: {e}")
+            import traceback; traceback.print_exc()
 
     payload = {
         "easy":  {
@@ -529,12 +710,18 @@ def compare_results():
     comp_qaoa_tough3 = COMPUTED_STATE['compare_qaoa_tough3']
     pipe_qaoa        = COMPUTED_STATE['pipeline_easy']
 
+    try:
+        import scenario_dynamic as _SC1_check
+        importlib.reload(_SC1_check)
+    except Exception:
+        import scenario as _SC1_check
+
     if comp_qaoa_easy and comp_qaoa_easy.get('status') == 'ok':
         payload["easy"]["qaoa"] = comp_qaoa_easy
     elif pipe_qaoa and not pipe_qaoa.get('error'):
         q_data = pipe_qaoa.get('qaoa', pipe_qaoa)
         if q_data.get('routes'):
-            payload["easy"]["qaoa"] = {
+            qaoa_payload = {
                 'solver': 'Hybrid QAOA Pipeline',
                 'routes': q_data['routes'],
                 'fleet_distance':      q_data.get('fleet_distance'),
@@ -544,6 +731,7 @@ def compare_results():
                 'total_time': pipe_qaoa.get('total_time', 0.0),
                 'status': 'ok',
             }
+            payload["easy"]["qaoa"] = enrich_solver_result(qaoa_payload, _SC1_check)
         else:
             payload["easy"]["qaoa"] = {"status": "skipped", "note": "Run the Live Pipeline to generate Hybrid QAOA results."}
     else:
@@ -687,11 +875,29 @@ def configure_scenario():
                 if v.get("alpha", 0) > spoilage[comp]["alpha"]:
                     spoilage[comp] = {"alpha": v["alpha"], "value": v.get("value", spoilage[comp]["value"])}
 
-        # ── Pull static GPS coords from scenario.py (never change) ──
-        sys.path.insert(0, BACKEND_DIR)
-        import scenario as _base_sc
-        base_clinics_by_id = {c["id"]: c for c in _base_sc.CLINICS}
-        base_depot = _base_sc.DEPOT
+        # ── Pull static GPS coords from scenario.py without importing (avoids numpy dep) ──
+        import ast as _ast
+        _sc_path = os.path.join(BACKEND_DIR, 'scenario.py')
+        _base_clinics_by_id = {}
+        _base_depot = {"id": 0, "name": "Regional Vaccine Depot", "lat": 13.0827, "lon": 80.2707}
+        try:
+            with open(_sc_path, encoding='utf-8') as _fh:
+                _tree = _ast.parse(_fh.read())
+            for _node in _ast.walk(_tree):
+                if isinstance(_node, _ast.Assign):
+                    for _t in _node.targets:
+                        if isinstance(_t, _ast.Name):
+                            try:
+                                if _t.id == 'CLINICS':
+                                    _base_clinics_by_id = {c['id']: c for c in _ast.literal_eval(_node.value)}
+                                elif _t.id == 'DEPOT':
+                                    _base_depot = _ast.literal_eval(_node.value)
+                            except Exception:
+                                pass
+        except Exception as _e:
+            print(f"[configure] Could not parse scenario.py via ast: {_e}")
+        base_clinics_by_id = _base_clinics_by_id
+        base_depot = _base_depot
 
         # ── Build included clinic list ──
         included = [c for c in clinics_cfg if c.get("included", True)]
@@ -790,14 +996,29 @@ def configure_scenario():
         with open(out_path, "w", encoding="utf-8") as f:
             f.write("\n".join(lines) + "\n")
 
+        # Clear cached dynamic scenario comparison results to force re-evaluation on new configuration
+        for k in ['compare_cl_easy', 'compare_ort_easy', 'compare_gurobi_easy', 'compare_pulp_easy', 'compare_alns_easy', 'compare_qaoa_easy', 'pipeline_easy']:
+            COMPUTED_STATE[k] = None
+
         return jsonify({"status": "ok", "scenario_file": "scenario_dynamic.py",
                         "num_clinics": len(included), "num_vehicles": num_vehicles})
     except Exception as e:
         import traceback
         return jsonify({"error": str(e), "trace": traceback.format_exc()}), 500
 
+@app.route('/api/recompute-easy', methods=['POST'])
+def recompute_easy():
+    """Force clear and recompute all solver results for the custom (easy/dynamic) scenario.
+    Called by the frontend 'Refresh Solvers' button in Step 5 Comparison."""
+    for k in ['compare_cl_easy', 'compare_ort_easy', 'compare_gurobi_easy',
+              'compare_pulp_easy', 'compare_alns_easy']:
+        COMPUTED_STATE[k] = None
+    # The next call to /api/compare-results will recompute all of them automatically.
+    return jsonify({"status": "ok", "message": "Easy scenario solver cache cleared. Fetch /api/compare-results to recompute."})
+
 
 if __name__ == '__main__':
+
     port = int(os.environ.get('FLASK_PORT', 5000))
     print(f"Starting Flask Streaming Server on port {port}...")
     app.run(port=port, debug=True, threaded=True, use_reloader=False)

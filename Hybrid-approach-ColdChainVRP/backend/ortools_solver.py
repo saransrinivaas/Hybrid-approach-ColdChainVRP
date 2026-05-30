@@ -12,6 +12,8 @@ comparison with the hybrid pipeline in compare.py / the UI.
 No NN / 2-opt / OR-opt — only the external MIP/CP-SAT based routing search.
 """
 
+from __future__ import annotations
+
 import os
 import sys
 
@@ -26,12 +28,12 @@ for vp in venv_paths:
     if os.path.exists(vp) and vp not in sys.path:
         sys.path.insert(0, vp)
 
-from __future__ import annotations
 
 import time
 from typing import Any
 
 import numpy as np
+# pyrefly: ignore [missing-import]
 from ortools.constraint_solver import pywrapcp, routing_enums_pb2
 
 from classical_solver import route_cost

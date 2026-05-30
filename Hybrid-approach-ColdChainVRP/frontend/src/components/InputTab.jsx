@@ -66,7 +66,7 @@ function fleetCapacity(vehicles, compartment) {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-export default function InputTab({ onConfigureAndRun }) {
+export default function InputTab({ onConfigureAndRun, pipelineRunning }) {
   // ── Vaccine selection ──
   // Pre-load one of each compartment type to ensure 'ambient' and 'chilled' are visible by default
   const [vaccines, setVaccines] = useState([
@@ -95,6 +95,15 @@ export default function InputTab({ onConfigureAndRun }) {
   // ── Run state ──
   const [isRunning, setIsRunning] = useState(false);
   const [validationError, setValidationError] = useState('');
+
+  // Reset local isRunning state when pipeline starts/stops running
+  useEffect(() => {
+    if (pipelineRunning) {
+      setIsRunning(true);
+    } else {
+      setIsRunning(false);
+    }
+  }, [pipelineRunning]);
 
   // ── Close vaccine dropdown on outside click ──
   // ── Persistence ──
@@ -482,9 +491,9 @@ export default function InputTab({ onConfigureAndRun }) {
 
           </div>
           {currentValidationError && <div className="input-validation-msg"><Info size={12} />{currentValidationError}</div>}
-          <button className="btn btn-primary input-run-btn" onClick={handleRun} disabled={isRunning || !isReady}>
-            {isRunning ? <Activity size={15} /> : <Play size={15} />}
-            {isRunning ? 'Configuring…' : 'Configure & Run Pipeline'}
+          <button className="btn btn-primary input-run-btn" onClick={handleRun} disabled={isRunning || pipelineRunning || !isReady}>
+            {(isRunning || pipelineRunning) ? <Activity size={15} /> : <Play size={15} />}
+            {pipelineRunning ? 'Running…' : isRunning ? 'Configuring…' : 'Configure & Run Pipeline'}
           </button>
         </div>
 
