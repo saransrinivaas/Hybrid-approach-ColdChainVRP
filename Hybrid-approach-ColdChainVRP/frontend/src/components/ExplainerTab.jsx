@@ -86,8 +86,6 @@ const PIPELINE_STEPS = [
 export default function ExplainerTab({ activeTab }) {
   const [selectedTerm, setSelectedTerm] = useState('spoilage');
   const [selectedStep, setSelectedStep] = useState('3');
-  const [hoveredSpoilageHour, setHoveredSpoilageHour] = useState(null);
-  const [hoveredQubitSize, setHoveredQubitSize] = useState(null);
 
   // Trigger MathJax typesetting when tab changes to explainer or term changes
   useEffect(() => {
@@ -98,12 +96,6 @@ export default function ExplainerTab({ activeTab }) {
       }, 50);
     }
   }, [activeTab, selectedTerm, selectedStep]);
-
-  // Spoilage chart variables
-  const hours = Array.from({ length: 11 }, (_, i) => i);
-  const frozenCost = hours.map(h => 500 * 0.001 * h * 2);  // value=500, alpha=0.001, demand=2
-  const chilledCost = hours.map(h => 200 * 0.010 * h * 3); // value=200, alpha=0.010, demand=3
-  const ambientCost = hours.map(h => 50 * 0.050 * h * 4);  // value=50, alpha=0.050, demand=4
 
   // Qubit scaling chart variables
   const sizes = [2, 3, 4, 5, 6, 8, 10];
@@ -319,17 +311,17 @@ export default function ExplainerTab({ activeTab }) {
 
       </div>
 
-      {/* Sidebar: Interactive SVG Charts */}
+      {/* Sidebar: SVG Charts */}
       <div className="sidebar" style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
         
         {/* Spoilage Physics Curves Chart */}
         <div className="card glass-panel" style={{ padding: '1.25rem' }}>
           <h3 style={{ fontSize: '0.98rem', marginBottom: '0.75rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
             <Clock size={16} style={{ color: 'var(--solver-qaoa)' }} />
-            Interactive Spoilage Physics Curves
+            Spoilage Physics Curves
           </h3>
           <p style={{ color: 'var(--text-secondary)', fontSize: '0.8rem', lineHeight: '1.4', marginBottom: '1rem' }}>
-            Perishable decay over delivery transit hours. Frozen products spoil slowly (low alpha, high base cost), while Ambient products decay quickly. Hover to view the estimated spoilage loss (Rs).
+            Perishable decay over delivery transit hours. Frozen products spoil slowly (low alpha, high base cost), while Ambient products decay quickly.
           </p>
 
           {/* SVG Chart */}
@@ -345,59 +337,12 @@ export default function ExplainerTab({ activeTab }) {
               <path d="M 10 49 C 30 45, 60 40, 95 32" fill="none" stroke="#10b981" strokeWidth="1.2" />
               <path d="M 10 49 C 30 40, 60 20, 95 5" fill="none" stroke="#f59e0b" strokeWidth="1.2" />
 
-              {/* Hover Trigger Areas */}
-              {Array.from({ length: 11 }).map((_, hIdx) => {
-                const x = 10 + (hIdx * 8.5);
-                return (
-                  <rect
-                    key={hIdx}
-                    x={x - 4}
-                    y={5}
-                    width={8}
-                    height={45}
-                    fill="transparent"
-                    cursor="pointer"
-                    onMouseEnter={() => setHoveredSpoilageHour(hIdx)}
-                    onMouseLeave={() => setHoveredSpoilageHour(null)}
-                  />
-                );
-              })}
-
               {/* Axis Labels */}
               <text x="10" y="54" fill="var(--text-faint)" fontSize="2" textAnchor="middle">0h</text>
               <text x="52.5" y="54" fill="var(--text-faint)" fontSize="2" textAnchor="middle">5h</text>
               <text x="95" y="54" fill="var(--text-faint)" fontSize="2" textAnchor="middle">10h</text>
               <text x="6" y="8" fill="var(--text-faint)" fontSize="2" textAnchor="start" transform="rotate(-90 6 8)">Spoilage Cost →</text>
             </svg>
-          </div>
-
-          {/* Hover Dashboard */}
-          <div style={{ marginTop: '0.8rem', padding: '0.6rem', background: 'rgba(255,255,255,0.02)', borderRadius: '6px', border: '1px solid rgba(255,255,255,0.04)' }}>
-            {hoveredSpoilageHour !== null ? (
-              <div>
-                <div style={{ fontWeight: 600, fontSize: '0.8rem', color: 'var(--accent)', marginBottom: '0.3rem' }}>
-                  Transit Duration: {hoveredSpoilageHour} Hour{hoveredSpoilageHour !== 1 ? 's' : ''}
-                </div>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.2rem', fontSize: '0.75rem' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                    <span style={{ color: '#38bdf8' }}>● Frozen Spoilage:</span>
-                    <span>Rs {frozenCost[hoveredSpoilageHour].toFixed(1)}</span>
-                  </div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                    <span style={{ color: '#10b981' }}>● Chilled Spoilage:</span>
-                    <span>Rs {chilledCost[hoveredSpoilageHour].toFixed(1)}</span>
-                  </div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                    <span style={{ color: '#f59e0b' }}>● Ambient Spoilage:</span>
-                    <span>Rs {ambientCost[hoveredSpoilageHour].toFixed(1)}</span>
-                  </div>
-                </div>
-              </div>
-            ) : (
-              <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)', textAlign: 'center', fontStyle: 'italic' }}>
-                Hover over the chart to inspect simulated costs.
-              </div>
-            )}
           </div>
           
           <div style={{ marginTop: '0.8rem', fontSize: '0.78rem', color: 'var(--text-muted)', lineHeight: '1.4' }}>
@@ -417,7 +362,7 @@ export default function ExplainerTab({ activeTab }) {
             Physical Qubit Scaling Complexity
           </h3>
           <p style={{ color: 'var(--text-secondary)', fontSize: '0.8rem', lineHeight: '1.4', marginBottom: '1rem' }}>
-            VRP Hamiltonians scale quadratically ($N^2$ qubits). Hover over node size categories to see how our hybrid clustering breaks the scaling bottleneck.
+            VRP Hamiltonians scale quadratically ($N^2$ qubits). The hybrid sub-clustering bounds quantum resource complexity to safe thresholds.
           </p>
 
           {/* SVG Qubit Chart */}
@@ -460,17 +405,6 @@ export default function ExplainerTab({ activeTab }) {
                         />
                       </>
                     )}
-
-                    <rect
-                      x={x - 4.5}
-                      y={5}
-                      width={9}
-                      height={45}
-                      fill="transparent"
-                      cursor="pointer"
-                      onMouseEnter={() => setHoveredQubitSize(idx)}
-                      onMouseLeave={() => setHoveredQubitSize(null)}
-                    />
                   </g>
                 );
               })}
@@ -481,36 +415,6 @@ export default function ExplainerTab({ activeTab }) {
               ))}
               <text x="6" y="8" fill="var(--text-faint)" fontSize="2" textAnchor="start" transform="rotate(-90 6 8)">Qubits Required →</text>
             </svg>
-          </div>
-
-          {/* Scaling Hover Detail */}
-          <div style={{ marginTop: '0.8rem', padding: '0.6rem', background: 'rgba(255,255,255,0.02)', borderRadius: '6px', border: '1px solid rgba(255,255,255,0.04)' }}>
-            {hoveredQubitSize !== null ? (
-              <div>
-                <div style={{ fontWeight: 600, fontSize: '0.8rem', color: 'var(--accent)', marginBottom: '0.3rem' }}>
-                  Network Nodes: {sizes[hoveredQubitSize]} Clinics
-                </div>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.2rem', fontSize: '0.75rem' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                    <span style={{ color: '#ef4444' }}>● Direct QAOA ($N^2$):</span>
-                    <strong>{directQubits[hoveredQubitSize]} Qubits</strong>
-                  </div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                    <span style={{ color: 'var(--solver-ortools)' }}>● Hybrid Sub-clusters ($K^2$):</span>
-                    <strong>{subClusterQubits[hoveredQubitSize]} Qubits (max 16)</strong>
-                  </div>
-                  <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', marginTop: '0.3rem', borderTop: '1px solid rgba(255,255,255,0.04)', paddingTop: '0.3rem' }}>
-                    {sizes[hoveredQubitSize] > 4 ? 
-                      `✓ Successfully avoids simulator hang by dividing into ${Math.ceil(sizes[hoveredQubitSize]/2)} sub-clusters.` : 
-                      '✓ Small enough to run as a single sub-cluster.'}
-                  </div>
-                </div>
-              </div>
-            ) : (
-              <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)', textAlign: 'center', fontStyle: 'italic' }}>
-                Hover over the size markers to see scaling dynamics.
-              </div>
-            )}
           </div>
           
           <div style={{ marginTop: '0.8rem', fontSize: '0.78rem', color: 'var(--text-muted)', lineHeight: '1.4' }}>
