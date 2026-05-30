@@ -368,9 +368,9 @@ export default function ExplainerTab({ activeTab }) {
               <line x1="10" y1="27.5" x2="95" y2="27.5" stroke="rgba(255,255,255,0.03)" strokeWidth="0.3" strokeDasharray="1 1" />
               
               {/* Curves */}
-              <path d="M 10 49 C 30 48.8, 60 48.5, 95 48" fill="none" stroke="var(--solver-qaoa)" strokeWidth="1.2" />
-              <path d="M 10 49 C 30 45, 60 40, 95 32" fill="none" stroke="var(--solver-alns)" strokeWidth="1.2" />
-              <path d="M 10 49 C 30 40, 60 20, 95 5" fill="none" stroke="var(--solver-ortools)" strokeWidth="1.2" />
+              <path d="M 10 49 C 30 48.8, 60 48.5, 95 48" fill="none" stroke="#38bdf8" strokeWidth="1.2" />
+              <path d="M 10 49 C 30 45, 60 40, 95 32" fill="none" stroke="#10b981" strokeWidth="1.2" />
+              <path d="M 10 49 C 30 40, 60 20, 95 5" fill="none" stroke="#f59e0b" strokeWidth="1.2" />
 
               {/* Hover Trigger Areas */}
               {Array.from({ length: 11 }).map((_, hIdx) => {
@@ -407,15 +407,15 @@ export default function ExplainerTab({ activeTab }) {
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.2rem', fontSize: '0.75rem' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                    <span style={{ color: 'var(--solver-qaoa)' }}>● Frozen Spoilage:</span>
+                    <span style={{ color: '#38bdf8' }}>● Frozen Spoilage:</span>
                     <span>Rs {frozenCost[hoveredSpoilageHour].toFixed(1)}</span>
                   </div>
                   <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                    <span style={{ color: 'var(--solver-alns)' }}>● Chilled Spoilage:</span>
+                    <span style={{ color: '#10b981' }}>● Chilled Spoilage:</span>
                     <span>Rs {chilledCost[hoveredSpoilageHour].toFixed(1)}</span>
                   </div>
                   <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                    <span style={{ color: 'var(--solver-ortools)' }}>● Ambient Spoilage:</span>
+                    <span style={{ color: '#f59e0b' }}>● Ambient Spoilage:</span>
                     <span>Rs {ambientCost[hoveredSpoilageHour].toFixed(1)}</span>
                   </div>
                 </div>
@@ -430,9 +430,9 @@ export default function ExplainerTab({ activeTab }) {
           <div style={{ marginTop: '0.8rem', fontSize: '0.78rem', color: 'var(--text-muted)', lineHeight: '1.4' }}>
             <strong>Curve Mechanics Explained:</strong>
             <ul style={{ paddingLeft: '1rem', margin: '0.25rem 0 0 0', display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
-              <li><span style={{ color: 'var(--solver-qaoa)' }}>● Frozen:</span> Shallow slope. Deep freezing preserves vaccines (low alpha decay), but high dose values make any long delays extremely costly.</li>
-              <li><span style={{ color: 'var(--solver-alns)' }}>● Chilled:</span> Moderate linear slope representing standard continuous degradation over the delivery window.</li>
-              <li><span style={{ color: 'var(--solver-ortools)' }}>● Ambient:</span> Very steep slope (5% per hour decay). Degrades rapidly if not delivered quickly due to high temperature exposure.</li>
+              <li><span style={{ color: '#38bdf8' }}>● Frozen:</span> Shallow slope. Deep freezing preserves vaccines (low alpha decay), but high dose values make any long delays extremely costly.</li>
+              <li><span style={{ color: '#10b981' }}>● Chilled:</span> Moderate linear slope representing standard continuous degradation over the delivery window.</li>
+              <li><span style={{ color: '#f59e0b' }}>● Ambient:</span> Very steep slope (5% per hour decay). Degrades rapidly if not delivered quickly due to high temperature exposure.</li>
             </ul>
           </div>
         </div>
