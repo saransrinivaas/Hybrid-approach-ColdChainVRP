@@ -269,48 +269,14 @@ export default function ExplainerTab({ activeTab }) {
           </div>
         </div>
 
-        {/* Spoilage-Aware Or-opt Ablation Study */}
-        <div className="card glass-panel" style={{ padding: '1.5rem' }}>
-          <h3 style={{ marginBottom: '0.75rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            <Award size={18} style={{ color: 'var(--good)' }} />
-            Novelty Validation: Ablation Study Design
-          </h3>
-          <p style={{ color: 'var(--text-secondary)', fontSize: '0.88rem', lineHeight: '1.5', marginBottom: '1rem' }}>
-            To prove the scientific contribution of this framework, we ran an <strong>Ablation Study</strong> comparing two structural versions of the Or-opt route post-optimizer:
-          </p>
-
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
-            <div style={{ padding: '0.8rem', background: 'rgba(239, 68, 68, 0.03)', border: '1px solid rgba(239, 68, 68, 0.15)', borderRadius: '6px' }}>
-              <span style={{ fontSize: '0.7rem', textTransform: 'uppercase', color: '#ef4444', fontWeight: 700 }}>Version A (Baseline)</span>
-              <h4 style={{ margin: '0.2rem 0', color: '#ef4444' }}>Distance-Only Or-opt</h4>
-              <p style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', lineHeight: '1.4' }}>
-                {"Evaluates candidate node moves based on travel distance delta only ($\\Delta d < 0$). Spoilage is computed only at the end for reporting."}
-              </p>
-            </div>
-            <div style={{ padding: '0.8rem', background: 'rgba(16, 185, 129, 0.03)', border: '1px solid rgba(16, 185, 129, 0.15)', borderRadius: '6px' }}>
-              <span style={{ fontSize: '0.7rem', textTransform: 'uppercase', color: '#10b981', fontWeight: 700 }}>Version B (Proposed Novelty)</span>
-              <h4 style={{ margin: '0.2rem 0', color: '#10b981' }}>Spoilage-Aware Or-opt</h4>
-              <p style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', lineHeight: '1.4' }}>
-                {"Every candidate move is evaluated directly inside the delta search space: $\\Delta d + \\Delta \\text{spoilage} < 0$. Prevents moves that shorten paths but dramatically increase waiting spoilage."}
-              </p>
-            </div>
-          </div>
-          <div style={{ display: 'flex', gap: '0.5rem', background: 'rgba(0,0,0,0.15)', padding: '0.75rem', borderRadius: '6px', alignItems: 'center' }}>
-            <Info size={16} style={{ color: 'var(--solver-ortools)', flexShrink: 0 }} />
-            <div style={{ fontSize: '0.83rem', color: 'var(--text-muted)' }}>
-              <strong>Ablation Result:</strong> Embedded spoilage move evaluation in Version B consistently yields <strong>7% to 15% lower total combined costs</strong> compared to Version A, particularly in scenarios with highly urgent Frozen vaccine demand.
-            </div>
-          </div>
-        </div>
-
-        {/* Core Scientific Novelties & Mathematical Breakthroughs */}
+        {/* Core Novel Contributions */}
         <div className="card glass-panel" style={{ padding: '1.5rem' }}>
           <h3 style={{ marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
             <Award size={18} style={{ color: 'var(--solver-qaoa)' }} />
             Core Novel Contributions
           </h3>
           <p style={{ color: 'var(--text-secondary)', fontSize: '0.88rem', marginBottom: '1.25rem' }}>
-            This project bridges the gap between quantum VRP and cold-chain logistics research by introducing four primary contributions as detailed in our system blueprint:
+            This project bridges the gap between quantum VRP and cold-chain logistics research by introducing five primary contributions as detailed in our system blueprint:
           </p>
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
@@ -339,6 +305,13 @@ export default function ExplainerTab({ activeTab }) {
               <h4 style={{ margin: '0 0 0.5rem 0', color: '#10b981' }}>Contribution 4 — First Quantum-Classical Cold-Chain Bridge</h4>
               <p style={{ margin: 0, fontSize: '0.82rem', color: 'var(--text-secondary)', lineHeight: '1.5' }}>
                 {'Directly connects the quantum computing research community with the cold-chain logistics research community by extending the Dash et al. 2025 hierarchical QAOA template into the multi-compartment cold-chain domain for the very first time.'}
+              </p>
+            </div>
+
+            <div style={{ padding: '1rem', borderRadius: '8px', backgroundColor: 'rgba(245, 158, 11, 0.03)', border: '1px solid rgba(245, 158, 11, 0.15)' }}>
+              <h4 style={{ margin: '0 0 0.5rem 0', color: '#f59e0b' }}>Contribution 5 — Rigorous Operations Research (OR) Mathematical Formulation</h4>
+              <p style={{ margin: 0, fontSize: '0.82rem', color: 'var(--text-secondary)', lineHeight: '1.5' }}>
+                {'Developed a mathematically complete and rigorous Mixed-Integer Linear Programming (MILP) Operations Research (OR) formulation for the Cold-Chain VRP. It formally couples geographic routing constraints, active refrigeration power equations, and temperature-sensitive decay dynamics into a unified objective, providing a high-fidelity baseline for classical solver validation.'}
               </p>
             </div>
           </div>

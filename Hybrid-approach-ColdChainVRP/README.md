@@ -51,7 +51,7 @@ Every commercial and open-source routing tool in production today — OR-Tools, 
 
 None of them encode the actual physics of product degradation into the optimization objective. They do not know that a frozen vaccine loses value exponentially with time. They do not know that a slightly longer route delivering frozen vaccines first can save more money than the distance costs. They treat all cargo the same.
 
-This project closes that gap with four specific contributions:
+This project closes that gap with five specific contributions:
 
 **Contribution 1 — Spoilage physics inside the quantum cost function**
 The decay equation `cost = value × alpha × cumulative_time × quantity` is encoded directly as a term in the QUBO Hamiltonian. The optimizer minimizes actual monetary loss, not just distance.
@@ -69,6 +69,9 @@ Instead of assigning clinics to routes purely by distance or creating too many r
 
 **Contribution 4 — First bridge between quantum VRP and cold-chain logistics research**
 Quantum VRP researchers and cold-chain logistics researchers publish in entirely different fields and have never connected. This project extends the Dash et al. 2025 hierarchical QAOA architecture into the multi-compartment cold-chain domain for the first time.
+
+**Contribution 5 — Rigorous Operations Research (OR) Mathematical Formulation**
+We developed a complete and mathematically rigorous Mixed-Integer Linear Programming (MILP) Operations Research (OR) formulation for the Cold-Chain VRP. It formally couples geographic routing constraints, active refrigeration power draw curves, and temperature-sensitive vaccine decay curves into a single, unified objective function, providing a high-fidelity exact baseline for hybrid quantum validation.
 
 ---
 
@@ -130,6 +133,9 @@ A classical two-level hierarchical planner manages fleet constraints and subprob
 
 **Contribution 4 — First quantum-classical cold-chain bridge**
 Extends the Dash et al. 2025 hierarchical QAOA architecture into multi-compartment cold-chain VRP — connecting two research communities that have never intersected.
+
+**Contribution 5 — Rigorous Operations Research (OR) Mathematical Formulation**
+Developed a mathematically complete and rigorous Mixed-Integer Linear Programming (MILP) Operations Research (OR) formulation for the Cold-Chain VRP. It formally couples geographic routing constraints, active refrigeration power draw curves, and temperature-sensitive vaccine decay curves into a single, unified objective function, providing a high-fidelity exact baseline solved via state-of-the-art classical solvers (Gurobi, CPLEX, PuLP) to mathematically validate our hybrid quantum-classical approach.
 
 ---
 
