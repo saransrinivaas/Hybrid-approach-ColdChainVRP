@@ -54,54 +54,115 @@ def run_clustering():
     return vehicle_routes, generate_subclusters
 
 # ─────────────────────────────────────────
-# STEP 2 — QAOA PER SUB-CLUSTER
+# STEP 2 — QAOA PER SUB-CLUSTER (PARALLEL)
 # ─────────────────────────────────────────
+def _solve_single_subcluster(args):
+    """
+    Top-level pickling-safe worker for ThreadPoolExecutor.
+    Solves one sub-cluster with either QAOA (n>2) or classical (n<=2).
+    """
+    sc, p_depth, verbose = args
+    from qaoa_solver import run_qaoa as qaoa_solve, solve_classically
+    n = len(sc)
+    if n <= 2:
+        return sc, solve_classically(sc)
+    return sc, qaoa_solve(sc, p_depth=p_depth, verbose=verbose)
+
+
 def run_qaoa(vehicle_routes, generate_subclusters):
     print("\n" + "=" * 55)
-    print("  STEP 2 — QAOA SOLVER")
+    print("  STEP 2 — QAOA SOLVER  [PARALLEL EXECUTION]")
     print("=" * 55)
-    from qaoa_solver import run_qaoa as qaoa_solve, solve_classically
     clinic_names = {c["id"]: c["name"] for c in scenario.CLINICS}
 
-    qaoa_results = {}
+    # ── Collect all (trip_id, trip, sub_cluster, order_idx) tuples ──
+    task_meta  = []   # (trip_id, trip, sc, order_idx)
+    trip_order = []   # preserves vehicle/trip ordering for final assembly
 
     for vehicle_id, trips in vehicle_routes:
         for t_idx, trip in enumerate(trips):
             trip_id = f"{vehicle_id}_{t_idx+1}" if len(trips) > 1 else vehicle_id
-            sub_cluster_results = []
+            if trip_id not in [tm[0] for tm in trip_order]:
+                trip_order.append((trip_id, trip))
             subclusters = generate_subclusters(trip)
-            for sc in subclusters:
-                n = len(sc)
-                print(f"\n  [{trip_id}] Sub-cluster {sc} ({n} clinics)")
-                if n <= 2:
-                    print(f"  Classical (trivial {n}-node route)")
-                    res = solve_classically(sc)
-                else:
-                    res = qaoa_solve(sc, p_depth=3, verbose=True)
+            for order_idx, sc in enumerate(subclusters):
+                task_meta.append((trip_id, trip, sc, order_idx))
 
-                sub_cluster_results.append({
+    total_tasks = len(task_meta)
+    import os
+    from concurrent.futures import ThreadPoolExecutor, as_completed
+    max_workers = min(total_tasks, os.cpu_count() or 4)
+
+    print(f"\n  [PARALLEL] {total_tasks} sub-clusters across all vehicles")
+    print(f"  [PARALLEL] Using {max_workers} worker threads")
+    print(f"  [PARALLEL] All sub-clusters solving simultaneously...\n")
+
+    # ── Submit all tasks in parallel ──
+    results_store = {}   # (trip_id, order_idx) → result
+
+    # PRESENTATION MODE NOTE: if you switch qaoa_solver.py back to mock mode,
+    # parallel execution still works — just returns instantly instead of ~45s/cluster.
+
+    with ThreadPoolExecutor(max_workers=max_workers) as executor:
+        future_map = {}
+        for trip_id, trip, sc, order_idx in task_meta:
+            # Suppress verbose output per-cluster to avoid interleaved noise
+            fut = executor.submit(_solve_single_subcluster, (sc, 3, False))
+            future_map[fut] = (trip_id, trip, sc, order_idx)
+
+        completed = 0
+        for future in as_completed(future_map):
+            trip_id, trip, sc, order_idx = future_map[future]
+            try:
+                sc_result, res = future.result()
+                results_store[(trip_id, order_idx)] = {
                     "clinic_ids": sc,
                     "route":      res["route"],
                     "feasible":   res["feasible"],
                     "cost":       res["cost_breakdown"],
                     "solver":     res.get("solver", "QAOA"),
-                })
-
-                names = [clinic_names.get(c, str(c)) for c in (res["route"] or [])]
+                }
+                completed += 1
                 status = "[OK]" if res["feasible"] else "[INFEASIBLE]"
-                print(f"  {status} Route: {res['route']} -> {names}")
+                names  = [clinic_names.get(c, str(c)) for c in (res["route"] or [])]
+                print(f"  [{completed}/{total_tasks}] {trip_id} sc={sc} {status} → {res['route']}")
+            except Exception as e:
+                print(f"  [ERROR] Sub-cluster {sc} in {trip_id} failed: {e}")
+                results_store[(trip_id, order_idx)] = {
+                    "clinic_ids": sc,
+                    "route":      list(sc),
+                    "feasible":   False,
+                    "cost":       {"distance": 0, "spoilage": 0, "total": 0},
+                    "solver":     "error-fallback",
+                }
 
+    # ── Assemble qaoa_results dict in correct trip order ──
+    qaoa_results = {}
+    trip_seen = {}
+    for trip_id, trip, sc, order_idx in task_meta:
+        if trip_id not in qaoa_results:
             qaoa_results[trip_id] = {
-                "clinic_ids":           trip,
-                "sub_cluster_results":  sub_cluster_results,
+                "clinic_ids":          trip,
+                "sub_cluster_results": [],
             }
+            trip_seen[trip_id] = []
+
+    # Re-sort sub_cluster_results by order_idx per trip
+    for (trip_id, order_idx), res_data in results_store.items():
+        trip_seen.setdefault(trip_id, [])
+        trip_seen[trip_id].append((order_idx, res_data))
+
+    for trip_id in qaoa_results:
+        ordered = sorted(trip_seen.get(trip_id, []), key=lambda x: x[0])
+        qaoa_results[trip_id]["sub_cluster_results"] = [r for _, r in ordered]
 
     # Persist QAOA results for inspection / resume
     qaoa_path = os.path.join(BASE_DIR, "qaoa_results.json")
     with open(qaoa_path, "w") as f:
         json.dump(qaoa_results, f, indent=2)
-    print(f"\n  [OK] QAOA results saved -> {qaoa_path}")
+    print(f"\n  [OK] QAOA results saved → {qaoa_path}")
     return qaoa_results
+
 
 def run_stitching(qaoa_results, out_filename="results.json"):
     print("\n" + "=" * 55)

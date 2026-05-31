@@ -82,7 +82,7 @@
             "cap": 15
           }
         },
-        "computation_time": 0.0228,
+        "computation_time": 0.0032,
         "solver": "Classical (NN+2opt+ORopt)"
       },
       "V2": {
@@ -151,7 +151,7 @@
             "cap": 15
           }
         },
-        "computation_time": 0.011,
+        "computation_time": 0.0011,
         "solver": "Classical (NN+2opt+ORopt)"
       }
     },
@@ -159,7 +159,7 @@
     "fleet_spoilage": 87.5084,
     "fleet_refrigeration": 0.1925,
     "fleet_total_cost": 190.8053,
-    "total_time": 0.0349,
+    "total_time": 0.0043,
     "status": "ok"
   },
   "qaoa": {
@@ -170,8 +170,8 @@
           5,
           4,
           6,
-          2,
           3,
+          2,
           1,
           0
         ],
@@ -201,16 +201,16 @@
             "lon": 80.218
           },
           {
-            "id": 2,
-            "name": "Chromepet Clinic",
-            "lat": 12.9516,
-            "lon": 80.1462
-          },
-          {
             "id": 3,
             "name": "Pallavaram PHC",
             "lat": 12.9675,
             "lon": 80.1491
+          },
+          {
+            "id": 2,
+            "name": "Chromepet Clinic",
+            "lat": 12.9516,
+            "lon": 80.1462
           },
           {
             "id": 1,
@@ -225,10 +225,10 @@
             "lon": 80.2707
           }
         ],
-        "distance_km": 58.82,
-        "spoilage_rs": 51.2404,
-        "refrigeration_rs": 0.1,
-        "total_cost_rs": 110.1599,
+        "distance_km": 56.68,
+        "spoilage_rs": 49.6684,
+        "refrigeration_rs": 0.0936,
+        "total_cost_rs": 106.4438,
         "feasible": true,
         "capacity": {
           "frozen": {
@@ -313,10 +313,10 @@
         }
       }
     },
-    "fleet_distance": 105.24,
-    "fleet_spoilage": 89.0804,
-    "fleet_refrigeration": 0.1989,
-    "fleet_total_cost": 194.5213,
+    "fleet_distance": 103.1,
+    "fleet_spoilage": 87.5083,
+    "fleet_refrigeration": 0.1925,
+    "fleet_total_cost": 190.8052,
     "status": "ok"
   }
 }

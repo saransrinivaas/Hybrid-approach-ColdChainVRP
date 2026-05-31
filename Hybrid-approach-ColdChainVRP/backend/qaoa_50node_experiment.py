@@ -148,7 +148,7 @@ sys.modules['scenario_dynamic'] = MockScenario
 from clustering import build_clusters, generate_subclusters
 from qubo_builder import build_qubo, decode_solution, compute_cost_breakdown
 from stitching_repair import stitch_and_repair, route_distance, compute_spoilage, two_opt, or_opt
-from qaoa_solver import solve_classically
+from qaoa_solver import solve_classically, run_qaoa
 
 # ─────────────────────────────────────────────────────────────────────────────
 # HIGH-EFFICIENCY CLASSICAL SOLVER FOR 10-NODE CLUSTERS
@@ -264,9 +264,19 @@ def main():
         # 1. Classical Greedy
         greedy_res = run_classical_greedy_for_cluster(clinic_ids)
         
-        # 2. Proposed Method: Direct 10-node optimal solver (simulated quantum)
+        # 2. Proposed Method: Direct 10-node optimal solver
+        # ──────────────────────────────────────────────────────────────────────
+        # NOTE: 10 nodes = 100 logical qubits (N² = 10² = 100).
+        # StatevectorSampler state space = 2^100 ≈ 10^30 — completely infeasible.
+        # Real QAOA for 10-node clusters requires actual quantum hardware or
+        # a tensor-network MPS simulator not available in Qiskit Aer locally.
+        # The proposed method therefore uses solve_classically_fast() which runs
+        # greedy-NN + 2-opt + Or-opt on the full 10-node cluster holistically.
+        # This is the legitimate algorithmic contribution: whole-cluster optimization
+        # vs fragmented 4-node stitching — the quantum step is the FUTURE upgrade.
+        # ──────────────────────────────────────────────────────────────────────
         print(f"  [Proposed Method] Solving 10-node cluster {clinic_ids} directly...")
-        print(f"  [Proposed Method] Qubits: {len(clinic_ids)**2} qubits. Initializing MPS simulator...")
+        print(f"  [Proposed Method] Qubits required: {len(clinic_ids)**2} — using classical holistic solver (10-node QAOA requires real hardware)")
         p_start = time.time()
         res_p = solve_classically_fast(clinic_ids)
         p_elapsed = time.time() - p_start
@@ -284,18 +294,27 @@ def main():
             ]
         }
         
-        # 3. Old Method: Subdivide into overlapping sub-clusters of size <= 4 and solve classically
-        print(f"  [Old Method] Sub-clustering {clinic_ids} into groups of size <= 4...")
+        # 3. Old Method: Subdivide into overlapping sub-clusters of size <= 4
+        # Real QAOA runs here — each sub-cluster is ≤4 nodes = ≤16 qubits (feasible).
+        # ──────────────────────────────────────────────────────────────────────
+        # PRESENTATION MODE: to switch back to instant classical mock, replace
+        # run_qaoa(sc, p_depth=3, verbose=False) with solve_classically(sc) below.
+        # ──────────────────────────────────────────────────────────────────────
+        print(f"  [Old Method] Sub-clustering {clinic_ids} into groups of size <= 4 (real QAOA per group)...")
         subclusters = generate_subclusters(clinic_ids)
         sub_results = []
         for sc in subclusters:
-            res_o = solve_classically(sc)
+            n_sc = len(sc)
+            if n_sc <= 2:
+                res_o = solve_classically(sc)   # trivial 2-node: no QAOA needed
+            else:
+                res_o = run_qaoa(sc, p_depth=3, verbose=False)  # REAL QAOA (16 qubits)
             sub_results.append({
                 "clinic_ids": sc,
                 "route": res_o["route"],
                 "feasible": res_o["feasible"],
                 "cost": res_o["cost_breakdown"],
-                "solver": "Old-Subcluster-QAOA"
+                "solver": res_o.get("solver", "Old-Subcluster-QAOA")
             })
         
         old_method_qaoa_results[vehicle_id] = {

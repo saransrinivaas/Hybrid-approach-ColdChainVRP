@@ -82,7 +82,7 @@
             "cap": 15
           }
         },
-        "computation_time": 0.0034,
+        "computation_time": 0.0037,
         "solver": "Classical (NN+2opt+ORopt)"
       },
       "V2": {
@@ -159,7 +159,7 @@
     "fleet_spoilage": 92.1759,
     "fleet_refrigeration": 0.2401,
     "fleet_total_cost": 195.0954,
-    "total_time": 0.0044,
+    "total_time": 0.0047,
     "status": "ok"
   },
   "qaoa": {
