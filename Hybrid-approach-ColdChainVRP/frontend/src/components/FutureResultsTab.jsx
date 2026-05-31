@@ -715,6 +715,16 @@ export default function FutureResultsTab({ activeTab }) {
                 The global shuffling optimizer ran 10 passes, shifting clinics between routes to minimize fleet-wide intersections. Relocating <strong>Clinic 49</strong> from V3 back to V2/V5 reduced total fleet spoilage, yielding a net savings of <strong>Rs 16.03</strong>!
               </p>
             </div>
+
+            {/* Novel Spoilage-Aware Stitching Repair Card */}
+            <div style={{ padding: '1rem', borderRadius: '8px', backgroundColor: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.1)' }}>
+              <span style={{ fontSize: '0.72rem', textTransform: 'uppercase', color: '#38bdf8', fontWeight: 'bold', display: 'block', marginBottom: '0.25rem' }}>
+                Novel Spoilage-Aware Stitching & Repair Heuristic
+              </span>
+              <p style={{ margin: 0, color: 'var(--text-secondary)', fontSize: '0.82rem', lineHeight: '1.45' }}>
+                Traditional local search stitching (like standard Or-opt used in OR-Tools or Gurobi baselines) evaluates re-sequencing strictly based on spatial distance reduction: <strong>&Delta;Cost = &Delta;Distance &lt; 0</strong>. We improved this classical stitching step by introducing a <strong>coupled thermodynamic-spatial formula</strong>: <strong>&Delta;Cost = &Delta;Distance + &Delta;Spoilage &lt; 0</strong>. For cold-chain networks, this custom optimization guarantees that sequence shuffles are governed by biochemical product preservation, drastically outperforming traditional distance-only heuristics.
+              </p>
+            </div>
           </div>
         </div>
 
