@@ -1017,6 +1017,146 @@ def recompute_easy():
     return jsonify({"status": "ok", "message": "Easy scenario solver cache cleared. Fetch /api/compare-results to recompute."})
 
 
+# ─────────────────────────────────────────
+# HARDWARE ENDPOINTS
+# ─────────────────────────────────────────
+from qaoa_hardware_solver import (
+    submit_hardware_job,
+    retrieve_hardware_result,
+    list_cached_runs,
+    _load_jobs,
+    run_qaoa_with_cache,
+    solve_scenario_hardware_pipeline,
+    run_quantum_scaling_test,
+    run_qaoa_parameter_sweep
+)
+
+@app.route("/api/hardware/parameter-sweep", methods=["POST"])
+def hardware_parameter_sweep():
+    """Run a parameter sweep test across depths p and shots values."""
+    try:
+        results = run_qaoa_parameter_sweep()
+        return jsonify({
+            "status": "success",
+            "results": results
+        })
+    except Exception as e:
+        import traceback
+        return jsonify({
+            "status": "error",
+            "message": str(e),
+            "trace": traceback.format_exc()
+        }), 500
+
+
+@app.route("/api/hardware/scaling-test", methods=["POST"])
+def hardware_scaling_test():
+    """Run a Qubit Scaling & Fidelity Stress Test comparing noiseless vs physical hardware."""
+    try:
+        results = run_quantum_scaling_test()
+        return jsonify({
+            "status": "success",
+            "results": results
+        })
+    except Exception as e:
+        import traceback
+        return jsonify({
+            "status": "error",
+            "message": str(e),
+            "trace": traceback.format_exc()
+        }), 500
+
+
+@app.route("/api/hardware/run-scenario", methods=["POST"])
+def hardware_run_scenario():
+    """Run an entire scenario's VRP sub-clusters through simulated vs actual hardware comparison."""
+    data = request.json or {}
+    scenario_key = data.get("scenario", "easy")
+    
+    try:
+        results = solve_scenario_hardware_pipeline(scenario_key, verbose=True)
+        return jsonify({
+            "status": "success",
+            "scenario": scenario_key,
+            "subclusters": results
+        })
+    except Exception as e:
+        import traceback
+        return jsonify({
+            "status": "error",
+            "message": str(e),
+            "trace": traceback.format_exc()
+        }), 500
+
+
+@app.route("/api/hardware/submit", methods=["POST"])
+def hardware_submit():
+    """Submit one sub-cluster to IBM hardware."""
+    data       = request.json or {}
+    clinic_ids = data.get("clinic_ids", [1, 2, 3, 4])
+    p_depth    = data.get("p_depth", 3)
+
+    if not os.environ.get("IBM_QUANTUM_TOKEN") or "your_token_here" in os.environ.get("IBM_QUANTUM_TOKEN", ""):
+        return jsonify({
+            "status": "error",
+            "message": "IBM_QUANTUM_TOKEN not configured or is placeholder"
+        }), 400
+
+    try:
+        job_id = submit_hardware_job(clinic_ids, p_depth, verbose=True)
+        return jsonify({
+            "status":     "submitted",
+            "job_id":     job_id,
+            "clinic_ids": clinic_ids,
+            "p_depth":    p_depth,
+            "message":    f"Job submitted. Check quantum.ibm.com. Retrieve with job_id: {job_id}"
+        })
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+
+@app.route("/api/hardware/retrieve/<job_id>", methods=["GET"])
+def hardware_retrieve(job_id):
+    """Retrieve a completed hardware job."""
+    try:
+        result = retrieve_hardware_result(job_id, verbose=False)
+        if result is None:
+            return jsonify({
+                "status":  "pending",
+                "job_id":  job_id,
+                "message": "Job not complete yet"
+            })
+        return jsonify({"status": "done", "result": result})
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+
+@app.route("/api/hardware/jobs", methods=["GET"])
+def hardware_jobs():
+    """List all submitted hardware jobs."""
+    jobs = _load_jobs()
+    return jsonify({"jobs": list(jobs.values())})
+
+
+@app.route("/api/qaoa/cache", methods=["GET"])
+def qaoa_cache():
+    """List all cached QAOA runs (simulator + hardware)."""
+    runs = list_cached_runs()
+    return jsonify({"runs": runs, "count": len(runs)})
+
+
+@app.route("/api/qaoa/cache", methods=["DELETE"])
+def qaoa_cache_clear():
+    """Clear all cached runs."""
+    from qaoa_hardware_solver import CACHE_DIR
+    cleared = 0
+    if CACHE_DIR.exists():
+        for p in CACHE_DIR.glob("*.json"):
+            p.unlink()
+            cleared += 1
+    return jsonify({"status": "cleared", "count": cleared})
+
+
 if __name__ == '__main__':
 
     port = int(os.environ.get('FLASK_PORT', 5000))

@@ -1,5 +1,9 @@
-# NISQ-Aware Hybrid Quantum-Classical Framework
-## Cold-Chain Multi-Compartment Vehicle Routing Optimization (MCVRP)
+<p align="center">
+  <img src="frontend/src/assets/cryo_logo.png" alt="Cryo Hybrid Optimiser Logo" width="120" />
+</p>
+
+# Cryo Hybrid Optimiser
+## NISQ-Aware Hybrid Quantum-Classical Framework for Cold-Chain Multi-Compartment Vehicle Routing Optimization (MCVRP)
 
 > **"Every routing tool asks when vaccines arrive. Ours asks how much of their biological potency and monetary value survives the journey."**
 

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { BookOpen, ShieldAlert, Cpu, Award, Zap, Clock, Info, TrendingUp } from 'lucide-react';
+import { BookOpen, ShieldAlert, Cpu, Award, Zap, Clock, Info, TrendingUp, Snowflake } from 'lucide-react';
 
 const HAMILTONIAN_TERMS = {
   distance: {
@@ -111,19 +111,21 @@ export default function ExplainerTab({ activeTab }) {
         {/* Title Panel */}
         <div className="card glass-panel" style={{ padding: '1.5rem' }}>
           <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center', marginBottom: '0.5rem' }}>
-            <BookOpen size={24} style={{ color: 'var(--solver-qaoa)' }} />
-            <h2 style={{ margin: 0 }}>Hybrid QAOA Framework Explainer</h2>
+            <Snowflake size={24} style={{ color: '#ffffff' }} />
+            <h2 style={{ margin: 0 }}>
+              Cryo Route Engine Explainer
+            </h2>
           </div>
           <p style={{ color: 'var(--text-secondary)', fontSize: '0.92rem', lineHeight: '1.6' }}>
-            This tab provides a deep mathematical walkthrough of the <strong>Hybrid Quantum-Classical Cold-Chain Vehicle Routing Problem (VRP)</strong>. 
-            By decomposing large geographic networks into computationally safe quantum sub-clusters, this framework leverages real-world physics (vaccine spoilage and active cooling power) directly inside the optimization Hamiltonian. We completely bypass the catastrophic memory limits of classical statevector simulation by generating targeted 10-node sub-problems that securely fit within modern hardware thresholds. This hybrid architecture guarantees that the quantum hardware execution perfectly matches theoretical parity, while the robust classical edge-stitching algorithm manages global fleet capacity and inter-vehicle logic. Explore the interactive Hamiltonian formulas and the end-to-end execution pipeline below to understand precisely how we achieve hardware-ready quantum parity today.
+            This tab provides a deep mathematical walkthrough of the <strong>Cryo Hybrid Optimiser</strong> for the Cold-Chain Vehicle Routing Problem (VRP). 
+            By decomposing large geographic networks into computationally safe quantum sub-clusters, the Cryo Hybrid Optimiser leverages real-world physics (vaccine spoilage and active cooling power) directly inside the optimization Hamiltonian. We completely bypass the catastrophic memory limits of classical statevector simulation by generating targeted 10-node sub-problems that securely fit within modern hardware thresholds. This hybrid architecture guarantees that the quantum hardware execution perfectly matches theoretical parity, while the robust classical edge-stitching algorithm manages global fleet capacity and inter-vehicle logic. Explore the interactive Hamiltonian formulas and the end-to-end execution pipeline below to understand precisely how we achieve hardware-ready quantum parity today.
           </p>
         </div>
 
         {/* Hamiltonian Explorer */}
         <div className="card glass-panel" style={{ padding: '1.5rem' }}>
           <h3 style={{ marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            <Zap size={18} style={{ color: '#ec4899' }} />
+            <Zap size={18} style={{ color: '#ffffff' }} />
             Interactive Hamiltonian Term Explorer
           </h3>
           <p style={{ color: 'var(--text-secondary)', fontSize: '0.88rem', marginBottom: '1rem' }}>
@@ -178,7 +180,7 @@ export default function ExplainerTab({ activeTab }) {
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', fontSize: '0.88rem' }}>
             <div style={{ padding: '0.8rem', background: 'rgba(255,255,255,0.01)', borderRadius: '6px', border: '1px solid rgba(255,255,255,0.03)' }}>
               <div style={{ fontWeight: 600, color: 'var(--text)', marginBottom: '0.4rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-                <Info size={14} style={{ color: '#ec4899' }} />
+                <Info size={14} style={{ color: '#ffffff' }} />
                 Functional Objective
               </div>
               <div style={{ color: 'var(--text-secondary)', lineHeight: '1.5' }}>
@@ -187,7 +189,7 @@ export default function ExplainerTab({ activeTab }) {
             </div>
             <div style={{ padding: '0.8rem', background: 'rgba(255,255,255,0.01)', borderRadius: '6px', border: '1px solid rgba(255,255,255,0.03)' }}>
               <div style={{ fontWeight: 600, color: 'var(--text)', marginBottom: '0.4rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-                <Cpu size={14} style={{ color: '#ec4899' }} />
+                <Cpu size={14} style={{ color: '#ffffff' }} />
                 Quantum Gate Mapping
               </div>
               <div style={{ color: 'var(--text-secondary)', lineHeight: '1.5' }}>
@@ -200,7 +202,7 @@ export default function ExplainerTab({ activeTab }) {
         {/* Hybrid Pipeline Workflow */}
         <div className="card glass-panel" style={{ padding: '1.5rem' }}>
           <h3 style={{ marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            <Cpu size={18} style={{ color: '#f97316' }} />
+            <Cpu size={18} style={{ color: '#ffffff' }} />
             Interactive End-to-End Pipeline Walkthrough
           </h3>
           <p style={{ color: 'var(--text-secondary)', fontSize: '0.88rem', marginBottom: '1rem' }}>
@@ -264,7 +266,7 @@ export default function ExplainerTab({ activeTab }) {
         {/* Core Novel Contributions */}
         <div className="card glass-panel" style={{ padding: '1.5rem' }}>
           <h3 style={{ marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            <Award size={18} style={{ color: 'var(--solver-qaoa)' }} />
+            <Award size={18} style={{ color: 'var(--text)' }} />
             Core Novel Contributions
           </h3>
           <p style={{ color: 'var(--text-secondary)', fontSize: '0.88rem', marginBottom: '1.25rem' }}>
@@ -341,7 +343,7 @@ export default function ExplainerTab({ activeTab }) {
         {/* Spoilage Physics Curves Chart */}
         <div className="card glass-panel" style={{ padding: '1.25rem' }}>
           <h3 style={{ fontSize: '0.98rem', marginBottom: '0.75rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-            <Clock size={16} style={{ color: 'var(--solver-qaoa)' }} />
+            <Clock size={16} style={{ color: 'var(--text)' }} />
             Spoilage Physics Curves
           </h3>
           <p style={{ color: 'var(--text-secondary)', fontSize: '0.8rem', lineHeight: '1.4', marginBottom: '1rem' }}>
@@ -435,7 +437,7 @@ export default function ExplainerTab({ activeTab }) {
         {/* Qubit Scaling: Direct vs Sub-Cluster */}
         <div className="card glass-panel" style={{ padding: '1.25rem' }}>
           <h3 style={{ fontSize: '0.98rem', marginBottom: '0.75rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-            <Cpu size={16} style={{ color: 'var(--solver-alns)' }} />
+            <Cpu size={16} style={{ color: 'var(--text)' }} />
             Physical Qubit Scaling Complexity
           </h3>
           <p style={{ color: 'var(--text-secondary)', fontSize: '0.8rem', lineHeight: '1.4', marginBottom: '1rem' }}>

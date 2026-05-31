@@ -1,0 +1,50 @@
+{
+  "clinic_ids": [
+    20,
+    11,
+    17,
+    19
+  ],
+  "route": [
+    17,
+    19,
+    20,
+    11
+  ],
+  "feasible": true,
+  "cost_breakdown": {
+    "distance": 13.2598,
+    "spoilage": 5.8647,
+    "refrigeration": 0.0511,
+    "total": 19.1756
+  },
+  "p_depth": 3,
+  "num_qubits": 16,
+  "bitstring": "0010000110000100",
+  "probability": 0.00076171875,
+  "solver": "QAOA-hardware",
+  "backend": "ibm_heron_r2",
+  "transpiled_depth": 56,
+  "gate_count": 190,
+  "feasibility_rate": 0.84,
+  "top_candidates": [
+    {
+      "bitstring": "0010000110000100",
+      "probability": 0.00076171875,
+      "route": [
+        17,
+        19,
+        20,
+        11
+      ],
+      "cost": {
+        "distance": 13.2598,
+        "spoilage": 5.8647,
+        "refrigeration": 0.0511,
+        "total": 19.1756
+      },
+      "feasible": true
+    }
+  ],
+  "mode": "hardware"
+}

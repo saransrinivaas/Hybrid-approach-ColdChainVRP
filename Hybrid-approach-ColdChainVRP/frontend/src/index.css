@@ -20,8 +20,8 @@
   --warn: #b8b8b8;
   --bad: #9a9a9a;
   --good: #dedede;
-  --radius: 10px;
-  --radius-sm: 6px;
+  --radius: 16px;
+  --radius-sm: 10px;
   --font-sans: 'DM Sans', system-ui, sans-serif;
   --font-mono: 'JetBrains Mono', ui-monospace, monospace;
   /* legacy aliases used in JS */
@@ -1614,4 +1614,91 @@ input[type=number] { -moz-appearance: textfield; }
 .add-clinic-form input { background: #000; border: 1px solid #444; color: #fff; padding: 0.3rem 0.5rem; border-radius: 4px; font-size: 0.78rem; }
 .add-clinic-form input::placeholder { color: #555; }
 .add-clinic-form button { padding: 0.35rem 0.7rem; font-size: 0.78rem; white-space: nowrap; }
+
+/* Splash Screen Initializer */
+.splash-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: #111111;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  z-index: 99999;
+  transition: opacity 0.6s cubic-bezier(0.16, 1, 0.3, 1), visibility 0.6s;
+}
+
+.splash-overlay.hidden {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.splash-logo {
+  height: 120px;
+  width: auto;
+  margin-bottom: 2rem;
+  animation: splash-spin 4s linear infinite;
+  filter: drop-shadow(0 0 12px rgba(255, 255, 255, 0.15));
+}
+
+@keyframes splash-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.splash-title {
+  font-family: 'DM Sans', system-ui, sans-serif;
+  color: #ffffff;
+  font-size: 1.85rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  margin: 0 0 0.5rem 0;
+}
+
+.splash-subtitle {
+  font-family: 'DM Sans', system-ui, sans-serif;
+  color: #aaaaaa;
+  font-size: 0.9rem;
+  font-weight: 500;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  margin: 0;
+}
+
+.splash-progress-track {
+  width: 180px;
+  height: 2px;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 999px;
+  margin-top: 2rem;
+  overflow: hidden;
+  position: relative;
+}
+
+.splash-progress-bar {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  width: 50%;
+  background: linear-gradient(90deg, transparent, #ffffff, transparent);
+  animation: splash-loading 1.5s infinite ease-in-out;
+}
+
+@keyframes splash-loading {
+  0% {
+    left: -50%;
+  }
+  100% {
+    left: 100%;
+  }
+}
 

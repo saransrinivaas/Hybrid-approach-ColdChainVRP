@@ -209,7 +209,7 @@ export default function FutureResultsTab({ activeTab }) {
         {/* Title Panel */}
         <div className="card glass-panel" style={{ padding: '1.5rem' }}>
           <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center', marginBottom: '0.5rem' }}>
-            <Sparkles size={24} style={{ color: 'var(--solver-qaoa)' }} />
+            <Sparkles size={24} style={{ color: 'var(--text)' }} />
             <h2 style={{ margin: 0 }}>Symmetrized Future Results</h2>
           </div>
           <p style={{ color: 'var(--text-secondary)', fontSize: '0.92rem', lineHeight: '1.6' }}>
@@ -220,7 +220,7 @@ export default function FutureResultsTab({ activeTab }) {
         {/* Fleet Comparative Metrics */}
         <div className="card glass-panel" style={{ padding: '1.5rem' }}>
           <h3 style={{ marginBottom: '1.25rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            <Cpu size={18} style={{ color: 'var(--solver-qaoa)' }} />
+            <Cpu size={18} style={{ color: 'var(--text)' }} />
             50-Node Fleet Symmetrized Results
           </h3>
 
@@ -739,7 +739,7 @@ export default function FutureResultsTab({ activeTab }) {
           Future Quantum Advantage — As Hardware Matures
         </h2>
         <p style={{ color: 'var(--text-secondary)', fontSize: '0.95rem', lineHeight: '1.6', marginBottom: '2.5rem', maxWidth: '85ch' }}>
-          This framework is <strong>architected to scale</strong> with quantum hardware. No redesign needed — only the sub-solver stub needs to be swapped for a real QAOA call. Each hardware generation below unlocks a new performance tier automatically.
+          The <strong>Cryo Hybrid Optimiser</strong> is <strong>architected to scale</strong> with quantum hardware. No redesign needed — only the sub-solver stub needs to be swapped for a real QAOA call. Each hardware generation below unlocks a new performance tier automatically.
         </p>
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem', marginBottom: '1.5rem' }}>
@@ -804,7 +804,7 @@ export default function FutureResultsTab({ activeTab }) {
             <strong style={{ color: 'var(--text-secondary)' }}>The Fundamental Limit of Classical Solvers:</strong> Classical algorithms (MILP, Branch-and-Cut, local search heuristics) are mathematically bound by exponential scaling limits. To run in reasonable time, they must separate routing from physics—first finding a spatial route, then post-evaluating spoilage constraints. This disconnected approach is structurally blind to thermo-spatial trade-offs, often missing massive cost reductions.
           </div>
           <div>
-            <strong style={{ color: 'var(--text-secondary)' }}>The Quantum Advantage Crossover:</strong> By compiling continuous thermodynamic product decay and active cooling draw directly into the Hamiltonian via <code style={{ color: '#38bdf8' }}>H<sub>spoilage</sub></code> and <code style={{ color: '#38bdf8' }}>H<sub>refrigeration</sub></code>, this framework optimizes the physical and spatial metrics simultaneously. As processors mature to 400 fault-tolerant logical qubits, this framework becomes the <strong style={{ color: '#38bdf8', textShadow: '0 0 8px rgba(56,189,248,0.3)', fontWeight: 'bold' }}>new industry standard</strong>, delivering routing solutions that classical computers can neither compute nor compete with.
+            <strong style={{ color: 'var(--text-secondary)' }}>The Quantum Advantage Crossover:</strong> By compiling continuous thermodynamic product decay and active cooling draw directly into the Hamiltonian via <code style={{ color: '#38bdf8' }}>H<sub>spoilage</sub></code> and <code style={{ color: '#38bdf8' }}>H<sub>refrigeration</sub></code>, the <strong>Cryo Hybrid Optimiser</strong> optimizes the physical and spatial metrics simultaneously. As processors mature to 400 fault-tolerant logical qubits, the <strong>Cryo Hybrid Optimiser</strong> becomes the <strong style={{ color: '#38bdf8', textShadow: '0 0 8px rgba(56,189,248,0.3)', fontWeight: 'bold' }}>new industry standard</strong>, delivering routing solutions that classical computers can neither compute nor compete with.
           </div>
         </div>
       </div>

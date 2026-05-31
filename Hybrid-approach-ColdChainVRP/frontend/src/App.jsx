@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
-import { Moon, Play, Sun, GitCompare, Settings, Activity, BookOpen, Sparkles } from 'lucide-react';
+import { Moon, Play, Sun, GitCompare, Settings, Activity, BookOpen, Sparkles, Cpu } from 'lucide-react';
 
 import ScenarioPanel from './components/ScenarioPanel';
 import CompareTab    from './components/CompareTab';
@@ -9,8 +9,10 @@ import InputTab      from './components/InputTab';
 import ResultsView   from './components/ResultsView';
 import ExplainerTab  from './components/ExplainerTab';
 import FutureResultsTab from './components/FutureResultsTab';
+import HardwareTab   from './components/HardwareTab';
 import { API_BASE }  from './data';
 import { runSSE }    from './utils/sse';
+import cryoLogo     from './assets/cryo_logo.png';
 
 // Fix Leaflet default marker icons once at app level
 delete L.Icon.Default.prototype._getIconUrl;
@@ -24,6 +26,7 @@ export default function App() {
   const [activeTab,      setActiveTab]      = useState('input');
   const [scenarioMeta,   setScenarioMeta]   = useState(null);
   const [theme,          setTheme]          = useState('dark');
+  const [loading,        setLoading]        = useState(true);
   // pipelineConfig is set after a successful /api/configure POST
   // and signals the Scenarios tab to show ResultsView instead of ScenarioPanels
   const [pipelineConfig, setPipelineConfig] = useState(null);
@@ -49,6 +52,11 @@ export default function App() {
     } catch (e) {
       console.error('Failed to load cache', e);
     }
+    // Initialize premium splash timer
+    const timer = setTimeout(() => {
+      setLoading(false);
+    }, 1800);
+    return () => clearTimeout(timer);
   }, []);
 
   useEffect(() => {
@@ -82,19 +90,34 @@ export default function App() {
     { id: 'liverun',   label: 'Live Run',  icon: Activity  },
     { id: 'scenarios', label: 'Scenarios', icon: Play      },
     { id: 'compare',   label: 'Compare',   icon: GitCompare },
+    { id: 'hardware',  label: 'Quantum Hardware', icon: Cpu },
     { id: 'explainer', label: 'Explainer', icon: BookOpen   },
     { id: 'future',    label: 'Future Results', icon: Sparkles },
   ];
 
   return (
     <div className="dashboard-container" data-theme={theme}>
+      {/* Splash Screen Loading overlay */}
+      <div className={`splash-overlay ${!loading ? 'hidden' : ''}`}>
+        <img src={cryoLogo} alt="Cryo Logo" className="splash-logo" />
+        <h1 className="splash-title">Cryo Hybrid Optimiser</h1>
+        <p className="splash-subtitle">Quantum-Classical VRP Initializer</p>
+        <div className="splash-progress-track">
+          <div className="splash-progress-bar"></div>
+        </div>
+      </div>
+
       <header className="app-header">
-        <div className="app-title-block">
-          <p className="app-kicker">Routing lab</p>
-          <h1>Cold chain VRP</h1>
-          <p className="app-sub">
-            Configure vaccine deliveries, run the hybrid QAOA pipeline, and compare against classical solvers.
-          </p>
+        <div className="app-title-block" style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
+          <div>
+            <p className="app-kicker" style={{ color: theme === 'dark' ? '#e2e8f0' : '#475569', fontWeight: 700, letterSpacing: '0.05em', textTransform: 'uppercase', margin: 0, fontSize: '0.75rem' }}>Quantum-Classical VRP</p>
+            <h1 style={{ margin: '0.1rem 0 0 0', fontSize: '1.75rem', fontWeight: 700, letterSpacing: '-0.02em', color: 'var(--text-primary)' }}>
+              Cryo Hybrid Optimiser
+            </h1>
+            <p className="app-sub" style={{ margin: '0.2rem 0 0 0', fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
+              Thermodynamic Cold-Chain VRP Solver & NISQ-Era Hybrid QAOA Coprocessor
+            </p>
+          </div>
         </div>
         <div className="header-actions">
           <nav className="tab-segment" aria-label="Main">
@@ -184,6 +207,11 @@ export default function App() {
       {/* ── Compare tab ── */}
       <div style={{ display: activeTab === 'compare' ? 'block' : 'none' }}>
         <CompareTab runPipeline={runSSE} compareActive={activeTab === 'compare'} />
+      </div>
+
+      {/* ── Quantum Hardware tab ── */}
+      <div style={{ display: activeTab === 'hardware' ? 'block' : 'none' }}>
+        <HardwareTab runPipeline={runSSE} activeTab={activeTab} />
       </div>
 
       {/* ── Explainer tab ── */}
