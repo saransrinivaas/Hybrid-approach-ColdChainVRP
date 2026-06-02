@@ -388,6 +388,7 @@ function Step3Qubo() {
 function Step4Stitching({ results, scenarioMeta, config }) {
   const depot   = scenarioMeta?.easy?.depot || DEPOT;
   const clinics = config?.clinics || scenarioMeta?.easy?.clinics || [];
+  const clinicById = Object.fromEntries(clinics.map((c) => [c.id, c]));
 
   return (
     <div className="results-step-body">
@@ -406,8 +407,14 @@ function Step4Stitching({ results, scenarioMeta, config }) {
               )}
               {Object.entries(results.qaoa.routes).map(([vid, vdata], idx) => {
                 const color = VEHICLE_COLORS[idx % VEHICLE_COLORS.length];
-                const positions = (vdata.stops || []).map(s => {
-                  return s && typeof s.lat === 'number' && typeof s.lon === 'number' ? [s.lat, s.lon] : null;
+                const route = Array.isArray(vdata) ? vdata : (vdata.route || []);
+                const positions = route.map(id => {
+                  if (id === 0 && depot && typeof depot.lat === 'number' && typeof depot.lon === 'number') {
+                    return [depot.lat, depot.lon];
+                  }
+                  const originalId = id >= 1000 ? Math.floor(id / 1000) : id;
+                  const c = clinicById[originalId];
+                  return c && typeof c.lat === 'number' && typeof c.lon === 'number' ? [c.lat, c.lon] : null;
                 }).filter(Boolean);
                 return (
                   <Polyline key={vid} positions={positions} pathOptions={{ color, weight: 3.5, opacity: 0.9, lineCap: 'round' }} />
@@ -415,9 +422,17 @@ function Step4Stitching({ results, scenarioMeta, config }) {
               })}
               {Object.entries(results.qaoa.routes).map(([vid, vdata], idx) => {
                 const color = VEHICLE_COLORS[idx % VEHICLE_COLORS.length];
-                return (vdata.stops || []).filter(s => s.name !== 'Depot').map((s, i) => {
-                  if (typeof s.lat !== 'number' || typeof s.lon !== 'number') return null;
-                  return <Marker key={`${vid}-${s.id}-${i}`} position={[s.lat, s.lon]} icon={makeIcon(color, s.id)}><Popup><strong>{s.name}</strong><br />{vid}</Popup></Marker>;
+                const route = Array.isArray(vdata) ? vdata : (vdata.route || []);
+                const stops = vdata.stops || route.map(id => {
+                  if (id === 0 && depot) return depot;
+                  const originalId = id >= 1000 ? Math.floor(id / 1000) : id;
+                  return clinics.find(x => x.id === originalId);
+                }).filter(Boolean);
+                return stops.filter(s => s.name !== 'Depot' && s.id !== 0).map((s, i) => {
+                  const originalId = s.id >= 1000 ? Math.floor(s.id / 1000) : s.id;
+                  const c = clinicById[originalId];
+                  if (!c || typeof c.lat !== 'number' || typeof c.lon !== 'number') return null;
+                  return <Marker key={`${vid}-${s.id}-${i}`} position={[c.lat, c.lon]} icon={makeIcon(color, originalId)}><Popup><strong>{c.name}</strong><br />{vid}</Popup></Marker>;
                 });
               })}
             </MapContainer>
@@ -425,6 +440,12 @@ function Step4Stitching({ results, scenarioMeta, config }) {
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
             {Object.entries(results.qaoa.routes).map(([vid, vdata], idx) => {
               const color = VEHICLE_COLORS[idx % VEHICLE_COLORS.length];
+              const route = Array.isArray(vdata) ? vdata : (vdata.route || []);
+              const stops = vdata.stops || route.map(id => {
+                if (id === 0 && depot) return depot;
+                const originalId = id >= 1000 ? Math.floor(id / 1000) : id;
+                return clinics.find(x => x.id === originalId);
+              }).filter(Boolean);
               return (
                 <div key={vid} className="glass-panel" style={{ padding: '0.65rem 0.85rem' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.15rem', fontSize: '0.78rem' }}>
@@ -432,10 +453,10 @@ function Step4Stitching({ results, scenarioMeta, config }) {
                       <Truck size={12} />{vid}
                     </span>
                     <span style={{ fontFamily: 'var(--font-mono)', color: 'var(--text-muted)', fontSize: '0.7rem' }}>
-                      {vdata.distance_km} km · Rs {vdata.spoilage_rs} · {vdata.feasible ? <span style={{ color: 'var(--good)' }}>OK</span> : <span style={{ color: 'var(--warn)' }}>Repaired</span>}
+                      {vdata.distance_km != null ? `${vdata.distance_km} km` : ''} {vdata.spoilage_rs != null ? `· Rs ${vdata.spoilage_rs}` : ''} {vdata.feasible !== undefined ? (vdata.feasible ? <span style={{ color: 'var(--good)' }}>· OK</span> : <span style={{ color: 'var(--warn)' }}>· Repaired</span>) : ''}
                     </span>
                   </div>
-                  <RouteTimeline stops={vdata.stops || []} color={color} />
+                  <RouteTimeline stops={stops} color={color} />
                 </div>
               );
             })}
@@ -457,23 +478,59 @@ const ROADMAP = [
 ];
 
 // ── Solver Route Map (reusable) ────────────────────────────────────────────────
-function FitBounds({ routes, depot }) {
+function getHaversineDistance(lat1, lon1, lat2, lon2) {
+  if (lat1 == null || lon1 == null || lat2 == null || lon2 == null) return 0;
+  const R = 6371; // Earth's radius in km
+  const dLat = ((lat2 - lat1) * Math.PI) / 180;
+  const dLon = ((lon2 - lon1) * Math.PI) / 180;
+  const a =
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos((lat1 * Math.PI) / 180) *
+      Math.cos((lat2 * Math.PI) / 180) *
+      Math.sin(dLon / 2) *
+      Math.sin(dLon / 2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  return R * c;
+}
+
+function FitBounds({ routes, depot, clinics = [] }) {
   const map = useMap();
+  const clinicById = Object.fromEntries(clinics.map((c) => [c.id, c]));
+
   useEffect(() => {
     const pts = [];
-    if (depot?.lat) pts.push([depot.lat, depot.lon]);
-    Object.values(routes || {}).forEach(v =>
-      (v.stops || []).forEach(s => { if (typeof s.lat === 'number') pts.push([s.lat, s.lon]); })
-    );
+    if (depot?.lat && depot?.lon) pts.push([depot.lat, depot.lon]);
+    
+    Object.values(routes || {}).forEach(v => {
+      if (Array.isArray(v)) {
+        v.forEach(id => {
+          if (id !== 0) {
+            const originalId = id >= 1000 ? Math.floor(id / 1000) : id;
+            const c = clinicById[originalId];
+            if (c && typeof c.lat === 'number' && typeof c.lon === 'number') {
+              pts.push([c.lat, c.lon]);
+            }
+          }
+        });
+      } else if (v && v.stops) {
+        v.stops.forEach(s => {
+          if (typeof s.lat === 'number' && typeof s.lon === 'number') {
+            pts.push([s.lat, s.lon]);
+          }
+        });
+      }
+    });
+
     if (pts.length > 1) map.fitBounds(pts, { padding: [20, 20] });
-  }, [routes]);
+  }, [routes, depot, clinics]);
   return null;
 }
 
-function SolverRouteMap({ result, depot, label }) {
+function SolverRouteMap({ result, depot, clinics = [], label }) {
   const center = [depot?.lat || 13.04, depot?.lon || 80.18];
   const routes = result?.routes || {};
   const hasRoutes = Object.keys(routes).length > 0;
+  const clinicById = Object.fromEntries(clinics.map((c) => [c.id, c]));
 
   return (
     <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
@@ -483,7 +540,7 @@ function SolverRouteMap({ result, depot, label }) {
       <div className="map-shell" style={{ height: '320px', borderRadius: '10px', overflow: 'hidden' }}>
         <MapContainer center={center} zoom={11} style={{ height: '100%', width: '100%' }} scrollWheelZoom={false}>
           <TileLayer url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png" attribution="&copy; OpenStreetMap &copy; CARTO" />
-          {hasRoutes && <FitBounds routes={routes} depot={depot} />}
+          {hasRoutes && <FitBounds routes={routes} depot={depot} clinics={clinics} />}
           {depot && typeof depot.lat === 'number' && (
             <Marker position={[depot.lat, depot.lon]} icon={depotIcon}>
               <Popup><strong>{depot.name || 'Depot'}</strong></Popup>
@@ -491,8 +548,16 @@ function SolverRouteMap({ result, depot, label }) {
           )}
           {Object.entries(routes).map(([vid, vdata], idx) => {
             const color = VEHICLE_COLORS[idx % VEHICLE_COLORS.length];
-            const positions = (vdata.stops || [])
-              .map(s => (typeof s.lat === 'number' && typeof s.lon === 'number') ? [s.lat, s.lon] : null)
+            const route = Array.isArray(vdata) ? vdata : (vdata.route || []);
+            const positions = route
+              .map((id) => {
+                if (id === 0 && depot && typeof depot.lat === 'number' && typeof depot.lon === 'number') {
+                  return [depot.lat, depot.lon];
+                }
+                const originalId = id >= 1000 ? Math.floor(id / 1000) : id;
+                const c = clinicById[originalId];
+                return c && typeof c.lat === 'number' && typeof c.lon === 'number' ? [c.lat, c.lon] : null;
+              })
               .filter(Boolean);
             return (
               <Polyline key={vid} positions={positions}
@@ -501,13 +566,28 @@ function SolverRouteMap({ result, depot, label }) {
           })}
           {Object.entries(routes).map(([vid, vdata], idx) => {
             const color = VEHICLE_COLORS[idx % VEHICLE_COLORS.length];
-            return (vdata.stops || [])
-              .filter(s => s.name !== 'Depot' && typeof s.lat === 'number')
-              .map((s, i) => (
-                <Marker key={`${vid}-${s.id}-${i}`} position={[s.lat, s.lon]} icon={makeIcon(color, s.id)}>
-                  <Popup><strong>{s.name}</strong><br />{vid}</Popup>
-                </Marker>
-              ));
+            const route = Array.isArray(vdata) ? vdata : (vdata.route || []);
+            const stops = Array.isArray(vdata)
+              ? route.map(id => {
+                  if (id === 0) return { id: 0, name: depot?.name || 'Depot' };
+                  const originalId = id >= 1000 ? Math.floor(id / 1000) : id;
+                  const c = clinicById[originalId];
+                  return c ? { id: c.id, name: c.name, lat: c.lat, lon: c.lon } : { id, name: `Clinic ${originalId}` };
+                })
+              : (vdata.stops || []);
+
+            return stops
+              .filter(s => s.name !== 'Depot' && s.id !== 0)
+              .map((s, i) => {
+                const originalId = s.id >= 1000 ? Math.floor(s.id / 1000) : s.id;
+                const c = clinicById[originalId];
+                if (!c || typeof c.lat !== 'number' || typeof c.lon !== 'number') return null;
+                return (
+                  <Marker key={`${vid}-${s.id}-${i}`} position={[c.lat, c.lon]} icon={makeIcon(color, originalId)}>
+                    <Popup><strong>{c.name}</strong><br />{vid}</Popup>
+                  </Marker>
+                );
+              });
           })}
         </MapContainer>
       </div>
@@ -597,6 +677,7 @@ const SOLVER_OPTIONS = [
 ];
 
 function Step5Comparison({ results, compareResults, config, scenarioMeta, onRefreshCompare }) {
+  const clinics = config?.clinics || scenarioMeta?.easy?.clinics || [];
   const sc = compareResults?.easy;
   const cl = sc?.classical || results?.classical;
   const alns = sc?.alns;
@@ -671,9 +752,19 @@ function Step5Comparison({ results, compareResults, config, scenarioMeta, onRefr
       if (r.time_window_feasible === false) {
         timeWindowOk = false;
       }
-      if (r.stops) {
+      const route = Array.isArray(r) ? r : (r.route || []);
+      route.forEach(id => {
+        if (id !== 0) {
+          const originalId = id >= 1000 ? Math.floor(id / 1000) : id;
+          clinicsDelivered.add(originalId);
+        }
+      });
+      if (r && r.stops) {
         r.stops.forEach(s => {
-          if (s.id !== 0) clinicsDelivered.add(s.id);
+          if (s.id !== 0 && s.id !== undefined) {
+            const originalId = s.id >= 1000 ? Math.floor(s.id / 1000) : s.id;
+            clinicsDelivered.add(originalId);
+          }
         });
       }
     });
@@ -1040,8 +1131,9 @@ function Step5Comparison({ results, compareResults, config, scenarioMeta, onRefr
                   </select>
                 </div>
                 <SolverRouteMap
-                  result={leftResult?.status === 'ok' ? leftResult : null}
+                  result={(leftSolver === 'qaoa' && qaAvailable) || isAvailable(leftResult) ? leftResult : null}
                   depot={depot}
+                  clinics={clinics}
                   label={SOLVER_OPTIONS.find(s => s.id === leftSolver)?.label + ' Routes'}
                 />
               </div>
@@ -1054,8 +1146,9 @@ function Step5Comparison({ results, compareResults, config, scenarioMeta, onRefr
                   </select>
                 </div>
                 <SolverRouteMap
-                  result={rightResult?.status === 'ok' ? rightResult : null}
+                  result={(rightSolver === 'qaoa' && qaAvailable) || isAvailable(rightResult) ? rightResult : null}
                   depot={depot}
+                  clinics={clinics}
                   label={SOLVER_OPTIONS.find(s => s.id === rightSolver)?.label + ' Routes'}
                 />
               </div>
@@ -1124,10 +1217,29 @@ export default function ResultsView({ config, runPipeline, pipelineLogs, pipelin
         if (!cl || !cl.routes) return 0;
         const stops = new Set();
         Object.values(cl.routes).forEach(r => {
-          if (r.stops) {
-            r.stops.forEach(s => {
-              if (s.id !== 0) stops.add(s.id);
+          if (Array.isArray(r)) {
+            r.forEach(id => {
+              if (id !== 0) {
+                const originalId = id >= 1000 ? Math.floor(id / 1000) : id;
+                stops.add(originalId);
+              }
             });
+          } else if (r && typeof r === 'object') {
+            const route = r.route || [];
+            route.forEach(id => {
+              if (id !== 0) {
+                const originalId = id >= 1000 ? Math.floor(id / 1000) : id;
+                stops.add(originalId);
+              }
+            });
+            if (r.stops) {
+              r.stops.forEach(s => {
+                if (s.id !== 0 && s.id !== undefined) {
+                  const originalId = s.id >= 1000 ? Math.floor(s.id / 1000) : s.id;
+                  stops.add(originalId);
+                }
+              });
+            }
           }
         });
         return stops.size;

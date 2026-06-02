@@ -105,7 +105,6 @@ export default function InputTab({ onConfigureAndRun, pipelineRunning }) {
     }
   }, [pipelineRunning]);
 
-  // ── Close vaccine dropdown on outside click ──
   // ── Persistence ──
   useEffect(() => {
     const saved = localStorage.getItem('vrp_input_state');

@@ -29,6 +29,7 @@ import ortools_solver
 import gurobi_solver
 import pulp_solver
 import alns_solver
+from node_splitting import apply_node_splitting, collapse_split_nodes
 
 import scenario as SC2
 try:
@@ -41,17 +42,20 @@ except Exception:
     print("[INFO] Falling back to default static scenario")
 
 import scenario3 as SC3
+import scenario4 as SC4
 
 SCENARIO_MODULES = {
     "easy":  SC1,
     "tough": SC2,
     "tough3": SC3,
+    "tough4": SC4,
 }
 
 SCENARIO_LABELS = {
     "easy":  f"Scenario 1 - {len(SC1.CLINICS)} Clinics / {len(SC1.VEHICLES)} Vehicles",
     "tough": f"Scenario 2 - {len(SC2.CLINICS)} Clinics / {len(SC2.VEHICLES)} Vehicles",
     "tough3": f"Scenario 3 - {len(SC3.CLINICS)} Clinics / {len(SC3.VEHICLES)} Vehicles (Stress Test)",
+    "tough4": f"Scenario 4 - {len(SC4.CLINICS)} Clinics / {len(SC4.VEHICLES)} Vehicles (Edge Cases)",
 }
 
 
@@ -66,17 +70,25 @@ def _run_qaoa_on_scenario(sc_module) -> dict:
     """
     Execute clustering → QAOA → stitch on sc_module.
     Returns the same dict shape as solve_scenario().
+    Applies node splitting first so oversized demands never reach QAOA.
     """
     import itertools
     from sklearn.cluster import KMeans
     from qaoa_solver import run_qaoa as qaoa_solve, solve_classically
 
-    clinics      = sc_module.CLINICS
-    vehicles     = sc_module.VEHICLES
-    demands      = sc_module.DEMANDS
-    dm           = sc_module.DISTANCE_MATRIX
-    spoilage     = sc_module.SPOILAGE
-    avg_speed    = sc_module.AVG_SPEED_KMH
+    # ── Step 0: Node splitting ──
+    print("  [PRE] Checking for oversized demand nodes...")
+    sc_ext = apply_node_splitting(sc_module)
+    if sc_ext.is_split:
+        print(f"  [PRE] Node splitting applied: {len(sc_module.CLINICS)} → {len(sc_ext.CLINICS)} nodes")
+
+    clinics      = sc_ext.CLINICS
+    vehicles     = sc_ext.VEHICLES
+    demands      = sc_ext.DEMANDS
+    dm           = sc_ext.DISTANCE_MATRIX
+    spoilage     = sc_ext.SPOILAGE
+    avg_speed    = sc_ext.AVG_SPEED_KMH
+    split_map    = sc_ext.split_map
     clinic_names = {c["id"]: c["name"] for c in clinics}
     capacity     = {
         temp: vehicles[0]["compartments"][temp]["capacity"]
@@ -87,13 +99,13 @@ def _run_qaoa_on_scenario(sc_module) -> dict:
     label = sc_module.__name__
     print(f"\n{'='*55}")
     print(f"  QAOA SOLVER - {label}")
-    print(f"  {len(clinics)} clinics / {len(vehicles)} vehicles")
+    print(f"  {len(clinics)} nodes / {len(vehicles)} vehicles")
     print(f"{'='*55}")
 
     import clustering as _cl
     _orig_cl = _cl._default_scenario
-    _cl._default_scenario = sc_module
-    vehicle_routes = _cl.build_clusters(sc_module)
+    _cl._default_scenario = sc_ext
+    vehicle_routes = _cl.build_clusters(sc_ext)
     _cl._default_scenario = _orig_cl
 
     assignments = {}
@@ -117,12 +129,14 @@ def _run_qaoa_on_scenario(sc_module) -> dict:
         "sc_DEMANDS":  _sc.DEMANDS,
         "sc_DM":       _sc.DISTANCE_MATRIX,
         "sc_SPOILAGE": _sc.SPOILAGE,
-        "qb_CLINICS":  _qb.CLINICS,
-        "qb_DEMANDS":  _qb.DEMANDS,
-        "qb_DM":       _qb.DISTANCE_MATRIX,
-        "qb_SPOILAGE": _qb.SPOILAGE,
-        "qa_CLINICS":  _qa.CLINICS,
-        "qa_DM":       _qa.DISTANCE_MATRIX,
+        "qb_CLINICS":  getattr(_qb, "CLINICS", None),
+        "qb_DEMANDS":  getattr(_qb, "DEMANDS", None),
+        "qb_DM":       getattr(_qb, "DISTANCE_MATRIX", None),
+        "qb_SPOILAGE": getattr(_qb, "SPOILAGE", None),
+        "qb_AVG_SPEED": getattr(_qb, "AVG_SPEED_KMH", None),
+        "qb_ENERGY":   getattr(_qb, "ENERGY_RATE", None),
+        "qa_CLINICS":  getattr(_qa, "CLINICS", None),
+        "qa_DM":       getattr(_qa, "DISTANCE_MATRIX", None),
     }
     _sc.CLINICS          = clinics
     _sc.DEMANDS          = demands
@@ -132,6 +146,8 @@ def _run_qaoa_on_scenario(sc_module) -> dict:
     _qb.DEMANDS          = demands
     _qb.DISTANCE_MATRIX  = dm
     _qb.SPOILAGE         = spoilage
+    _qb.AVG_SPEED_KMH    = avg_speed
+    _qb.ENERGY_RATE      = sc_module.ENERGY_RATE
     _qa.CLINICS          = clinics
     _qa.DISTANCE_MATRIX  = dm
 
@@ -174,12 +190,20 @@ def _run_qaoa_on_scenario(sc_module) -> dict:
         _sc.DEMANDS         = _orig["sc_DEMANDS"]
         _sc.DISTANCE_MATRIX = _orig["sc_DM"]
         _sc.SPOILAGE        = _orig["sc_SPOILAGE"]
-        _qb.CLINICS         = _orig["qb_CLINICS"]
-        _qb.DEMANDS         = _orig["qb_DEMANDS"]
-        _qb.DISTANCE_MATRIX = _orig["qb_DM"]
-        _qb.SPOILAGE        = _orig["qb_SPOILAGE"]
-        _qa.CLINICS         = _orig["qa_CLINICS"]
-        _qa.DISTANCE_MATRIX = _orig["qa_DM"]
+        
+        for mod, attr, key in [(_qb, "CLINICS", "qb_CLINICS"),
+                               (_qb, "DEMANDS", "qb_DEMANDS"),
+                               (_qb, "DISTANCE_MATRIX", "qb_DM"),
+                               (_qb, "SPOILAGE", "qb_SPOILAGE"),
+                               (_qb, "AVG_SPEED_KMH", "qb_AVG_SPEED"),
+                               (_qb, "ENERGY_RATE", "qb_ENERGY"),
+                               (_qa, "CLINICS", "qa_CLINICS"),
+                               (_qa, "DISTANCE_MATRIX", "qa_DM")]:
+            val = _orig[key]
+            if val is not None:
+                setattr(mod, attr, val)
+            elif hasattr(mod, attr):
+                delattr(mod, attr)
 
     # ── Step 3: Stitch + repair ──
     import stitching_repair as _sr
@@ -437,7 +461,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Compare Classical vs QAOA solvers")
     parser.add_argument("--with-qaoa", action="store_true",
                         help="Also run QAOA solver (slow, 10-20 min)")
-    parser.add_argument("--scenario", type=str, choices=["easy", "tough", "tough3"], default=None,
+    parser.add_argument("--scenario", type=str, choices=["easy", "tough", "tough3", "tough4"], default=None,
                         help="Run comparison for a specific scenario only")
     args = parser.parse_args()
     run_comparison(with_qaoa=args.with_qaoa, target_scenario=args.scenario)

@@ -295,6 +295,26 @@ def solve_scenario(sc_module) -> dict:
         print(f"  Fleet total    : Rs {total_cost:.4f}")
         print(f"  PuLP/CBC solve : {total_time:.3f}s")
 
+        # Sanity check: if no clinic was delivered, the ILP found a trivial
+        # all-depot solution (or CBC timed out without finding a real route).
+        # Mark this as failed so the UI never treats it as a valid 0 km result.
+        clinics_delivered = sum(
+            1 for r in routes_out.values()
+            if len([nid for nid in (r.get('route') or []) if nid != 0]) > 0
+        )
+        if clinics_delivered == 0:
+            print("  [FAIL] PuLP/CBC: solver returned no clinic deliveries — marking as failed.")
+            return {
+                "solver": "PuLP/CBC (ILP) — FAILED",
+                "routes": {},
+                "fleet_distance": 0.0,
+                "fleet_spoilage": 0.0,
+                "fleet_refrigeration": 0.0,
+                "fleet_total_cost": 0.0,
+                "total_time": total_time,
+                "status": "failed",
+            }
+
         return {
             "solver": "PuLP/CBC (ILP)",
             "routes": routes_out,

@@ -201,6 +201,16 @@ export default function App() {
             accentColor="var(--solver-alns)"
             runPipeline={runSSE}
           />
+          <ScenarioPanel
+            scenarioKey="tough4"
+            meta={scenarioMeta?.tough4}
+            pipelineEndpoint="/api/run-pipeline-scenario4"
+            resultsEndpoint="/api/results-tough4"
+            label="Scenario 4 (Edge Cases)"
+            subtitle="5 clinics · 4 vehicles · demand overflow node splitting"
+            accentColor="var(--solver-gurobi)"
+            runPipeline={runSSE}
+          />
         </div>
       </div>
 

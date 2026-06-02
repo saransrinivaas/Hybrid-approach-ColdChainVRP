@@ -16,6 +16,7 @@
 3. [The Core Gap in Modern Solvers](#the-core-gap-in-modern-solvers)
 4. [Novel Contributions & Mathematical Formulation](#novel-contributions--mathematical-formulation)
    - [The Global Hamiltonian $\mathcal{H}_{\text{total}}$](#the-global-hamiltonian-h_texttotal)
+   - [Pre-partitioning Node Splitting (Step 0)](#pre-partitioning-node-splitting-step-0)
    - [Level-1 Composite K-Means Clustering](#level-1-composite-k-means-clustering)
    - [First-Fit Multi-Compartment Trip Splitting](#first-fit-multi-compartment-trip-splitting)
    - [Quality-Weighted Consensus Voting](#quality-weighted-consensus-voting)
@@ -111,6 +112,16 @@ $$\mathcal{H}_{\text{visit}} = M \cdot \sum_{i=0}^{n-1} \left( \sum_{t=0}^{n-1} 
 #### 5. Position-Once Constraint ($\mathcal{H}_{\text{position}}$)
 Enforces that each sequence position $t$ in the route is occupied by exactly one clinic:
 $$\mathcal{H}_{\text{position}} = M \cdot \sum_{t=0}^{n-1} \left( \sum_{i=0}^{n-1} x[i,t] - 1 \right)^2$$
+
+---
+
+### Pre-partitioning Node Splitting (Step 0) — **NOVELTY**
+
+When a clinic's demand in any temperature compartment exceeds the maximum vehicle capacity, it cannot be served in a single trip. To handle this, we introduced a pre-partitioning **Node Splitting** mechanism (Step 0) that decomposes oversized clinics into multiple *phantom* nodes.
+* **Phantom ID Generation**: Phantom nodes use composite numeric IDs: $ID_{\text{phantom}} = ID_{\text{original}} \times 1000 + \text{part\_index}$ (e.g., clinic 2 splits into 2001, 2002). This keeps IDs numeric, avoids string-parsing in solvers, and makes the original clinic trivially recoverable ($ID_{\text{original}} = ID_{\text{phantom}} // 1000$).
+* **Demand Decomposition**: The demand is split greedily across compartments: each part takes up to the maximum vehicle compartment capacity until the remainder is zero.
+* **Distance Matrix Extension**: The distance matrix is extended to incorporate these phantoms. Phantoms at the same location have zero distance between themselves and inherit the original clinic's distances to all other nodes.
+* **Dynamic Global Patching**: To prevent index out of bounds errors in downstream solvers (`qubo_builder.py`, `stitching_repair.py`, etc.), the main orchestrator (`pipeline.py`) dynamically patches the global scenario attributes across imported modules at runtime.
 
 ---
 

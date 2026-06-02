@@ -79,7 +79,17 @@ $$
 
 ---
 
-## 3. The Clustering Pipeline
+## 3. Pre-partitioning Node Splitting (Step 0) — **NOVELTY**
+
+When a clinic's demand in any temperature compartment exceeds the maximum vehicle capacity, it cannot be served in a single trip. To handle this, we introduced a pre-partitioning **Node Splitting** mechanism (Step 0) that decomposes oversized clinics into multiple *phantom* nodes.
+* **Phantom ID Generation**: Phantom nodes use composite numeric IDs: $ID_{\text{phantom}} = ID_{\text{original}} \times 1000 + \text{part\_index}$ (e.g., clinic 2 splits into 2001, 2002). This keeps IDs numeric, avoids string-parsing in solvers, and makes the original clinic trivially recoverable ($ID_{\text{original}} = ID_{\text{phantom}} // 1000$).
+* **Demand Decomposition**: The demand is split greedily across compartments: each part takes up to the maximum vehicle compartment capacity until the remainder is zero.
+* **Distance Matrix Extension**: The distance matrix is extended to incorporate these phantoms. Phantoms at the same location have zero distance between themselves and inherit the original clinic's distances to all other nodes.
+* **Dynamic Global Patching**: To prevent index out of bounds errors in downstream solvers (`qubo_builder.py`, `stitching_repair.py`, etc.), the main orchestrator (`pipeline.py`) dynamically patches the global scenario attributes across imported modules at runtime.
+
+---
+
+## 4. The Clustering Pipeline
 
 Because a global 10-node VRP requires $10^2 = 100$ qubits—which exceeds the capabilities of standard quantum hardware and simulators—we employ a **Clustering Pipeline**.
 
@@ -108,7 +118,7 @@ Large trips are divided into sub-clusters of size $K \le 4$ with a **2-node over
 
 ---
 
-## 4. Stitching, Consensus & Post-Optimization
+## 5. Stitching, Consensus & Post-Optimization
 
 Once the simulated QAOA solver computes the optimal ordering for each sub-cluster, the sub-routes must be combined.
 
@@ -143,12 +153,12 @@ This novel formulation guarantees that routing modifications are dynamically gov
 
 ---
 
-## 5. Quantum Simulation & the 100-Qubit Genuineness Proof
+## 6. Quantum Simulation & the 100-Qubit Genuineness Proof
 
-### 5.1 The 100-Qubit Classical Simulation Memory Wall
+### 6.1 The 100-Qubit Classical Simulation Memory Wall
 Direct classical simulation of a 100-qubit circuit at full statevector resolution is physically impossible. A 10-clinic sub-cluster requires $10^2 = 100$ qubits due to the permutation grid mapping. Tracking the complete statevector would require storing $2^{100}$ complex amplitudes. This would require more physical memory than all hard drives on Earth combined, which is why attempting a full statevector simulation of 10 nodes instantly crashes standard computers.
 
-### 5.2 Bypassing the Wall: Then How TF Did We Do It Here?
+### 6.2 Bypassing the Wall: Then How TF Did We Do It Here?
 It is physically impossible to simulate the statevector directly. **Then how tf did we do it here?** 
 
 Instead of running the massive, unsimulatable 100-qubit circuit itself, we simulated its mathematically perfect, error-corrected, noise-free future output. 
@@ -160,5 +170,5 @@ $$
 
 By implementing a high-performance classical permutation/local search solver on the 10-node sub-cluster, we locate this identical unique ground state instantly. This produces routing outputs that are **mathematically indistinguishable** and **100% physically identical** to what future physical quantum computers will deliver. This bypasses the classical statevector memory bottleneck while maintaining absolute scientific genuineness.
 
-### 5.3 Hybrid NISQ Co-design
+### 6.3 Hybrid NISQ Co-design
 By splitting the massive 50-node network into small sub-clusters, QAOA is applied in its physical "sweet spot" ($K \le 4$ nodes, requiring $K^2 \le 16$ qubits), while classical heuristics manage vehicle capacities and boundary stitching. This is the essence of **Hybrid Quantum-Classical Optimization**, proving that QAOA can actively drive routing quality on modern NISQ-era quantum computing configurations.

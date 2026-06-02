@@ -5,6 +5,13 @@ import subprocess
 from flask import Flask, Response, jsonify, request
 from flask_cors import CORS
 import json
+# Lazy import for PuLP – set flag if unavailable
+try:
+    import pulp
+    PULP_AVAILABLE = True
+except Exception:
+    PULP_AVAILABLE = False
+    print("[WARN] PuLP not installed – ILP solvers will be unavailable.")
 
 
 BACKEND_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -76,24 +83,31 @@ COMPUTED_STATE = {
     "pipeline_easy":    None,
     "pipeline_tough":   None,
     "pipeline_tough3":  None,
+    "pipeline_tough4":  None,
     "compare_cl_easy":  None,
     "compare_cl_tough": None,
     "compare_cl_tough3": None,
+    "compare_cl_tough4": None,
     "compare_ort_easy": None,
     "compare_ort_tough": None,
     "compare_ort_tough3": None,
+    "compare_ort_tough4": None,
     "compare_gurobi_easy": None,
     "compare_gurobi_tough": None,
     "compare_gurobi_tough3": None,
+    "compare_gurobi_tough4": None,
     "compare_pulp_easy": None,
     "compare_pulp_tough": None,
     "compare_pulp_tough3": None,
+    "compare_pulp_tough4": None,
     "compare_alns_easy": None,
     "compare_alns_tough": None,
     "compare_alns_tough3": None,
+    "compare_alns_tough4": None,
     "compare_qaoa_easy":  None,
     "compare_qaoa_tough": None,
     "compare_qaoa_tough3": None,
+    "compare_qaoa_tough4": None,
 }
 
 def _save_computed_state_to_disk():
@@ -122,9 +136,17 @@ def _save_computed_state_to_disk():
             "alns": COMPUTED_STATE.get('compare_alns_tough3'),
             "qaoa": COMPUTED_STATE.get('compare_qaoa_tough3'),
         },
+        "tough4": {
+            "classical": COMPUTED_STATE.get('compare_cl_tough4'),
+            "ortools": COMPUTED_STATE.get('compare_ort_tough4'),
+            "gurobi": COMPUTED_STATE.get('compare_gurobi_tough4'),
+            "pulp_cbc": COMPUTED_STATE.get('compare_pulp_tough4'),
+            "alns": COMPUTED_STATE.get('compare_alns_tough4'),
+            "qaoa": COMPUTED_STATE.get('compare_qaoa_tough4'),
+        },
     }
     
-    for key in ('easy', 'tough', 'tough3'):
+    for key in ('easy', 'tough', 'tough3', 'tough4'):
         if not payload[key]["qaoa"]:
             pipe_data = COMPUTED_STATE.get(f'pipeline_{key}')
             if pipe_data and not pipe_data.get('error'):
@@ -147,8 +169,10 @@ def _save_computed_state_to_disk():
                     payload[key]["qaoa"] = {"status": "skipped", "note": "Run the Live Pipeline to generate Hybrid QAOA results."}
                 elif key == 'tough':
                     payload[key]["qaoa"] = {"status": "skipped", "note": "Run 'Classical + QAOA' to see results."}
-                else:
+                elif key == 'tough3':
                     payload[key]["qaoa"] = {"status": "skipped", "note": "Scenario 3 is too large for the Qiskit Quantum Simulator."}
+                else:
+                    payload[key]["qaoa"] = {"status": "skipped", "note": "Run the Live Pipeline or 'Classical + QAOA' to see results."}
 
     try:
         filepath = os.path.join(BACKEND_DIR, 'compare_results.json')
@@ -165,7 +189,7 @@ try:
     if os.path.exists(compare_file):
         with open(compare_file, 'r', encoding='utf-8') as f:
             compare_loaded_data = json.load(f)
-            for key in ('easy', 'tough', 'tough3'):
+            for key in ('easy', 'tough', 'tough3', 'tough4'):
                 sc = compare_loaded_data.get(key, {})
                 if sc:
                     if sc.get('classical'):
@@ -186,7 +210,7 @@ except Exception as e:
     print(f"[WARN] Failed to load compare_results.json on startup: {e}")
 
 # Try to load existing pipeline results from disk on startup
-for key in ('easy', 'tough', 'tough3'):
+for key in ('easy', 'tough', 'tough3', 'tough4'):
     try:
         pipeline_file = os.path.join(BACKEND_DIR, f'pipeline_{key}.json')
         if os.path.exists(pipeline_file):
@@ -232,9 +256,12 @@ def submit_results():
     elif res_type == 'pipeline_tough3':
         COMPUTED_STATE['pipeline_tough3'] = data
         _save_pipeline_state_to_disk('tough3', data)
+    elif res_type == 'pipeline_tough4':
+        COMPUTED_STATE['pipeline_tough4'] = data
+        _save_pipeline_state_to_disk('tough4', data)
     elif res_type == 'compare':
         # Store classical, ortools, gurobi, and pulp separately per scenario for instant retrieval
-        for key in ('easy', 'tough', 'tough3'):
+        for key in ('easy', 'tough', 'tough3', 'tough4'):
             sc = data.get(key)
             if sc:
                 if sc.get('classical'):
@@ -308,6 +335,11 @@ def run_pipeline_tough3():
     """Run the Scenario 3 stress test (forces scenario3.py)."""
     return stream_script('pipeline.py', extra_args=['--tough3'])
 
+@app.route('/api/run-pipeline-scenario4')
+def run_pipeline_scenario4():
+    """Run the Scenario 4 edge cases (forces scenario4.py)."""
+    return stream_script('pipeline.py', extra_args=['--tough4'])
+
 
 # ── Clustering result (live, from scenario.py) ───────────────────────────────
 
@@ -374,6 +406,13 @@ def get_results_tough3():
     """Return results produced by the Scenario 3 stress test."""
     if COMPUTED_STATE['pipeline_tough3']:
         return jsonify(COMPUTED_STATE['pipeline_tough3'])
+    return jsonify({"error": "No results available — run the pipeline first"}), 404
+
+@app.route('/api/results-tough4')
+def get_results_tough4():
+    """Return results produced by the Scenario 4 edge cases."""
+    if COMPUTED_STATE['pipeline_tough4']:
+        return jsonify(COMPUTED_STATE['pipeline_tough4'])
     return jsonify({"error": "No results available — run the pipeline first"}), 404
 
 
@@ -481,6 +520,18 @@ def enrich_solver_result(result: dict, sc_module) -> dict:
     result["status"] = "ok"
     return result
 
+def _has_real_deliveries(res):
+    """Returns True if the solver result contains at least one non-depot stop."""
+    if not res or not res.get("routes"):
+        return False
+    for r in res["routes"].values():
+        if not isinstance(r, dict):
+            continue
+        route = r.get("route") or []
+        if any(nid != 0 for nid in route):
+            return True
+    return False
+
 def run_solver_with_relaxed_fallback(solver_solve_func, sc_module):
     """
     Runs a solver. If it fails (returns status="failed" or status="unavailable"),
@@ -491,14 +542,30 @@ def run_solver_with_relaxed_fallback(solver_solve_func, sc_module):
         res = solver_solve_func(sc_module)
         if res and res.get("status") == "unavailable":
             return res
-        if not res or res.get("status") == "failed" or not res.get("routes"):
-            print(f"[RELAXATION] Solver failed or returned failed status. Attempting relaxed solve...")
+        if not res or res.get("status") == "failed" or not _has_real_deliveries(res):
+            print(f"[RELAXATION] Solver failed or returned no real routes. Attempting relaxed solve...")
             relaxed_sc = RelaxedScenarioWrapper(sc_module)
             res = solver_solve_func(relaxed_sc)
             if res and res.get("status") == "unavailable":
                 return res
-            res["status"] = "ok"
-            res["was_relaxed"] = True
+            # Only accept relaxed result if it actually delivered to clinics
+            if _has_real_deliveries(res):
+                res["status"] = "ok"
+                res["was_relaxed"] = True
+            else:
+                solver_name = (res.get("solver") if res else None) or "Unknown"
+                total_time = (res.get("total_time") if res else None) or 0.0
+                print(f"[RELAXATION] Relaxed solve also found no clinic deliveries — marking as failed.")
+                return {
+                    "solver": solver_name,
+                    "routes": {},
+                    "fleet_distance": 0.0,
+                    "fleet_spoilage": 0.0,
+                    "fleet_refrigeration": 0.0,
+                    "fleet_total_cost": 0.0,
+                    "total_time": total_time,
+                    "status": "failed",
+                }
         return enrich_solver_result(res, sc_module)
     except Exception as e:
         print(f"[RELAXATION] Error in solver execution: {e}. Retrying relaxed...")
@@ -507,9 +574,12 @@ def run_solver_with_relaxed_fallback(solver_solve_func, sc_module):
             res = solver_solve_func(relaxed_sc)
             if res and res.get("status") == "unavailable":
                 return res
-            res["status"] = "ok"
-            res["was_relaxed"] = True
-            return enrich_solver_result(res, sc_module)
+            if _has_real_deliveries(res):
+                res["status"] = "ok"
+                res["was_relaxed"] = True
+                return enrich_solver_result(res, sc_module)
+            else:
+                return {"status": "failed", "routes": {}, "error": str(e)}
         except Exception as ex:
             print(f"[RELAXATION] Critical: Relaxed solve also failed: {ex}")
             return {"status": "failed", "routes": {}, "error": str(e)}
@@ -525,7 +595,7 @@ def _start_ilp_background():
         global _ilp_running
         try:
             sys.path.insert(0, BACKEND_DIR)
-            import importlib, scenario as _SC2b, scenario3 as _SC3b
+            import importlib, scenario as _SC2b, scenario3 as _SC3b, scenario4 as _SC4b
             try:
                 import scenario_dynamic as _SC1b
                 importlib.reload(_SC1b)
@@ -533,12 +603,14 @@ def _start_ilp_background():
                 _SC1b = _SC2b
             importlib.reload(_SC2b)
             importlib.reload(_SC3b)
+            importlib.reload(_SC4b)
             import gurobi_solver as _gurobi, pulp_solver as _pulp
-            for key, sc in [('easy', _SC1b), ('tough', _SC2b), ('tough3', _SC3b)]:
-                if COMPUTED_STATE.get(f'compare_gurobi_{key}') is None:
-                    COMPUTED_STATE[f'compare_gurobi_{key}'] = run_solver_with_relaxed_fallback(_gurobi.solve_scenario, sc)
-                if COMPUTED_STATE.get(f'compare_pulp_{key}') is None:
-                    COMPUTED_STATE[f'compare_pulp_{key}'] = run_solver_with_relaxed_fallback(_pulp.solve_scenario, sc)
+            for key, sc in [('easy', _SC1b), ('tough', _SC2b), ('tough3', _SC3b), ('tough4', _SC4b)]:
+                if PULP_AVAILABLE:
+                    if COMPUTED_STATE.get(f'compare_pulp_{key}') is None:
+                        COMPUTED_STATE[f'compare_pulp_{key}'] = run_solver_with_relaxed_fallback(_pulp.solve_scenario, sc)
+                else:
+                    print('[INFO] PuLP not available; skipping PuLP solver.')
         except Exception as e:
             print(f"[ILP Background] Error: {e}")
         finally:
@@ -576,6 +648,7 @@ def compare_results():
     cl_easy   = COMPUTED_STATE.get('compare_cl_easy')
     cl_tough  = COMPUTED_STATE.get('compare_cl_tough')
     cl_tough3 = COMPUTED_STATE.get('compare_cl_tough3')
+    cl_tough4 = COMPUTED_STATE.get('compare_cl_tough4')
 
     # Determine if any fast solver for any scenario needs computing.
     # Each solver is checked INDEPENDENTLY so a silent failure in one doesn't
@@ -589,13 +662,17 @@ def compare_results():
     tough3_pending = (cl_tough3 is None
                       or COMPUTED_STATE.get('compare_ort_tough3')  is None
                       or COMPUTED_STATE.get('compare_alns_tough3') is None)
+    tough4_pending = (cl_tough4 is None
+                      or COMPUTED_STATE.get('compare_ort_tough4')  is None
+                      or COMPUTED_STATE.get('compare_alns_tough4') is None)
 
-    if easy_pending or tough_pending or tough3_pending:
+    if easy_pending or tough_pending or tough3_pending or tough4_pending:
         try:
             sys.path.insert(0, BACKEND_DIR)
             import importlib
             import scenario as _SC2
             import scenario3 as _SC3
+            import scenario4 as _SC4
             try:
                 import scenario_dynamic as _SC1
                 importlib.reload(_SC1)
@@ -603,6 +680,7 @@ def compare_results():
                 _SC1 = _SC2
             importlib.reload(_SC2)
             importlib.reload(_SC3)
+            importlib.reload(_SC4)
 
             from classical_solver import solve_scenario as solve_classical
             import ortools_solver
@@ -672,6 +750,26 @@ def compare_results():
                 except Exception as e:
                     print(f"[compare-results] ALNS Tough3 failed: {e}")
 
+            # ── Scenario 4 (edge case split test) ────────────────────────────
+            if cl_tough4 is None:
+                try:
+                    cl_tough4 = run_solver_with_relaxed_fallback(solve_classical, _SC4)
+                    COMPUTED_STATE['compare_cl_tough4'] = cl_tough4
+                except Exception as e:
+                    print(f"[compare-results] Classical Tough4 failed: {e}")
+
+            if COMPUTED_STATE.get('compare_ort_tough4') is None:
+                try:
+                    COMPUTED_STATE['compare_ort_tough4'] = run_solver_with_relaxed_fallback(ortools_solver.solve_scenario, _SC4)
+                except Exception as e:
+                    print(f"[compare-results] OR-Tools Tough4 failed: {e}")
+
+            if COMPUTED_STATE.get('compare_alns_tough4') is None:
+                try:
+                    COMPUTED_STATE['compare_alns_tough4'] = run_solver_with_relaxed_fallback(alns_solver.solve_scenario, _SC4)
+                except Exception as e:
+                    print(f"[compare-results] ALNS Tough4 failed: {e}")
+
             # Save fast-solver results to disk and kick off ILP background thread
             _save_computed_state_to_disk()
             _start_ilp_background()
@@ -702,12 +800,20 @@ def compare_results():
             "pulp_cbc": COMPUTED_STATE.get('compare_pulp_tough3'),
             "alns": COMPUTED_STATE.get('compare_alns_tough3'),
         },
+        "tough4": {
+            "classical": cl_tough4,
+            "ortools": COMPUTED_STATE.get('compare_ort_tough4'),
+            "gurobi": COMPUTED_STATE.get('compare_gurobi_tough4'),
+            "pulp_cbc": COMPUTED_STATE.get('compare_pulp_tough4'),
+            "alns": COMPUTED_STATE.get('compare_alns_tough4'),
+        },
     }
 
     # QAOA / Hybrid results from volatile memory
     comp_qaoa_easy   = COMPUTED_STATE['compare_qaoa_easy']
     comp_qaoa_tough  = COMPUTED_STATE['compare_qaoa_tough']
     comp_qaoa_tough3 = COMPUTED_STATE['compare_qaoa_tough3']
+    comp_qaoa_tough4 = COMPUTED_STATE['compare_qaoa_tough4']
     pipe_qaoa        = COMPUTED_STATE['pipeline_easy']
 
     try:
@@ -746,6 +852,11 @@ def compare_results():
         payload["tough3"]["qaoa"] = comp_qaoa_tough3
     else:
         payload["tough3"]["qaoa"] = {"status": "skipped", "note": "Scenario 3 is too large for the Qiskit Quantum Simulator."}
+
+    if comp_qaoa_tough4 and comp_qaoa_tough4.get('status') == 'ok':
+        payload["tough4"]["qaoa"] = comp_qaoa_tough4
+    else:
+        payload["tough4"]["qaoa"] = {"status": "skipped", "note": "Run the Live Pipeline or 'Classical + QAOA' to see results."}
 
     # Signal to the frontend whether ILP results are still computing
     payload["ilp_computing"] = _ilp_running
@@ -820,10 +931,12 @@ def get_scenarios():
     try:
         sc2_path  = os.path.join(BACKEND_DIR, 'scenario.py')
         sc3_path  = os.path.join(BACKEND_DIR, 'scenario3.py')
+        sc4_path  = os.path.join(BACKEND_DIR, 'scenario4.py')
         sc1_path  = os.path.join(BACKEND_DIR, 'scenario_dynamic.py')
 
         ns2 = _parse_scenario_file(sc2_path)
         ns3 = _parse_scenario_file(sc3_path)
+        ns4 = _parse_scenario_file(sc4_path)
         ns1 = _parse_scenario_file(sc1_path) if os.path.exists(sc1_path) else ns2
 
         # scenario3 has TIME_WINDOWS as a dict comprehension (not literal_eval-able);
@@ -833,10 +946,18 @@ def get_scenarios():
             tw3.update({2:(8,12), 5:(13,17), 11:(9,13), 15:(14,18), 20:(10,14), 25:(12,16)})
             ns3['TIME_WINDOWS'] = tw3
 
+        # scenario4 has TIME_WINDOWS as a dict comprehension (not literal_eval-able);
+        # manually build it from the override lines we know
+        if not ns4.get('TIME_WINDOWS'):
+            tw4 = {i: (8, 18) for i in range(1, 6)}
+            tw4.update({2:(8,13), 5:(12,17)})
+            ns4['TIME_WINDOWS'] = tw4
+
         return jsonify({
             'easy':   _sc_meta(ns1, 'easy'),
             'tough':  _sc_meta(ns2, 'tough'),
             'tough3': _sc_meta(ns3, 'tough3'),
+            'tough4': _sc_meta(ns4, 'tough4'),
         })
     except Exception as e:
         import traceback
@@ -1071,14 +1192,39 @@ def hardware_scaling_test():
 def hardware_run_scenario():
     """Run an entire scenario's VRP sub-clusters through simulated vs actual hardware comparison."""
     data = request.json or {}
-    scenario_key = data.get("scenario", "easy")
+    # Robustly handle both 'scenario' (runScenarioHardware) and 'scenario_id' (syncCloudJobs) keys
+    scenario_key = data.get("scenario") or data.get("scenario_id") or "easy"
+    max_cluster_size = int(data.get("max_cluster_size", 4))
     
     try:
-        results = solve_scenario_hardware_pipeline(scenario_key, verbose=True)
+        res = solve_scenario_hardware_pipeline(scenario_key, max_cluster_size=max_cluster_size, verbose=True)
+        
+        # Integrate QPU stitched results directly into the Compare Tab state!
+        subclusters = res.get("subclusters", [])
+        all_done = len(subclusters) > 0 and all(sc.get("hardware", {}).get("status") == "DONE" for sc in subclusters)
+        
+        if all_done and res.get("stitched_comparison"):
+            hw_data = res["stitched_comparison"].get("hardware")
+            if hw_data and hw_data.get("routes"):
+                qaoa_payload = {
+                    "solver": f"Hybrid QAOA (Hardware QPU, size {max_cluster_size})",
+                    "routes": hw_data["routes"],
+                    "fleet_distance": hw_data.get("total_distance"),
+                    "fleet_spoilage": hw_data.get("total_spoilage"),
+                    "fleet_refrigeration": 0.0,
+                    "fleet_total_cost": hw_data.get("total_cost"),
+                    "total_time": 0.0,
+                    "status": "ok"
+                }
+                COMPUTED_STATE[f'compare_qaoa_{scenario_key}'] = qaoa_payload
+                _save_computed_state_to_disk()
+                print(f"[COMPARE INTEGRATION] Saved hardware QPU stitched results for {scenario_key} to Compare Tab.")
+
         return jsonify({
             "status": "success",
             "scenario": scenario_key,
-            "subclusters": results
+            "subclusters": res["subclusters"],
+            "stitched_comparison": res["stitched_comparison"]
         })
     except Exception as e:
         import traceback
@@ -1113,6 +1259,39 @@ def hardware_submit():
         })
     except Exception as e:
         return jsonify({"status": "error", "message": str(e)}), 500
+
+@app.route("/api/hardware/execute-once", methods=["POST"])
+def hardware_execute_once():
+    """Execute a sub‑cluster on IBM hardware once and return the final result.
+    Combines submission and polling for one‑off runs without UI interaction.
+    Expected JSON payload: {"clinic_ids": [...], "p_depth": int}
+    """
+    data = request.json or {}
+    clinic_ids = data.get("clinic_ids", [1, 2, 3, 4])
+    p_depth = data.get("p_depth", 3)
+
+    # Validate IBM token configuration
+    if not os.environ.get("IBM_QUANTUM_TOKEN") or "your_token_here" in os.environ.get("IBM_QUANTUM_TOKEN", ""):
+        return jsonify({"status": "error", "message": "IBM_QUANTUM_TOKEN not configured or is placeholder"}), 400
+
+    try:
+        job_id = submit_hardware_job(clinic_ids, p_depth, verbose=True)
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+    poll_interval = 60  # seconds
+    timeout_seconds = 30 * 60  # 30 minutes
+    elapsed = 0
+    while elapsed < timeout_seconds:
+        try:
+            result = retrieve_hardware_result(job_id, verbose=False)
+        except Exception as e:
+            return jsonify({"status": "error", "message": f"Failed to retrieve result: {e}"}), 500
+        if result is not None:
+            return jsonify({"status": "done", "job_id": job_id, "result": result})
+        time.sleep(poll_interval)
+        elapsed += poll_interval
+    return jsonify({"status": "timeout", "job_id": job_id, "message": "Hardware job did not complete within the allotted time."}), 504
 
 
 @app.route("/api/hardware/retrieve/<job_id>", methods=["GET"])

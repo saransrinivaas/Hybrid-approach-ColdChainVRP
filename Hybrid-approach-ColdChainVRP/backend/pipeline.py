@@ -31,6 +31,12 @@ elif "--tough3" in sys.argv or "--scenario3" in sys.argv:
     sys.modules['scenario'] = _sc3
     scenario = _sc3
     print("  [LOAD] Forcing Scenario 3 (scenario3.py)")
+elif "--tough4" in sys.argv or "--scenario4" in sys.argv:
+    import scenario4 as _sc4
+    sys.modules['scenario_dynamic'] = _sc4
+    sys.modules['scenario'] = _sc4
+    scenario = _sc4
+    print("  [LOAD] Forcing Scenario 4 (scenario4.py)")
 else:
     try:
         import scenario_dynamic as scenario
@@ -40,22 +46,39 @@ else:
         print("  [LOAD] Using base scenario (scenario.py)")
 
 # ─────────────────────────────────────────
-# STEP 1 — CLUSTERING
+# STEP 0 — NODE SPLITTING (demand overflow)
 # ─────────────────────────────────────────
-def run_clustering():
+def run_node_splitting(sc_module):
+    """Detect and split oversized clinic demands before partitioning."""
     print("\n" + "=" * 55)
-    print("  STEP 1 — VEHICULAR CLUSTERING")
+    print("  STEP 0 - NODE SPLITTING (demand overflow check)")
+    print("=" * 55)
+    from node_splitting import apply_node_splitting
+    sc_ext = apply_node_splitting(sc_module)
+    if sc_ext.is_split:
+        n_orig = len(sc_module.CLINICS)
+        n_ext  = len(sc_ext.CLINICS)
+        print(f"  [SPLIT] {n_orig} clinics -> {n_ext} nodes ({n_ext - n_orig} phantom(s) added)")
+    return sc_ext
+
+
+# -----------------------------------------
+# STEP 1 - CLUSTERING
+# -----------------------------------------
+def run_clustering(sc_ext=None):
+    print("\n" + "=" * 55)
+    print("  STEP 1 - VEHICULAR CLUSTERING")
     print("=" * 55)
     from clustering import build_clusters, generate_subclusters
-    vehicle_routes = build_clusters()
+    vehicle_routes = build_clusters(sc_module=sc_ext)
     # vehicle_routes: [(vehicle_id, [trip, ...]), ...]
     # trip: list of clinic IDs
-    # generate_subclusters(trip) → [[c1,c2,c3], ...]
+    # generate_subclusters(trip) -> [[c1,c2,c3], ...]
     return vehicle_routes, generate_subclusters
 
-# ─────────────────────────────────────────
-# STEP 2 — QAOA PER SUB-CLUSTER (PARALLEL)
-# ─────────────────────────────────────────
+# -----------------------------------------
+# STEP 2 - QAOA PER SUB-CLUSTER (PARALLEL)
+# -----------------------------------------
 def _solve_single_subcluster(args):
     """
     Top-level pickling-safe worker for ThreadPoolExecutor.
@@ -71,11 +94,11 @@ def _solve_single_subcluster(args):
 
 def run_qaoa(vehicle_routes, generate_subclusters):
     print("\n" + "=" * 55)
-    print("  STEP 2 — QAOA SOLVER  [PARALLEL EXECUTION]")
+    print("  STEP 2 - QAOA SOLVER  [PARALLEL EXECUTION]")
     print("=" * 55)
     clinic_names = {c["id"]: c["name"] for c in scenario.CLINICS}
 
-    # ── Collect all (trip_id, trip, sub_cluster, order_idx) tuples ──
+    # -- Collect all (trip_id, trip, sub_cluster, order_idx) tuples --
     task_meta  = []   # (trip_id, trip, sc, order_idx)
     trip_order = []   # preserves vehicle/trip ordering for final assembly
 
@@ -97,8 +120,8 @@ def run_qaoa(vehicle_routes, generate_subclusters):
     print(f"  [PARALLEL] Using {max_workers} worker threads")
     print(f"  [PARALLEL] All sub-clusters solving simultaneously...\n")
 
-    # ── Submit all tasks in parallel ──
-    results_store = {}   # (trip_id, order_idx) → result
+    # -- Submit all tasks in parallel --
+    results_store = {}   # (trip_id, order_idx) -> result
 
     # PRESENTATION MODE NOTE: if you switch qaoa_solver.py back to mock mode,
     # parallel execution still works — just returns instantly instead of ~45s/cluster.
@@ -125,7 +148,7 @@ def run_qaoa(vehicle_routes, generate_subclusters):
                 completed += 1
                 status = "[OK]" if res["feasible"] else "[INFEASIBLE]"
                 names  = [clinic_names.get(c, str(c)) for c in (res["route"] or [])]
-                print(f"  [{completed}/{total_tasks}] {trip_id} sc={sc} {status} → {res['route']}")
+                print(f"  [{completed}/{total_tasks}] {trip_id} sc={sc} {status} -> {res['route']}")
             except Exception as e:
                 print(f"  [ERROR] Sub-cluster {sc} in {trip_id} failed: {e}")
                 results_store[(trip_id, order_idx)] = {
@@ -136,7 +159,7 @@ def run_qaoa(vehicle_routes, generate_subclusters):
                     "solver":     "error-fallback",
                 }
 
-    # ── Assemble qaoa_results dict in correct trip order ──
+    # -- Assemble qaoa_results dict in correct trip order --
     qaoa_results = {}
     trip_seen = {}
     for trip_id, trip, sc, order_idx in task_meta:
@@ -160,36 +183,50 @@ def run_qaoa(vehicle_routes, generate_subclusters):
     qaoa_path = os.path.join(BASE_DIR, "qaoa_results.json")
     with open(qaoa_path, "w") as f:
         json.dump(qaoa_results, f, indent=2)
-    print(f"\n  [OK] QAOA results saved → {qaoa_path}")
+    print(f"\n  [OK] QAOA results saved -> {qaoa_path}")
     return qaoa_results
 
 
-def run_stitching(qaoa_results, out_filename="results.json"):
+def run_stitching(qaoa_results, out_filename="results.json", sc_ext=None):
     print("\n" + "=" * 55)
-    print("  STEP 3 — STITCHING + REPAIR")
+    print("  STEP 3 - STITCHING + REPAIR")
     print("=" * 55)
     from stitching_repair import stitch_and_repair
+    from node_splitting import collapse_split_nodes
 
     output = stitch_and_repair(qaoa_results)
 
-    clinic_names = {c["id"]: c["name"] for c in scenario.CLINICS}
-    clinic_lats = {c["id"]: c["lat"] for c in scenario.CLINICS}
-    clinic_lons = {c["id"]: c["lon"] for c in scenario.CLINICS}
+    # Use extended scenario for name/lat/lon lookup if available
+    _sc = sc_ext if sc_ext is not None else scenario
+    split_map = getattr(_sc, 'split_map', {})
+
+    # Build lookup from BOTH original and phantom IDs
+    clinic_names = {c["id"]: c["name"] for c in _sc.CLINICS}
+    clinic_lats  = {c["id"]: c["lat"]  for c in _sc.CLINICS}
+    clinic_lons  = {c["id"]: c["lon"]  for c in _sc.CLINICS}
+    # Also add original clinic entries as fallback
+    for c in scenario.CLINICS:
+        clinic_names.setdefault(c["id"], c["name"])
+        clinic_lats.setdefault(c["id"],  c["lat"])
+        clinic_lons.setdefault(c["id"],  c["lon"])
 
     # Build serialisable results for the frontend
     routes_out = {}
     for vid, route in output["routes"].items():
+        # Collapse phantom IDs -> original clinic IDs for display
+        display_route = collapse_split_nodes(route, split_map)
         stops = [
             {
-                "id": cid, 
+                "id":   split_map.get(cid, cid),
                 "name": "Depot" if cid == 0 else clinic_names.get(cid, f"C{cid}"),
-                "lat": scenario.DEPOT["lat"] if cid == 0 else clinic_lats.get(cid),
-                "lon": scenario.DEPOT["lon"] if cid == 0 else clinic_lons.get(cid)
+                "lat":  _sc.DEPOT["lat"] if cid == 0 else clinic_lats.get(split_map.get(cid, cid), clinic_lats.get(cid)),
+                "lon":  _sc.DEPOT["lon"] if cid == 0 else clinic_lons.get(split_map.get(cid, cid), clinic_lons.get(cid)),
             }
             for cid in route
         ]
+        dm_use = _sc.DISTANCE_MATRIX
         dist = sum(
-            scenario.DISTANCE_MATRIX[route[i]][route[i + 1]]
+            dm_use[route[i]][route[i + 1]]
             for i in range(len(route) - 1)
         )
         from stitching_repair import compute_spoilage, vehicle_demand, route_feasible, DEPOT_ID, CAPACITY
@@ -200,15 +237,15 @@ def run_stitching(qaoa_results, out_filename="results.json"):
             temp: {"used": vehicle_demand(inner, temp), "cap": CAPACITY[temp]}
             for temp in ("frozen", "chilled", "ambient")
         }
-        avg_speed = scenario.AVG_SPEED_KMH
+        avg_speed = _sc.AVG_SPEED_KMH
         cum = 0.0
         for i in range(1, len(route)):
             prev, curr = route[i-1], route[i]
             if curr == DEPOT_ID:
                 continue
-            cum += scenario.DISTANCE_MATRIX[prev][curr] / avg_speed
+            cum += dm_use[prev][curr] / avg_speed
         
-        refrig_cost = sum(scenario.ENERGY_RATE[temp] * cum for temp in ("frozen", "chilled", "ambient"))
+        refrig_cost = sum(_sc.ENERGY_RATE[temp] * cum for temp in ("frozen", "chilled", "ambient"))
 
         routes_out[vid] = {
             "route":          route,
@@ -233,21 +270,62 @@ def run_stitching(qaoa_results, out_filename="results.json"):
 
     return results
 
-# ─────────────────────────────────────────
+# -----------------------------------------
 # MAIN
-# ─────────────────────────────────────────
+# -----------------------------------------
 if __name__ == "__main__":
     print("=" * 55)
-    print("  COLD CHAIN VRP — HYBRID PIPELINE")
+    print("  COLD CHAIN VRP - HYBRID PIPELINE")
     print("=" * 55)
 
     try:
-        vehicle_routes, gen_sc = run_clustering()
+        sc_ext                  = run_node_splitting(scenario)
+
+        # ── Patch globals in downstream modules to be split-aware ──
+        import clustering as _cl
+        import qubo_builder as _qb
+        import qaoa_solver as _qa
+        import stitching_repair as _sr
+        import temp_preprocessing as _tp
+
+        capacity = {
+            temp: sc_ext.VEHICLES[0]["compartments"][temp]["capacity"]
+            for temp in sc_ext.VEHICLES[0]["compartments"]
+        }
+
+        # Patch clustering
+        _cl._default_scenario = sc_ext
+
+        # Patch qubo_builder
+        _qb.CLINICS = sc_ext.CLINICS
+        _qb.DEMANDS = sc_ext.DEMANDS
+        _qb.DISTANCE_MATRIX = sc_ext.DISTANCE_MATRIX
+        _qb.SPOILAGE = sc_ext.SPOILAGE
+        _qb.AVG_SPEED_KMH = sc_ext.AVG_SPEED_KMH
+        _qb.ENERGY_RATE = sc_ext.ENERGY_RATE
+        
+        # Patch qaoa_solver
+        _qa.CLINICS = sc_ext.CLINICS
+        _qa.DISTANCE_MATRIX = sc_ext.DISTANCE_MATRIX
+
+        # Patch stitching_repair
+        _sr.CLINICS = sc_ext.CLINICS
+        _sr.DEPOT = sc_ext.DEPOT
+        _sr.DISTANCE_MATRIX = sc_ext.DISTANCE_MATRIX
+        _sr.DEMANDS = sc_ext.DEMANDS
+        _sr.SPOILAGE = sc_ext.SPOILAGE
+        _sr.ALL_CLINICS = [c["id"] for c in sc_ext.CLINICS]
+        _sr.CAPACITY = capacity
+
+        # Patch temp_preprocessing
+        _tp.CAPACITY = capacity
+
+        vehicle_routes, gen_sc  = run_clustering(sc_ext=sc_ext)
         qaoa_results            = run_qaoa(vehicle_routes, gen_sc)
-        final                   = run_stitching(qaoa_results)
+        final                   = run_stitching(qaoa_results, sc_ext=sc_ext)
 
         print("\n" + "=" * 55)
-        print("  STEP 4 — CLASSICAL BASELINE (FOR COMPARISON)")
+        print("  STEP 4 - CLASSICAL BASELINE (FOR COMPARISON)")
         print("=" * 55)
         from classical_solver import solve_scenario
         classical_result = solve_scenario(scenario)
@@ -270,6 +348,8 @@ if __name__ == "__main__":
             submit_type = "pipeline_tough"
         elif "--tough3" in sys.argv or "--scenario3" in sys.argv:
             submit_type = "pipeline_tough3"
+        elif "--tough4" in sys.argv or "--scenario4" in sys.argv:
+            submit_type = "pipeline_tough4"
         else:
             submit_type = "pipeline_easy"
 

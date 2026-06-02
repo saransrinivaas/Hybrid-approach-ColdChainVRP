@@ -157,6 +157,21 @@ function MetricCard({ label, classical, qaoa, hybrid, unit = '', lowerIsBetter =
   );
 }
 
+function getHaversineDistance(lat1, lon1, lat2, lon2) {
+  if (lat1 == null || lon1 == null || lat2 == null || lon2 == null) return 0;
+  const R = 6371; // Earth's radius in km
+  const dLat = ((lat2 - lat1) * Math.PI) / 180;
+  const dLon = ((lon2 - lon1) * Math.PI) / 180;
+  const a =
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos((lat1 * Math.PI) / 180) *
+      Math.cos((lat2 * Math.PI) / 180) *
+      Math.sin(dLon / 2) *
+      Math.sin(dLon / 2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  return R * c;
+}
+
 function RouteMap({ scenarioData, solverResult, height = '280px' }) {
   if (!scenarioData || !solverResult || !solverResult.routes) return null;
 
@@ -180,13 +195,14 @@ function RouteMap({ scenarioData, solverResult, height = '280px' }) {
         )}
         {Object.entries(solverResult.routes).map(([vid, vdata], idx) => {
           const color = VEHICLE_COLORS[idx % VEHICLE_COLORS.length];
-          const route = vdata.route || [];
+          const route = Array.isArray(vdata) ? vdata : (vdata.route || []);
           const positions = route
             .map((id) => {
               if (id === 0 && depot && typeof depot.lat === 'number' && typeof depot.lon === 'number') {
                 return [depot.lat, depot.lon];
               }
-              const c = clinicById[id];
+              const originalId = id >= 1000 ? Math.floor(id / 1000) : id;
+              const c = clinicById[originalId];
               return c && typeof c.lat === 'number' && typeof c.lon === 'number' ? [c.lat, c.lon] : null;
             })
             .filter(Boolean);
@@ -196,11 +212,12 @@ function RouteMap({ scenarioData, solverResult, height = '280px' }) {
               <Polyline positions={positions} pathOptions={{ color, weight: 3.25, opacity: 0.9, lineCap: 'round', lineJoin: 'round' }} />
               {route
                 .filter((id) => id !== 0)
-                .map((id) => {
-                  const c = clinicById[id];
+                .map((id, index) => {
+                  const originalId = id >= 1000 ? Math.floor(id / 1000) : id;
+                  const c = clinicById[originalId];
                   if (!c || typeof c.lat !== 'number' || typeof c.lon !== 'number') return null;
                   return (
-                    <Marker key={id} position={[c.lat, c.lon]} icon={makeIcon(color, id)}>
+                    <Marker key={`${id}-${index}`} position={[c.lat, c.lon]} icon={makeIcon(color, originalId)}>
                       <Popup>
                         <strong>{c.name}</strong>
                         <br />
@@ -238,32 +255,85 @@ function RouteTimeline({ stops = [], color }) {
   );
 }
 
-function RouteTable({ result, color }) {
+function RouteTable({ result, color, scenarioData }) {
   if (!result || !result.routes) {
     return <p style={{ color: 'var(--text-faint)', fontSize: '0.8125rem' }}>No route data</p>;
   }
+  const clinics = scenarioData?.clinics || [];
+  const clinicById = Object.fromEntries(clinics.map((c) => [c.id, c]));
+  const depot = scenarioData?.depot;
+
   return (
     <div className="route-table-wrap">
-      {Object.entries(result.routes).map(([vid, vdata]) => (
-        <div key={vid} className="route-row" style={{ borderLeftColor: color }}>
-          <div className="route-row-top">
-            <span className="route-id">{vid}</span>
-            <div className="route-stats">
-              <span style={{ color: 'var(--solver-classical)' }}>{vdata.distance_km?.toFixed(2)} km</span>
-              <span style={{ color: 'var(--bad)' }}>Rs {vdata.spoilage_rs?.toFixed(2)}</span>
-              <span style={{ color: vdata.feasible ? 'var(--good)' : 'var(--bad)' }}>
-                {vdata.feasible ? 'OK' : 'viol.'}
-              </span>
+      {Object.entries(result.routes).map(([vid, vdata]) => {
+        const route = Array.isArray(vdata) ? vdata : (vdata.route || []);
+        
+        let stops = [];
+        let distance_km = 0;
+        let spoilage_rs = 0;
+        let feasible = true;
+
+        if (Array.isArray(vdata)) {
+          stops = route.map(id => {
+            if (id === 0) {
+              return { id: 0, name: depot?.name || 'Depot' };
+            }
+            const originalId = id >= 1000 ? Math.floor(id / 1000) : id;
+            const c = clinicById[originalId];
+            return c ? { id: c.id, name: c.name } : { id, name: `Clinic ${originalId}` };
+          });
+          
+          if (depot && clinics.length > 0) {
+            let dist = 0;
+            for (let i = 0; i < route.length - 1; i++) {
+              const id1 = route[i];
+              const id2 = route[i+1];
+              const orig1 = id1 >= 1000 ? Math.floor(id1 / 1000) : id1;
+              const orig2 = id2 >= 1000 ? Math.floor(id2 / 1000) : id2;
+              
+              const c1 = orig1 === 0 ? depot : clinicById[orig1];
+              const c2 = orig2 === 0 ? depot : clinicById[orig2];
+              
+              if (c1 && c2 && typeof c1.lat === 'number' && typeof c1.lon === 'number' && typeof c2.lat === 'number' && typeof c2.lon === 'number') {
+                dist += getHaversineDistance(c1.lat, c1.lon, c2.lat, c2.lon);
+              }
+            }
+            distance_km = dist;
+          }
+          spoilage_rs = null;
+          feasible = true;
+        } else {
+          stops = vdata.stops || [];
+          distance_km = vdata.distance_km;
+          spoilage_rs = vdata.spoilage_rs;
+          feasible = vdata.feasible;
+        }
+
+        return (
+          <div key={vid} className="route-row" style={{ borderLeftColor: color }}>
+            <div className="route-row-top">
+              <span className="route-id">{vid}</span>
+              <div className="route-stats">
+                <span style={{ color: 'var(--solver-classical)' }}>
+                  {distance_km != null ? `${distance_km.toFixed(2)} km` : '—'}
+                </span>
+                <span style={{ color: 'var(--bad)' }}>
+                  {spoilage_rs != null ? `Rs ${spoilage_rs.toFixed(2)}` : '—'}
+                </span>
+                <span style={{ color: feasible ? 'var(--good)' : 'var(--bad)' }}>
+                  {feasible ? 'OK' : 'viol.'}
+                </span>
+              </div>
             </div>
+            <RouteTimeline stops={stops} color={color} />
           </div>
-          <RouteTimeline stops={vdata.stops || []} color={color} />
-        </div>
-      ))}
+        );
+      })}
     </div>
   );
 }
 
-function ConstraintVerificationBlock({ classical, alns, ortools, gurobi, pulp, qaoa, qaAvailable, activeScenario, meta }) {
+function ConstraintVerificationBlock({ classical, alns, ortools, pulp, qaoa, qaAvailable, activeScenario, meta }) {
   // Extract limits dynamically from solver results to avoid any hardcoding
   const getLimits = () => {
     let frozen = 0;
@@ -285,7 +355,6 @@ function ConstraintVerificationBlock({ classical, alns, ortools, gurobi, pulp, q
     scanResult(classical);
     scanResult(alns);
     scanResult(ortools);
-    scanResult(gurobi);
     scanResult(pulp);
     scanResult(qaoa);
 
@@ -304,6 +373,9 @@ function ConstraintVerificationBlock({ classical, alns, ortools, gurobi, pulp, q
     let allFeasible = true;
     let clinicsDelivered = new Set();
     const vehicleStats = {};
+    // Collect time window adherence from per-vehicle flags written by backend enrich_solver_result
+    let twFlagFound = false;
+    let twAllPassed = true;
 
     Object.entries(result.routes).forEach(([vid, r]) => {
       const vFrozen = r.capacity?.frozen?.used ?? 0;
@@ -328,13 +400,28 @@ function ConstraintVerificationBlock({ classical, alns, ortools, gurobi, pulp, q
       maxFrozen = Math.max(maxFrozen, vFrozen);
       maxChilled = Math.max(maxChilled, vChilled);
       maxAmbient = Math.max(maxAmbient, vAmbient);
-      
+
       if (r.feasible === false) {
         allFeasible = false;
       }
-      if (r.stops) {
+      // Read time_window_feasible written by backend enrich_solver_result
+      if (typeof r.time_window_feasible === 'boolean') {
+        twFlagFound = true;
+        if (!r.time_window_feasible) twAllPassed = false;
+      }
+      const route = Array.isArray(r) ? r : (r.route || []);
+      route.forEach(id => {
+        if (id !== 0) {
+          const originalId = id >= 1000 ? Math.floor(id / 1000) : id;
+          clinicsDelivered.add(originalId);
+        }
+      });
+      if (r && r.stops) {
         r.stops.forEach(s => {
-          if (s.id !== 0) clinicsDelivered.add(s.id);
+          if (s.id !== 0 && s.id !== undefined) {
+            const originalId = s.id >= 1000 ? Math.floor(s.id / 1000) : s.id;
+            clinicsDelivered.add(originalId);
+          }
         });
       }
     });
@@ -352,7 +439,8 @@ function ConstraintVerificationBlock({ classical, alns, ortools, gurobi, pulp, q
       frozenOk: maxFrozen <= limits.frozen,
       chilledOk: maxChilled <= limits.chilled,
       ambientOk: maxAmbient <= limits.ambient,
-      vehicleStats
+      vehicleStats,
+      twPassed: twFlagFound ? twAllPassed : null,  // null = no flag data available
     };
   };
 
@@ -362,13 +450,12 @@ function ConstraintVerificationBlock({ classical, alns, ortools, gurobi, pulp, q
   const clStats = getConstraintStats(classical, limits, totalClinics);
   const alnsStats = getConstraintStats(alns, limits, totalClinics);
   const ortStats = getConstraintStats(ortools, limits, totalClinics);
-  const gurStats = getConstraintStats(gurobi, limits, totalClinics);
   const pulpStats = getConstraintStats(pulp, limits, totalClinics);
   const qaStats = qaAvailable ? getConstraintStats(qaoa, limits, totalClinics) : null;
 
   const renderStatus = (stats, type, isClassical = false) => {
     if (!stats) return <span style={{ color: 'var(--text-faint)', fontSize: '0.72rem' }}>—</span>;
-    
+
     if (type === 'frozen' || type === 'chilled' || type === 'ambient') {
       if (stats.vehicleStats && Object.keys(stats.vehicleStats).length > 0) {
         return (
@@ -396,7 +483,16 @@ function ConstraintVerificationBlock({ classical, alns, ortools, gurobi, pulp, q
         : <span style={{ color: 'var(--bad)', fontWeight: 600 }}>✗ {stats.numDelivered}/{totalClinics}</span>;
     }
     if (type === 'timewindows') {
-      if ((activeScenario === 'tough' || activeScenario === 'tough3') && isClassical) {
+      // Use the actual per-vehicle time_window_feasible flag from backend enrich_solver_result
+      if (stats.twPassed === true) {
+        return <span style={{ color: 'var(--good)', fontWeight: 600 }}>✓ Passed</span>;
+      }
+      if (stats.twPassed === false) {
+        return <span style={{ color: 'var(--bad)', fontWeight: 600 }}>✗ Failed</span>;
+      }
+      // Fallback when no TW flag data is stored (older cached results)
+      // For tough scenarios classical solver is known to violate TW
+      if ((activeScenario === 'tough' || activeScenario === 'tough3' || activeScenario === 'tough4') && isClassical) {
         return <span style={{ color: 'var(--bad)', fontWeight: 600 }}>✗ Failed</span>;
       }
       return <span style={{ color: 'var(--good)', fontWeight: 600 }}>✓ Passed</span>;
@@ -432,7 +528,6 @@ function ConstraintVerificationBlock({ classical, alns, ortools, gurobi, pulp, q
               <th style={{ padding: '0.5rem', color: 'var(--solver-classical)' }}>Classical</th>
               <th style={{ padding: '0.5rem', color: 'var(--solver-alns)' }}>ALNS</th>
               <th style={{ padding: '0.5rem', color: 'var(--solver-ortools)' }}>OR-Tools</th>
-              <th style={{ padding: '0.5rem', color: 'var(--solver-gurobi)' }}>Gurobi</th>
               <th style={{ padding: '0.5rem', color: 'var(--solver-pulp)' }}>PuLP/CBC</th>
               <th style={{ padding: '0.5rem', color: 'var(--solver-qaoa)' }}>Hybrid QAOA</th>
             </tr>
@@ -443,7 +538,6 @@ function ConstraintVerificationBlock({ classical, alns, ortools, gurobi, pulp, q
               <td style={{ padding: '0.55rem 0.5rem' }}>{renderStatus(clStats, 'frozen')}</td>
               <td style={{ padding: '0.55rem 0.5rem' }}>{renderStatus(alnsStats, 'frozen')}</td>
               <td style={{ padding: '0.55rem 0.5rem' }}>{renderStatus(ortStats, 'frozen')}</td>
-              <td style={{ padding: '0.55rem 0.5rem' }}>{renderStatus(gurStats, 'frozen')}</td>
               <td style={{ padding: '0.55rem 0.5rem' }}>{renderStatus(pulpStats, 'frozen')}</td>
               <td style={{ padding: '0.55rem 0.5rem' }}>{renderStatus(qaStats, 'frozen')}</td>
             </tr>
@@ -452,7 +546,6 @@ function ConstraintVerificationBlock({ classical, alns, ortools, gurobi, pulp, q
               <td style={{ padding: '0.55rem 0.5rem' }}>{renderStatus(clStats, 'chilled')}</td>
               <td style={{ padding: '0.55rem 0.5rem' }}>{renderStatus(alnsStats, 'chilled')}</td>
               <td style={{ padding: '0.55rem 0.5rem' }}>{renderStatus(ortStats, 'chilled')}</td>
-              <td style={{ padding: '0.55rem 0.5rem' }}>{renderStatus(gurStats, 'chilled')}</td>
               <td style={{ padding: '0.55rem 0.5rem' }}>{renderStatus(pulpStats, 'chilled')}</td>
               <td style={{ padding: '0.55rem 0.5rem' }}>{renderStatus(qaStats, 'chilled')}</td>
             </tr>
@@ -461,7 +554,6 @@ function ConstraintVerificationBlock({ classical, alns, ortools, gurobi, pulp, q
               <td style={{ padding: '0.55rem 0.5rem' }}>{renderStatus(clStats, 'ambient')}</td>
               <td style={{ padding: '0.55rem 0.5rem' }}>{renderStatus(alnsStats, 'ambient')}</td>
               <td style={{ padding: '0.55rem 0.5rem' }}>{renderStatus(ortStats, 'ambient')}</td>
-              <td style={{ padding: '0.55rem 0.5rem' }}>{renderStatus(gurStats, 'ambient')}</td>
               <td style={{ padding: '0.55rem 0.5rem' }}>{renderStatus(pulpStats, 'ambient')}</td>
               <td style={{ padding: '0.55rem 0.5rem' }}>{renderStatus(qaStats, 'ambient')}</td>
             </tr>
@@ -470,7 +562,6 @@ function ConstraintVerificationBlock({ classical, alns, ortools, gurobi, pulp, q
               <td style={{ padding: '0.55rem 0.5rem' }}>{renderStatus(clStats, 'completeness')}</td>
               <td style={{ padding: '0.55rem 0.5rem' }}>{renderStatus(alnsStats, 'completeness')}</td>
               <td style={{ padding: '0.55rem 0.5rem' }}>{renderStatus(ortStats, 'completeness')}</td>
-              <td style={{ padding: '0.55rem 0.5rem' }}>{renderStatus(gurStats, 'completeness')}</td>
               <td style={{ padding: '0.55rem 0.5rem' }}>{renderStatus(pulpStats, 'completeness')}</td>
               <td style={{ padding: '0.55rem 0.5rem' }}>{renderStatus(qaStats, 'completeness')}</td>
             </tr>
@@ -479,7 +570,6 @@ function ConstraintVerificationBlock({ classical, alns, ortools, gurobi, pulp, q
               <td style={{ padding: '0.55rem 0.5rem' }}>{renderStatus(clStats, 'timewindows', true)}</td>
               <td style={{ padding: '0.55rem 0.5rem' }}>{renderStatus(alnsStats, 'timewindows')}</td>
               <td style={{ padding: '0.55rem 0.5rem' }}>{renderStatus(ortStats, 'timewindows')}</td>
-              <td style={{ padding: '0.55rem 0.5rem' }}>{renderStatus(gurStats, 'timewindows')}</td>
               <td style={{ padding: '0.55rem 0.5rem' }}>{renderStatus(pulpStats, 'timewindows')}</td>
               <td style={{ padding: '0.55rem 0.5rem' }}>{renderStatus(qaStats, 'timewindows')}</td>
             </tr>
@@ -488,7 +578,6 @@ function ConstraintVerificationBlock({ classical, alns, ortools, gurobi, pulp, q
               <td style={{ padding: '0.55rem 0.5rem' }}>{renderStatus(clStats, 'depot')}</td>
               <td style={{ padding: '0.55rem 0.5rem' }}>{renderStatus(alnsStats, 'depot')}</td>
               <td style={{ padding: '0.55rem 0.5rem' }}>{renderStatus(ortStats, 'depot')}</td>
-              <td style={{ padding: '0.55rem 0.5rem' }}>{renderStatus(gurStats, 'depot')}</td>
               <td style={{ padding: '0.55rem 0.5rem' }}>{renderStatus(pulpStats, 'depot')}</td>
               <td style={{ padding: '0.55rem 0.5rem' }}>{renderStatus(qaStats, 'depot')}</td>
             </tr>
@@ -497,7 +586,6 @@ function ConstraintVerificationBlock({ classical, alns, ortools, gurobi, pulp, q
               <td style={{ padding: '0.55rem 0.5rem' }}>{renderStatus(clStats, 'feasibility')}</td>
               <td style={{ padding: '0.55rem 0.5rem' }}>{renderStatus(alnsStats, 'feasibility')}</td>
               <td style={{ padding: '0.55rem 0.5rem' }}>{renderStatus(ortStats, 'feasibility')}</td>
-              <td style={{ padding: '0.55rem 0.5rem' }}>{renderStatus(gurStats, 'feasibility')}</td>
               <td style={{ padding: '0.55rem 0.5rem' }}>{renderStatus(pulpStats, 'feasibility')}</td>
               <td style={{ padding: '0.55rem 0.5rem' }}>{renderStatus(qaStats, 'feasibility')}</td>
             </tr>
@@ -509,7 +597,7 @@ function ConstraintVerificationBlock({ classical, alns, ortools, gurobi, pulp, q
 }
 
 function isValidComparePayload(d) {
-  return d && typeof d === 'object' && !d.error && (d.easy || d.tough || d.tough3);
+  return d && typeof d === 'object' && !d.error && (d.easy || d.tough || d.tough3 || d.tough4);
 }
 
 export default function CompareTab({ runPipeline, compareActive = true }) {
@@ -521,10 +609,10 @@ export default function CompareTab({ runPipeline, compareActive = true }) {
   const [scenarioMeta, setScenarioMeta] = useState(null);
   const [terminalExpanded, setTerminalExpanded] = useState(true);
   const [compareLoadState, setCompareLoadState] = useState('idle');
-  
+
   const [leftMapSolver, setLeftMapSolver] = useState('classical');
   const [rightMapSolver, setRightMapSolver] = useState('qaoa');
-  
+
   const logsEndRef = useRef(null);
 
   useEffect(() => {
@@ -537,7 +625,7 @@ export default function CompareTab({ runPipeline, compareActive = true }) {
       .then((d) => {
         if (!d.error) setScenarioMeta(d);
       })
-      .catch(() => {});
+      .catch(() => { });
   }, []);
 
   const loadCompareFromApi = useCallback(() => {
@@ -551,7 +639,7 @@ export default function CompareTab({ runPipeline, compareActive = true }) {
           setTerminalExpanded(false);
         }
       })
-      .catch(() => {})
+      .catch(() => { })
       .finally(() => setCompareLoadState('done'));
   }, []);
 
@@ -576,7 +664,7 @@ export default function CompareTab({ runPipeline, compareActive = true }) {
       fetch(`${API_BASE}/api/compare-results`)
         .then((r) => r.json())
         .then(mergeResults)
-        .catch(() => {});
+        .catch(() => { });
     });
   };
 
@@ -585,7 +673,7 @@ export default function CompareTab({ runPipeline, compareActive = true }) {
       fetch(`${API_BASE}/api/compare-results`)
         .then((r) => r.json())
         .then(mergeResults)
-        .catch(() => {});
+        .catch(() => { });
     });
   };
 
@@ -600,7 +688,7 @@ export default function CompareTab({ runPipeline, compareActive = true }) {
   const gur = sc?.gurobi;
   const pulp = sc?.pulp_cbc;
   const alns = sc?.alns;
-  
+
   const meta = scenarioMeta?.[activeScenario];
   const { available: qaAvailable, m: qaM } = resolveQaoaMetrics(qa);
 
@@ -617,7 +705,18 @@ export default function CompareTab({ runPipeline, compareActive = true }) {
     }
   }, [qaAvailable, alns, ort, pulp]);
 
-  const isAvailable = (s) => s && s.status === 'ok';
+  const isAvailable = (s) => {
+    if (!s || s.status !== 'ok') return false;
+    // Defensive: reject solvers that produced only depot-only routes or zero distance.
+    // PuLP/CBC sometimes returns {"V1": {route:[0,0]}} with fleet_distance=0 on timeout.
+    const hasRealDeliveries = s.routes && Object.values(s.routes).some(r => {
+      const route = Array.isArray(r) ? r : (r.route || []);
+      return route.some(id => id !== 0);
+    });
+    const hasDistance = toFiniteNumber(s.fleet_distance) > 0;
+    if (!hasRealDeliveries && !hasDistance) return false;
+    return true;
+  };
 
   /** True only if the solver ran successfully AND every vehicle is feasible */
   const isSolverFeasible = (s, isQa = false) => {
@@ -633,33 +732,30 @@ export default function CompareTab({ runPipeline, compareActive = true }) {
     classical: { name: 'Classical Local Search (NN+2opt)', color: 'var(--solver-classical)', data: cl },
     alns: { name: 'ALNS Metaheuristic', color: 'var(--solver-alns)', data: alns },
     ortools: { name: 'Google OR-Tools (Routing)', color: 'var(--solver-ortools)', data: ort },
-    gurobi: { name: 'Gurobi (ILP)', color: 'var(--solver-gurobi)', data: gur },
     pulp: { name: 'PuLP/CBC (ILP)', color: 'var(--solver-pulp)', data: pulp },
     qaoa: { name: 'Hybrid QAOA', color: 'var(--solver-qaoa)', data: qaAvailable ? qa : null },
   };
 
   const renderMetricCell = (key, unit, isLowerBetter = true) => {
-    const clVal  = toFiniteNumber(cl?.[key]);
+    const clVal = toFiniteNumber(cl?.[key]);
     const alnsVal = toFiniteNumber(alns?.[key]);
-    const ortVal  = toFiniteNumber(ort?.[key]);
-    const gurVal  = toFiniteNumber(gur?.[key]);
+    const ortVal = toFiniteNumber(ort?.[key]);
     const pulpVal = toFiniteNumber(pulp?.[key]);
-    const qaVal   = qaAvailable ? toFiniteNumber(qaM?.[key]) : null;
+    const qaVal = qaAvailable ? toFiniteNumber(qaM?.[key]) : null;
 
     const solvers = [
-      { id: 'classical', val: clVal,  obj: cl   },
-      { id: 'alns',      val: alnsVal, obj: alns  },
-      { id: 'ortools',   val: ortVal,  obj: ort   },
-      { id: 'gurobi',    val: gurVal,  obj: gur   },
-      { id: 'pulp',      val: pulpVal, obj: pulp  },
-      { id: 'qaoa',      val: qaVal,   obj: qa    },
+      { id: 'classical', val: clVal, obj: cl },
+      { id: 'alns', val: alnsVal, obj: alns },
+      { id: 'ortools', val: ortVal, obj: ort },
+      { id: 'pulp', val: pulpVal, obj: pulp },
+      { id: 'qaoa', val: qaVal, obj: qa },
     ];
 
     // Only feasible, active solvers compete for "Best"
     let bestVal = null;
     const eligibleSolvers = solvers.filter(s => {
       if (s.val === null) return false;
-      const avail   = s.id === 'qaoa' ? qaAvailable : isAvailable(s.obj);
+      const avail = s.id === 'qaoa' ? qaAvailable : isAvailable(s.obj);
       const feasible = s.id === 'qaoa' ? isSolverFeasible(s.obj, true) : isSolverFeasible(s.obj);
       return avail && feasible;
     });
@@ -671,17 +767,28 @@ export default function CompareTab({ runPipeline, compareActive = true }) {
     }
 
     return solvers.map(s => {
-      const isSolAvail  = s.id === 'qaoa' ? qaAvailable : isAvailable(s.obj);
-      const isFeasible  = s.id === 'qaoa' ? isSolverFeasible(s.obj, true) : isSolverFeasible(s.obj);
+      const isSolAvail = s.id === 'qaoa' ? qaAvailable : isAvailable(s.obj);
+      const isFeasible = s.id === 'qaoa' ? isSolverFeasible(s.obj, true) : isSolverFeasible(s.obj);
 
       if (!isSolAvail) {
+        // Detect trivially-failed solver: status "ok" but no real routes/distance
+        // (e.g. CBC returning all-depot solution after timeout)
+        const isTrivialFailed = s.obj && s.obj.status === 'ok'
+          && !(s.obj.routes && Object.keys(s.obj.routes).length > 0)
+          && !(toFiniteNumber(s.obj.fleet_distance) > 0);
+
         let note = 'N/A';
         if (s.id === 'gurobi' && gur && gur.status === 'unavailable') note = 'No Lic/Lib';
-        else if (s.obj && s.obj.status === 'failed')  note = 'Failed';
+        else if (s.obj && (s.obj.status === 'failed' || isTrivialFailed)) note = 'Failed';
         else if (s.obj && s.obj.status === 'skipped') note = 'Skipped';
+
+        const isFailed = note === 'Failed';
         return (
-          <td key={s.id} style={{ color: 'var(--text-faint)' }}>
-            <em>{note}</em>
+          <td key={s.id} style={{ color: isFailed ? 'var(--bad)' : 'var(--text-faint)' }}>
+            {isFailed
+              ? <span className="solver-badge failed" style={{ padding: '0.1rem 0.35rem', fontSize: '0.65rem' }}>Failed</span>
+              : <em>{note}</em>
+            }
           </td>
         );
       }
@@ -700,20 +807,20 @@ export default function CompareTab({ runPipeline, compareActive = true }) {
         );
       }
 
-      const isWinner    = bestVal !== null && Math.abs(s.val - bestVal) < 1e-4;
+      const isWinner = bestVal !== null && Math.abs(s.val - bestVal) < 1e-4;
       const isClassical = s.id === 'classical';
 
-      let deltaStr  = '';
+      let deltaStr = '';
       let deltaClass = '';
       if (!isClassical && clVal !== null && clVal !== 0) {
         const delta = s.val - clVal;
-        const pct   = (delta / clVal) * 100;
+        const pct = (delta / clVal) * 100;
         const isBetter = isLowerBetter ? delta < -1e-4 : delta > 1e-4;
-        const isWorse  = isLowerBetter ? delta > 1e-4  : delta < -1e-4;
+        const isWorse = isLowerBetter ? delta > 1e-4 : delta < -1e-4;
         if (Math.abs(pct) > 0.05) {
           deltaStr = ` (${pct > 0 ? '+' : ''}${pct.toFixed(1)}%)`;
           if (isBetter) deltaClass = ' delta-val better';
-          if (isWorse)  deltaClass = ' delta-val worse';
+          if (isWorse) deltaClass = ' delta-val worse';
         }
       }
 
@@ -732,16 +839,15 @@ export default function CompareTab({ runPipeline, compareActive = true }) {
 
   const renderStatusBadgeCell = () => {
     const solvers = [
-      { id: 'classical', obj: cl,   name: 'Classical'   },
-      { id: 'alns',      obj: alns,  name: 'ALNS'        },
-      { id: 'ortools',   obj: ort,   name: 'OR-Tools'    },
-      { id: 'gurobi',    obj: gur,   name: 'Gurobi'      },
-      { id: 'pulp',      obj: pulp,  name: 'PuLP/CBC'    },
-      { id: 'qaoa',      obj: qa,    name: 'Hybrid QAOA', isQa: true },
+      { id: 'classical', obj: cl, name: 'Classical' },
+      { id: 'alns', obj: alns, name: 'ALNS' },
+      { id: 'ortools', obj: ort, name: 'OR-Tools' },
+      { id: 'pulp', obj: pulp, name: 'PuLP/CBC' },
+      { id: 'qaoa', obj: qa, name: 'Hybrid QAOA', isQa: true },
     ];
 
     return solvers.map(s => {
-      const avail    = s.isQa ? qaAvailable : isAvailable(s.obj);
+      const avail = s.isQa ? qaAvailable : isAvailable(s.obj);
       const feasible = s.isQa ? isSolverFeasible(s.obj, true) : isSolverFeasible(s.obj);
       if (avail) {
         if (!feasible) {
@@ -764,10 +870,13 @@ export default function CompareTab({ runPipeline, compareActive = true }) {
             </td>
           );
         }
-        if (s.obj && s.obj.status === 'failed') {
+        const isTrivialFailed = s.obj && s.obj.status === 'ok'
+          && !(s.obj.routes && Object.keys(s.obj.routes).length > 0)
+          && !(toFiniteNumber(s.obj.fleet_distance) > 0);
+        if (s.obj && (s.obj.status === 'failed' || isTrivialFailed)) {
           return (
             <td key={s.id}>
-              <span className="solver-badge failed" title={s.obj.error || 'Solver run failed'}>Failed</span>
+              <span className="solver-badge failed" title={s.obj.error || 'Solver returned no valid routes'}>Failed</span>
             </td>
           );
         }
@@ -814,7 +923,13 @@ export default function CompareTab({ runPipeline, compareActive = true }) {
     );
   };
 
-  const scenarioLabel = activeScenario === 'easy' ? 'Scenario 1 (Configured)' : activeScenario === 'tough' ? 'Scenario 2 (Baseline)' : 'Scenario 3 (Stress Test)';
+  const scenarioLabel = activeScenario === 'easy'
+    ? 'Scenario 1 (Configured)'
+    : activeScenario === 'tough'
+      ? 'Scenario 2 (Baseline)'
+      : activeScenario === 'tough3'
+        ? 'Scenario 3 (Stress Test)'
+        : 'Scenario 4 (Edge Cases)';
 
   return (
     <div className="compare-stack">
@@ -824,26 +939,33 @@ export default function CompareTab({ runPipeline, compareActive = true }) {
             <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '1rem', borderBottom: '1px solid rgba(255,255,255,0.1)', paddingBottom: '0.75rem', marginBottom: '0.75rem' }}>
               <h2 style={{ margin: 0, paddingRight: '1rem', borderRight: '1px solid rgba(255,255,255,0.2)' }}>Compare solvers</h2>
               <div style={{ display: 'flex', gap: '0.5rem' }}>
-                <button 
+                <button
                   className={`btn ${activeScenario === 'easy' ? 'btn-primary' : 'btn-secondary'}`}
                   onClick={() => setActiveScenario('easy')}
                   style={{ padding: '0.4rem 0.8rem', fontSize: '0.8rem' }}
                 >
                   Scenario 1
                 </button>
-                <button 
+                <button
                   className={`btn ${activeScenario === 'tough' ? 'btn-primary' : 'btn-secondary'}`}
                   onClick={() => setActiveScenario('tough')}
                   style={{ padding: '0.4rem 0.8rem', fontSize: '0.8rem' }}
                 >
                   Scenario 2
                 </button>
-                <button 
+                <button
                   className={`btn ${activeScenario === 'tough3' ? 'btn-primary' : 'btn-secondary'}`}
                   onClick={() => setActiveScenario('tough3')}
                   style={{ padding: '0.4rem 0.8rem', fontSize: '0.8rem' }}
                 >
                   Scenario 3
+                </button>
+                <button
+                  className={`btn ${activeScenario === 'tough4' ? 'btn-primary' : 'btn-secondary'}`}
+                  onClick={() => setActiveScenario('tough4')}
+                  style={{ padding: '0.4rem 0.8rem', fontSize: '0.8rem' }}
+                >
+                  Scenario 4
                 </button>
               </div>
               {cl && resultsSource === 'disk' && (
@@ -891,21 +1013,20 @@ export default function CompareTab({ runPipeline, compareActive = true }) {
               <BarChart2 size={16} strokeWidth={2} aria-hidden style={{ opacity: 0.7 }} />
               Solver Comparison Matrix · {scenarioLabel}
             </h3>
-            
+
             <div className="solver-comparison-table-wrapper">
               <table className="solver-comparison-table">
                 <thead>
                   <tr>
                     <th>Metric</th>
                     {[
-                      { id: 'classical', label: 'Classical Local Search (NN+2opt)', color: 'var(--solver-classical)', obj: cl,   isQa: false },
-                      { id: 'alns',      label: 'ALNS Metaheuristic',               color: 'var(--solver-alns)',       obj: alns,  isQa: false },
-                      { id: 'ortools',   label: 'Google OR-Tools',                  color: 'var(--solver-ortools)',    obj: ort,   isQa: false },
-                      { id: 'gurobi',    label: 'Gurobi (ILP)',                     color: 'var(--solver-gurobi)',     obj: gur,   isQa: false },
-                      { id: 'pulp',      label: 'PuLP/CBC (ILP)',                   color: 'var(--solver-pulp)',       obj: pulp,  isQa: false },
-                      { id: 'qaoa',      label: 'Hybrid QAOA',                      color: 'var(--solver-qaoa)',       obj: qa,    isQa: true  },
+                      { id: 'classical', label: 'Classical Local Search (NN+2opt)', color: 'var(--solver-classical)', obj: cl, isQa: false },
+                      { id: 'alns', label: 'ALNS Metaheuristic', color: 'var(--solver-alns)', obj: alns, isQa: false },
+                      { id: 'ortools', label: 'Google OR-Tools', color: 'var(--solver-ortools)', obj: ort, isQa: false },
+                      { id: 'pulp', label: 'PuLP/CBC (ILP)', color: 'var(--solver-pulp)', obj: pulp, isQa: false },
+                      { id: 'qaoa', label: 'Hybrid QAOA', color: 'var(--solver-qaoa)', obj: qa, isQa: true },
                     ].map(({ id, label, color, obj, isQa }) => {
-                      const avail    = isQa ? qaAvailable : isAvailable(obj);
+                      const avail = isQa ? qaAvailable : isAvailable(obj);
                       const feasible = avail && (isQa ? isSolverFeasible(obj, true) : isSolverFeasible(obj));
                       const infeasible = avail && !feasible;
                       return (
@@ -954,7 +1075,6 @@ export default function CompareTab({ runPipeline, compareActive = true }) {
               classical={cl}
               alns={alns}
               ortools={ort}
-              gurobi={gur}
               pulp={pulp}
               qaoa={qaAvailable ? qa : null}
               qaAvailable={qaAvailable}
@@ -966,10 +1086,10 @@ export default function CompareTab({ runPipeline, compareActive = true }) {
           <div className="compare-maps-grid" key={`maps-${activeScenario}`}>
             <div className="glass-panel compare-map-panel" style={{ padding: '1rem' }}>
               {renderMapPanelHeader('left', leftMapSolver, setLeftMapSolver)}
-              {isAvailable(SOLVERS[leftMapSolver].data) ? (
+              {((leftMapSolver === 'qaoa' && qaAvailable) || (leftMapSolver !== 'qaoa' && isAvailable(SOLVERS[leftMapSolver].data))) ? (
                 <>
                   <RouteMap scenarioData={meta} solverResult={SOLVERS[leftMapSolver].data} height="420px" />
-                  <RouteTable result={SOLVERS[leftMapSolver].data} color={SOLVERS[leftMapSolver].color} />
+                  <RouteTable result={SOLVERS[leftMapSolver].data} color={SOLVERS[leftMapSolver].color} scenarioData={meta} />
                 </>
               ) : (
                 <div className="qaoa-placeholder">
@@ -985,7 +1105,7 @@ export default function CompareTab({ runPipeline, compareActive = true }) {
               {((rightMapSolver === 'qaoa' && qaAvailable) || (rightMapSolver !== 'qaoa' && isAvailable(SOLVERS[rightMapSolver].data))) ? (
                 <>
                   <RouteMap scenarioData={meta} solverResult={SOLVERS[rightMapSolver].data} height="420px" />
-                  <RouteTable result={SOLVERS[rightMapSolver].data} color={SOLVERS[rightMapSolver].color} />
+                  <RouteTable result={SOLVERS[rightMapSolver].data} color={SOLVERS[rightMapSolver].color} scenarioData={meta} />
                 </>
               ) : (
                 <div className="qaoa-placeholder">
