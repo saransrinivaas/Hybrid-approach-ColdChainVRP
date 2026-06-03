@@ -232,21 +232,22 @@ def assign_trips(clinic_ids, capacity, demands, time_windows):
 # ─────────────────────────────────────────
 # STEP 4 – Sub‑cluster generation (overlapping 3‑node combos)
 # ─────────────────────────────────────────
-def generate_subclusters(trip_nodes):
+def generate_subclusters(trip_nodes, max_size=None):
+    limit_size = max_size if max_size is not None else MAX_CLUSTER_SIZE
     n = len(trip_nodes)
-    if n <= MAX_CLUSTER_SIZE:
+    if n <= limit_size:
         return [list(trip_nodes)]
     
     subclusters = []
     overlap = 2
-    step = MAX_CLUSTER_SIZE - overlap
+    step = limit_size - overlap
     
     for i in range(0, n - overlap, step):
-        end_idx = min(i + MAX_CLUSTER_SIZE, n)
+        end_idx = min(i + limit_size, n)
         sub = trip_nodes[i:end_idx]
-        # Stretch last window backwards if it is smaller than MAX_CLUSTER_SIZE
-        if len(sub) < MAX_CLUSTER_SIZE and n >= MAX_CLUSTER_SIZE:
-            sub = trip_nodes[n - MAX_CLUSTER_SIZE:n]
+        # Stretch last window backwards if it is smaller than limit_size
+        if len(sub) < limit_size and n >= limit_size:
+            sub = trip_nodes[n - limit_size:n]
         if list(sub) not in subclusters:
             subclusters.append(list(sub))
     return subclusters
@@ -306,7 +307,7 @@ def repair_temporal(clusters):
 def get_clinic_name(cid, clinics):
     return next(c["name"] for c in clinics if c["id"] == cid)
 
-def print_summary(vehicle_routes, clinics, capacity, demands, time_windows):
+def print_summary(vehicle_routes, clinics, capacity, demands, time_windows, max_size=None):
     print("\n" + "="*55)
     print("  FINAL SUMMARY: VEHICULAR CLUSTERS & SUB-CLUSTERS")
     print("="*55)
@@ -323,7 +324,7 @@ def print_summary(vehicle_routes, clinics, capacity, demands, time_windows):
             
             tw_open = min(time_windows[c][0] for c in trip)
             tw_close = min(time_windows[c][1] for c in trip)
-            sub = generate_subclusters(trip)
+            sub = generate_subclusters(trip, max_size=max_size)
             trip_qubits = sum(len(sc)**2 for sc in sub)
             grand_qubits += trip_qubits
             grand_sub += len(sub)
@@ -336,7 +337,8 @@ def print_summary(vehicle_routes, clinics, capacity, demands, time_windows):
                 names = [get_clinic_name(c, clinics) for c in sc]
                 print(f"|  |    {sc} -> {names}  [{len(sc)**2} qubits]")
         print("|")
-    max_qubits = (MAX_CLUSTER_SIZE**2) * grand_sub
+    limit_size = max_size if max_size is not None else MAX_CLUSTER_SIZE
+    max_qubits = (limit_size**2) * grand_sub
     print("="*55)
     print(f"  Total sub-clusters : {grand_sub}")
     print(f"  Total qubits       : {grand_qubits}")
@@ -347,7 +349,7 @@ def print_summary(vehicle_routes, clinics, capacity, demands, time_windows):
 # ─────────────────────────────────────────
 # MAIN PIPELINE
 # ─────────────────────────────────────────
-def build_clusters(sc_module=None):
+def build_clusters(sc_module=None, max_size=None):
     """Run the full clustering pipeline.
     sc_module – optional scenario module (scenario or scenario2).
     """
@@ -390,7 +392,7 @@ def build_clusters(sc_module=None):
     cluster_lists = repair_temporal(cluster_lists)
     vehicle_routes = [(vehicles[i]["id"] if i < len(vehicles) else f"V{i+1}", cl) for i, cl in enumerate(cluster_lists)]
     # STEP 5 – summary
-    print_summary(vehicle_routes, clinics, capacity, demands, time_windows)
+    print_summary(vehicle_routes, clinics, capacity, demands, time_windows, max_size=max_size)
     return vehicle_routes
 
 if __name__ == "__main__":
