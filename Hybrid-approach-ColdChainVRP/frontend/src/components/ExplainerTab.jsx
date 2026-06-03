@@ -129,8 +129,8 @@ export default function ExplainerTab({ activeTab }) {
                   onClick={() => setSelectedTerm(key)}
                   style={{
                     padding: '0.6rem 1rem',
-                    background: isSelected ? 'rgba(255,255,255,0.12)' : 'rgba(255,255,255,0.03)',
-                    color: isSelected ? '#ffffff' : 'var(--text)',
+                    background: isSelected ? '#ffffff' : 'rgba(255,255,255,0.03)',
+                    color: isSelected ? '#000000' : 'var(--text)',
                     border: '1px solid rgba(255,255,255,0.08)',
                     borderRadius: '6px',
                     cursor: 'pointer',
@@ -402,8 +402,8 @@ export default function ExplainerTab({ activeTab }) {
                   onClick={() => setSelectedStep(s.step)}
                   style={{
                     padding: '0.75rem 0.5rem',
-                    background: isSelected ? 'rgba(255,255,255,0.12)' : 'rgba(255,255,255,0.03)',
-                    color: isSelected ? '#ffffff' : 'var(--text)',
+                    background: isSelected ? '#ffffff' : 'rgba(255,255,255,0.03)',
+                    color: isSelected ? '#000000' : 'var(--text)',
                     border: isSelected ? '1px solid #ffffff' : '1px solid rgba(255,255,255,0.08)',
                     borderRadius: '6px',
                     cursor: 'pointer',
