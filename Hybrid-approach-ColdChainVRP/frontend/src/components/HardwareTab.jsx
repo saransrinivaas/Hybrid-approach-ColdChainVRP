@@ -504,57 +504,6 @@ export default function HardwareTab({ runPipeline, activeTab }) {
 
     return (
       <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
-        {/* Physical IBM Quantum Hardware Execution Ledger */}
-        <div style={{ 
-          background: isNode3 ? 'rgba(16, 185, 129, 0.02)' : 'rgba(59, 130, 246, 0.02)', 
-          border: `1px solid ${isNode3 ? 'rgba(16, 185, 129, 0.1)' : 'rgba(255,255,255,0.05)'}`, 
-          borderRadius: '8px', 
-          padding: '1rem 1.2rem',
-          fontSize: '0.8rem',
-          color: '#ccc',
-          boxShadow: 'none'
-        }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#fff', fontWeight: 700, marginBottom: '0.85rem' }}>
-            <Info size={16} color={isNode3 ? '#10b981' : '#3b82f6'} />
-            <span>{isNode3 ? 'Fidelity-Tuned 3-Node Sub-cluster Physical Ledger' : 'Standard 4-Node Sub-cluster Physical Ledger'}</span>
-          </div>
-          
-          <div style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(18rem, 1fr))',
-            gap: '0.75rem'
-          }}>
-            <div style={{ background: 'rgba(255,255,255,0.015)', border: '1px solid rgba(255,255,255,0.04)', padding: '0.75rem', borderRadius: '6px' }}>
-              <strong style={{ display: 'block', fontSize: '0.74rem', color: isNode3 ? '#10b981' : '#3b82f6', textTransform: 'uppercase', marginBottom: '0.25rem', letterSpacing: '0.04em' }}>
-                QPU Optimization
-              </strong>
-              <span style={{ fontSize: '0.74rem', color: '#aaa', lineHeight: '1.4' }}>
-                {isNode3 
-                  ? 'Max 3 stops per cluster. Gate depth cut to ~680 gates, enabling high-fidelity coherence window execution on Heron r2.' 
-                  : 'Max 4 stops per cluster (16 qubits). Executed directly on superconducting hardware without noise fallbacks.'}
-              </span>
-            </div>
-
-            <div style={{ background: 'rgba(255,255,255,0.015)', border: '1px solid rgba(255,255,255,0.04)', padding: '0.75rem', borderRadius: '6px' }}>
-              <strong style={{ display: 'block', fontSize: '0.74rem', color: isNode3 ? '#10b981' : '#3b82f6', textTransform: 'uppercase', marginBottom: '0.25rem', letterSpacing: '0.04em' }}>
-                Evaluation Scale
-              </strong>
-              <span style={{ fontSize: '0.74rem', color: '#aaa', lineHeight: '1.4' }}>
-                Scenario 3 compiles all 12 sub-clusters (192 qubits total) across Vehicles V1, V2, and V3 for complete stress-test coverage.
-              </span>
-            </div>
-
-            <div style={{ background: 'rgba(255,255,255,0.015)', border: '1px solid rgba(255,255,255,0.04)', padding: '0.75rem', borderRadius: '6px' }}>
-              <strong style={{ display: 'block', fontSize: '0.74rem', color: isNode3 ? '#10b981' : '#3b82f6', textTransform: 'uppercase', marginBottom: '0.25rem', letterSpacing: '0.04em' }}>
-                Post-Processing
-              </strong>
-              <span style={{ fontSize: '0.74rem', color: '#aaa', lineHeight: '1.4' }}>
-                Consensus stitching uses coupled thermodynamic-spatial local search (Or-opt) to reconstruct fully feasible global routes.
-              </span>
-            </div>
-          </div>
-        </div>
-        
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(28rem, 1fr))', gap: '1.5rem' }}>
           {['easy', 'tough', 'tough3'].map(scKey => {
             const meta = scenarioMeta?.[scKey];
@@ -635,7 +584,7 @@ export default function HardwareTab({ runPipeline, activeTab }) {
                               style={{ padding: '0.65rem 0.85rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', cursor: 'pointer', background: isOpen ? '#111' : 'transparent', transition: 'all 0.15s ease' }}
                             >
                               <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                                <span style={{ fontSize: '0.78rem', fontWeight: 700, color: isNode3 ? '#10b981' : '#3b82f6' }}>
+                                <span style={{ fontSize: '0.78rem', fontWeight: 700, color: isNode3 ? '#10b981' : '#ffffff' }}>
                                   Route: {sub.subcluster_id}
                                 </span>
                                 <span style={{ fontSize: '0.72rem', color: '#888' }}>
@@ -735,8 +684,8 @@ export default function HardwareTab({ runPipeline, activeTab }) {
                     {stitchedComparison && (
                       <div style={{ 
                         marginTop: '1.25rem', 
-                        background: isNode3 ? 'rgba(16, 185, 129, 0.04)' : 'rgba(59, 130, 246, 0.04)', 
-                        border: `1px solid ${isNode3 ? 'rgba(16, 185, 129, 0.2)' : 'rgba(59, 130, 246, 0.2)'}`, 
+                        background: isNode3 ? 'rgba(16, 185, 129, 0.04)' : 'rgba(255, 255, 255, 0.04)', 
+                        border: `1px solid ${isNode3 ? 'rgba(16, 185, 129, 0.2)' : 'rgba(255, 255, 255, 0.2)'}`, 
                         borderRadius: '8px', 
                         padding: '1.2rem',
                         display: 'flex',
@@ -744,7 +693,7 @@ export default function HardwareTab({ runPipeline, activeTab }) {
                         gap: '0.85rem'
                       }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', borderBottom: '1px solid rgba(255,255,255,0.06)', paddingBottom: '0.4rem' }}>
-                          <Award size={16} color={isNode3 ? '#10b981' : '#3b82f6'} />
+                          <Award size={16} color={isNode3 ? '#10b981' : '#ffffff'} />
                           <h4 style={{ margin: 0, fontSize: '0.88rem', fontWeight: 700, color: '#fff' }}>
                             Global Consensus Stitching & Post-Processed Routes
                           </h4>
@@ -754,14 +703,14 @@ export default function HardwareTab({ runPipeline, activeTab }) {
                           {/* Simulator Stitch */}
                           <div style={{ background: '#18181b', border: '1px solid rgba(255,255,255,0.03)', borderRadius: '6px', padding: '0.75rem' }}>
                             <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.74rem', marginBottom: '0.5rem', borderBottom: '1px solid rgba(255,255,255,0.05)', paddingBottom: '0.25rem' }}>
-                              <span style={{ fontWeight: 700, color: '#3b82f6' }}>Perfect Simulator</span>
+                              <span style={{ fontWeight: 700, color: '#ffffff' }}>Perfect Simulator</span>
                               <strong style={{ color: '#fff' }}>Rs {stitchedComparison.simulator.total_cost.toFixed(2)}</strong>
                             </div>
                             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
                               {Object.entries(stitchedComparison.simulator.routes).map(([vid, r]) => (
                                 <div key={vid} style={{ fontSize: '0.68rem' }}>
                                   <span style={{ fontWeight: 600, color: '#888', display: 'block' }}>{vid}:</span>
-                                  <span style={{ fontFamily: 'monospace', color: '#3b82f6', background: '#000', padding: '2px 4px', borderRadius: '3px', display: 'block', textOverflow: 'ellipsis', overflow: 'hidden' }}>
+                                  <span style={{ fontFamily: 'monospace', color: '#ffffff', background: '#000', padding: '2px 4px', borderRadius: '3px', display: 'block', textOverflow: 'ellipsis', overflow: 'hidden' }}>
                                     D → {r.filter(x => x !== 0).join(' → ')} → D
                                   </span>
                                 </div>
@@ -858,12 +807,12 @@ export default function HardwareTab({ runPipeline, activeTab }) {
           boxShadow: '0 4px 12px rgba(0, 0, 0, 0.5)'
         }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-            <RefreshCw size={16} className="animate-spin" color="#3b82f6" />
+            <RefreshCw size={16} className="animate-spin" color="#ffffff" />
             <span style={{ color: '#fff', fontSize: '0.88rem', fontWeight: 600 }}>{statusMessage}</span>
           </div>
           {currentStep > 0 && (
             <div style={{ height: '4px', background: '#000', borderRadius: '2px', overflow: 'hidden', marginTop: '4px' }}>
-              <div style={{ width: `${(currentStep / 5) * 100}%`, background: '#3b82f6', height: '100%', transition: 'width 0.4s ease' }}></div>
+              <div style={{ width: `${(currentStep / 5) * 100}%`, background: '#ffffff', height: '100%', transition: 'width 0.4s ease' }}></div>
             </div>
           )}
         </div>
@@ -888,7 +837,7 @@ export default function HardwareTab({ runPipeline, activeTab }) {
         <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'center', gap: '1.5rem' }}>
           <div style={{ flex: '1 1 30rem' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.35rem' }}>
-              <Cpu size={24} color="#3b82f6" />
+              <Cpu size={24} color="#ffffff" />
               <h2 style={{ margin: 0, fontSize: '1.5rem', fontWeight: 700, letterSpacing: '-0.02em', color: '#fff' }}>
                 Quantum VRP Hardware Evaluation Control Room
               </h2>
@@ -982,12 +931,12 @@ export default function HardwareTab({ runPipeline, activeTab }) {
           <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
             
             <div style={{ 
-              background: 'rgba(59, 130, 246, 0.05)', 
-              border: '1px solid rgba(59, 130, 246, 0.15)', 
+              background: 'rgba(255, 255, 255, 0.05)', 
+              border: '1px solid rgba(255, 255, 255, 0.15)', 
               borderRadius: '6px', 
               padding: '0.6rem 0.85rem', 
               fontSize: '0.75rem', 
-              color: '#93c5fd', 
+              color: '#ffffff', 
               lineHeight: '1.35' 
             }}>
               <strong>QPU Execution Rule:</strong> Sizes 2-4 run on physical qubits. Sizes 5-6 run on a calibrated noise-horizon simulator to map hardware phase decay limits without queue aborts.
@@ -999,7 +948,7 @@ export default function HardwareTab({ runPipeline, activeTab }) {
               <div style={{ padding: '1.5rem', borderRadius: '8px', background: '#111', border: '1px solid rgba(255,255,255,0.05)' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem' }}>
                   <h3 style={{ margin: 0, fontSize: '1.1rem', display: 'flex', alignItems: 'center', gap: '0.4rem', color: '#fff', fontWeight: 700 }}>
-                    <TrendingUp size={18} color="#3b82f6" />
+                    <TrendingUp size={18} color="#ffffff" />
                     Physical Phase Noise & Depth Scaling Benchmarks
                   </h3>
                 </div>
@@ -1007,7 +956,7 @@ export default function HardwareTab({ runPipeline, activeTab }) {
                 {isLoadingScaling ? (
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
                     {/* Custom Loading Indicators */}
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#3b82f6', fontSize: '0.78rem', fontWeight: 600 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#ffffff', fontSize: '0.78rem', fontWeight: 600 }}>
                       <RefreshCw size={14} className="animate-spin" />
                       <span>Loading physical QPU benchmarks from cache...</span>
                     </div>
@@ -1035,7 +984,7 @@ export default function HardwareTab({ runPipeline, activeTab }) {
                     }}>
                       <div style={{ display: 'flex', justifyContent: 'space-around', fontSize: '0.68rem', color: '#888', marginBottom: '0.5rem' }}>
                         <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                          <span style={{ width: '8px', height: '8px', background: '#3b82f6', borderRadius: '50%', display: 'inline-block' }}></span>
+                          <span style={{ width: '8px', height: '8px', background: '#ffffff', borderRadius: '50%', display: 'inline-block' }}></span>
                           Transpiled Gate Depth (Shorter is Better)
                         </span>
                         <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
@@ -1055,7 +1004,7 @@ export default function HardwareTab({ runPipeline, activeTab }) {
                         {/* Coherence line: 2 clinics (170) -> 3 (167) -> 4 (145) -> 5 (98) -> 6 (40) */}
                         <path d="M 50 20 L 150 23 L 250 42 L 350 98 L 450 156" fill="none" stroke="#f59e0b" strokeWidth="3" strokeLinecap="round" />
                         {/* Depth line: 2 (180) -> 3 (163) -> 4 (134) -> 5 (96) -> 6 (36) */}
-                        <path d="M 50 181 L 150 162 L 250 134 L 350 96 L 450 36" fill="none" stroke="#3b82f6" strokeWidth="3" strokeLinecap="round" strokeDasharray="4" />
+                        <path d="M 50 181 L 150 162 L 250 134 L 350 96 L 450 36" fill="none" stroke="#ffffff" strokeWidth="3" strokeLinecap="round" strokeDasharray="4" />
 
                         {/* Nodes */}
                         {[
@@ -1067,7 +1016,7 @@ export default function HardwareTab({ runPipeline, activeTab }) {
                         ].map((pt, i) => (
                           <g key={i}>
                             {/* Depth point */}
-                            <circle cx={pt.x} cy={170 - (pt.depth / 145) * 134} r="5" fill="#3b82f6" stroke="#121214" strokeWidth="2" />
+                            <circle cx={pt.x} cy={170 - (pt.depth / 145) * 134} r="5" fill="#ffffff" stroke="#121214" strokeWidth="2" />
                             {/* Fidelity point */}
                             <circle cx={pt.x} cy={170 - (pt.fid / 100) * 150} r="5" fill="#f59e0b" stroke="#121214" strokeWidth="2" />
                             {/* X-axis labels */}
@@ -1132,7 +1081,7 @@ export default function HardwareTab({ runPipeline, activeTab }) {
               <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
                 <div style={{ padding: '1.5rem', borderRadius: '8px', background: '#1a1a1a', border: '1px solid rgba(255,255,255,0.05)' }}>
                   <h4 style={{ margin: '0 0 0.75rem 0', fontSize: '0.9rem', color: '#fff', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '4px' }}>
-                    <Info size={16} color="#3b82f6" />
+                    <Info size={16} color="#ffffff" />
                     Decoherence Boundary Breakdown
                   </h4>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', fontSize: '0.78rem', lineHeight: '1.45', color: '#aaa' }}>
@@ -1172,12 +1121,12 @@ export default function HardwareTab({ runPipeline, activeTab }) {
           <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
             
             <div style={{ 
-              background: 'rgba(59, 130, 246, 0.05)', 
-              border: '1px solid rgba(59, 130, 246, 0.15)', 
+              background: 'rgba(255, 255, 255, 0.05)', 
+              border: '1px solid rgba(255, 255, 255, 0.15)', 
               borderRadius: '6px', 
               padding: '0.6rem 0.85rem', 
               fontSize: '0.75rem', 
-              color: '#93c5fd', 
+              color: '#ffffff', 
               lineHeight: '1.35' 
             }}>
               <strong>Transparency Note:</strong> Swarm transpiling, CNOT gate scaling, and latency sweep ledgers use lookup benchmarks to optimize configuration without consuming QPU credits.
@@ -1189,14 +1138,14 @@ export default function HardwareTab({ runPipeline, activeTab }) {
               <div style={{ padding: '1.5rem', borderRadius: '8px', background: '#111', border: '1px solid rgba(255,255,255,0.05)' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem' }}>
                   <h3 style={{ margin: 0, fontSize: '1.15rem', display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#fff', fontWeight: 700 }}>
-                    <Settings size={20} color="#3b82f6" />
+                    <Settings size={20} color="#ffffff" />
                     Depth (p) vs measurement Shots Sweep Matrix
                   </h3>
                 </div>
 
                 {isLoadingSweeps ? (
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#3b82f6', fontSize: '0.78rem', fontWeight: 600 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#ffffff', fontSize: '0.78rem', fontWeight: 600 }}>
                       <RefreshCw size={14} className="animate-spin" />
                       <span>Analyzing physical QAOA parameter sweeps...</span>
                     </div>
@@ -1226,8 +1175,8 @@ export default function HardwareTab({ runPipeline, activeTab }) {
                         {sweepResults.depth_shots.map((r, i) => {
                           const isBest = r.p === 3 && r.shots === 250;
                           return (
-                            <tr key={i} style={{ borderBottom: '1px solid #1e1e1e', background: isBest ? 'rgba(59, 130, 246, 0.08)' : 'transparent' }}>
-                              <td style={{ padding: '0.5rem', fontWeight: isBest ? 800 : 500, color: isBest ? '#3b82f6' : '#cbd5e1' }}>
+                            <tr key={i} style={{ borderBottom: '1px solid #1e1e1e', background: isBest ? 'rgba(255, 255, 255, 0.08)' : 'transparent' }}>
+                              <td style={{ padding: '0.5rem', fontWeight: isBest ? 800 : 500, color: isBest ? '#ffffff' : '#cbd5e1' }}>
                                 p = {r.p} steps, {r.shots} shots {isBest ? '(Recommended)' : ''}
                               </td>
                               <td style={{ padding: '0.5rem', fontFamily: 'monospace' }}>{r.qpu_time.toFixed(2)}s</td>
@@ -1263,7 +1212,7 @@ export default function HardwareTab({ runPipeline, activeTab }) {
                   border: '1px solid rgba(255,255,255,0.05)', 
                   background: '#1a1a1a'
                 }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#3b82f6', marginBottom: '0.75rem' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#ffffff', marginBottom: '0.75rem' }}>
                     <Award size={20} />
                     <strong style={{ fontSize: '0.94rem' }}>Winner: Optimal Quantum Setting</strong>
                   </div>
@@ -1296,12 +1245,12 @@ export default function HardwareTab({ runPipeline, activeTab }) {
           <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
             
             <div style={{ 
-              background: 'rgba(59, 130, 246, 0.05)', 
-              border: '1px solid rgba(59, 130, 246, 0.15)', 
+              background: 'rgba(255, 255, 255, 0.05)', 
+              border: '1px solid rgba(255, 255, 255, 0.15)', 
               borderRadius: '6px', 
               padding: '0.6rem 0.85rem', 
               fontSize: '0.75rem', 
-              color: '#93c5fd', 
+              color: '#ffffff', 
               lineHeight: '1.35' 
             }}>
               <strong>Transparency Note:</strong> Swarm transpiling, CNOT gate scaling, and latency sweep ledgers use lookup benchmarks to optimize configuration without consuming QPU credits.
@@ -1310,7 +1259,7 @@ export default function HardwareTab({ runPipeline, activeTab }) {
             {isLoadingSweeps ? (
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(26rem, 1fr))', gap: '1.5rem' }}>
                 <div style={{ padding: '1.5rem', borderRadius: '8px', background: '#111', border: '1px solid rgba(255,255,255,0.05)', gridColumn: 'span 2' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#3b82f6', fontSize: '0.78rem', fontWeight: 600, marginBottom: '1rem' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#ffffff', fontSize: '0.78rem', fontWeight: 600, marginBottom: '1rem' }}>
                     <RefreshCw size={14} className="animate-spin" />
                     <span>Evaluating transpiler compile & error mitigation benchmarks...</span>
                   </div>
@@ -1328,7 +1277,7 @@ export default function HardwareTab({ runPipeline, activeTab }) {
                 {/* 1. Transpiler Level Sweep */}
                 <div style={{ padding: '1.5rem', borderRadius: '8px', background: '#111', border: '1px solid rgba(255,255,255,0.05)' }}>
                   <h4 style={{ margin: '0 0 0.85rem 0', fontSize: '0.94rem', color: '#fff', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '4px' }}>
-                    <Settings size={16} color="#3b82f6" />
+                    <Settings size={16} color="#ffffff" />
                     Transpilation Optimization Sweeps
                   </h4>
                   <table style={{ width: '100%', fontSize: '0.72rem', borderCollapse: 'collapse', textAlign: 'left', marginBottom: '0.5rem' }}>
@@ -1343,7 +1292,7 @@ export default function HardwareTab({ runPipeline, activeTab }) {
                     </thead>
                     <tbody>
                       {sweepResults.optimization_levels.map((r, i) => (
-                        <tr key={i} style={{ borderBottom: '1px solid #1e1e1e', background: r.optimization_level === 3 ? 'rgba(59, 130, 246, 0.06)' : 'transparent' }}>
+                        <tr key={i} style={{ borderBottom: '1px solid #1e1e1e', background: r.optimization_level === 3 ? 'rgba(255, 255, 255, 0.06)' : 'transparent' }}>
                           <td style={{ padding: '0.4rem', fontWeight: r.optimization_level === 3 ? 700 : 400 }}>
                             Level {r.optimization_level} {r.optimization_level === 3 ? '(Recommended)' : ''}
                           </td>
@@ -1404,7 +1353,7 @@ export default function HardwareTab({ runPipeline, activeTab }) {
                 {/* 3. Ansatz Entanglement Topology Sweep */}
                 <div style={{ padding: '1.5rem', borderRadius: '8px', background: '#111', border: '1px solid rgba(255,255,255,0.05)', gridColumn: 'span 2' }}>
                   <h4 style={{ margin: '0 0 0.85rem 0', fontSize: '0.94rem', color: '#fff', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '4px' }}>
-                    <Layers size={16} color="#3b82f6" />
+                    <Layers size={16} color="#ffffff" />
                     Ansatz Entanglement Topology & Swapping Overhead Sweep
                   </h4>
                   <table style={{ width: '100%', fontSize: '0.72rem', borderCollapse: 'collapse', textAlign: 'left', marginBottom: '0.5rem' }}>
@@ -1419,8 +1368,8 @@ export default function HardwareTab({ runPipeline, activeTab }) {
                     </thead>
                     <tbody>
                       {sweepResults.entanglement_topologies.map((r, i) => (
-                        <tr key={i} style={{ borderBottom: '1px solid #1e1e1e', background: r.topology === 'Linear' ? 'rgba(59, 130, 246, 0.06)' : 'transparent' }}>
-                          <td style={{ padding: '0.4rem', fontWeight: r.topology === 'Linear' ? 700 : 400, color: r.topology === 'Linear' ? '#3b82f6' : '#cbd5e1' }}>
+                        <tr key={i} style={{ borderBottom: '1px solid #1e1e1e', background: r.topology === 'Linear' ? 'rgba(255, 255, 255, 0.06)' : 'transparent' }}>
+                          <td style={{ padding: '0.4rem', fontWeight: r.topology === 'Linear' ? 700 : 400, color: r.topology === 'Linear' ? '#ffffff' : '#cbd5e1' }}>
                             {r.topology} {r.topology === 'Linear' ? '(Recommended)' : ''}
                           </td>
                           <td style={{ padding: '0.4rem', fontFamily: 'monospace' }}>{r.gate_depth}</td>
@@ -1459,7 +1408,7 @@ export default function HardwareTab({ runPipeline, activeTab }) {
               <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'center', gap: '1rem' }}>
                 <div>
                   <h4 style={{ margin: '0 0 0.25rem 0', fontSize: '1rem', color: '#fff', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '4px' }}>
-                    <Cloud size={18} color="#3b82f6" />
+                    <Cloud size={18} color="#ffffff" />
                     Cloud Job Sync & Retrieval Console
                   </h4>
                   <p style={{ margin: 0, fontSize: '0.78rem', color: '#aaa', lineHeight: '1.4' }}>
@@ -1546,10 +1495,10 @@ export default function HardwareTab({ runPipeline, activeTab }) {
                             <button
                               onClick={() => pollSingleJob(job.job_id)}
                               style={{
-                                background: 'rgba(59, 130, 246, 0.15)',
+                                background: 'rgba(255, 255, 255, 0.15)',
                                 border: '1px solid rgba(255,255,255,0.05)',
                                 borderRadius: '4px',
-                                color: '#3b82f6',
+                                color: '#ffffff',
                                 fontSize: '0.68rem',
                                 fontWeight: 700,
                                 padding: '0.3rem 0.65rem',
@@ -1584,7 +1533,7 @@ export default function HardwareTab({ runPipeline, activeTab }) {
               <div style={{ padding: '1.5rem', borderRadius: '8px', background: '#111', border: '1px solid rgba(255,255,255,0.05)' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
                   <h3 style={{ margin: 0, fontSize: '1.05rem', display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#fff', fontWeight: 700 }}>
-                    <Layers size={18} color="#3b82f6" />
+                    <Layers size={18} color="#ffffff" />
                     Local Cache Database Stats
                   </h3>
                   <button
@@ -1610,7 +1559,7 @@ export default function HardwareTab({ runPipeline, activeTab }) {
 
                 <div style={{ display: 'flex', gap: '1rem', marginBottom: '1.25rem' }}>
                   <div style={{ flex: 1, background: '#1e1e1e', padding: '0.75rem', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.05)', textAlign: 'center' }}>
-                    <span style={{ fontSize: '1.5rem', fontWeight: 800, color: '#3b82f6' }}>{cacheCount}</span>
+                    <span style={{ fontSize: '1.5rem', fontWeight: 800, color: '#ffffff' }}>{cacheCount}</span>
                     <span style={{ display: 'block', fontSize: '0.7rem', color: '#888', marginTop: '2px' }}>Total Saved Keys</span>
                   </div>
                   <div style={{ flex: 1, background: '#1e1e1e', padding: '0.75rem', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.05)', textAlign: 'center' }}>
@@ -1627,7 +1576,7 @@ export default function HardwareTab({ runPipeline, activeTab }) {
                       <div key={idx} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.72rem', padding: '0.45rem', borderBottom: '1px solid #1e1e1e' }}>
                         <span>Cluster: [{run.clinic_ids.join(', ')}] (p={run.p_depth})</span>
                         <span style={{
-                          color: run.mode === 'hardware' ? '#10b981' : '#3b82f6',
+                          color: run.mode === 'hardware' ? '#10b981' : '#ffffff',
                           fontWeight: 700,
                           textTransform: 'uppercase',
                           fontSize: '0.62rem'
