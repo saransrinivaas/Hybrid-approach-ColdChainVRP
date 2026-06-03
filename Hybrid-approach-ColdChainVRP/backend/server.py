@@ -192,15 +192,15 @@ try:
             for key in ('easy', 'tough', 'tough3', 'tough4'):
                 sc = compare_loaded_data.get(key, {})
                 if sc:
-                    if sc.get('classical'):
+                    if sc.get('classical') and sc['classical'].get('status') != 'failed':
                         COMPUTED_STATE[f'compare_cl_{key}'] = sc['classical']
-                    if sc.get('ortools'):
+                    if sc.get('ortools') and sc['ortools'].get('status') != 'failed':
                         COMPUTED_STATE[f'compare_ort_{key}'] = sc['ortools']
-                    if sc.get('gurobi'):
+                    if sc.get('gurobi') and sc['gurobi'].get('status') != 'failed':
                         COMPUTED_STATE[f'compare_gurobi_{key}'] = sc['gurobi']
-                    if sc.get('pulp_cbc'):
+                    if sc.get('pulp_cbc') and sc['pulp_cbc'].get('status') != 'failed':
                         COMPUTED_STATE[f'compare_pulp_{key}'] = sc['pulp_cbc']
-                    if sc.get('alns'):
+                    if sc.get('alns') and sc['alns'].get('status') != 'failed':
                         COMPUTED_STATE[f'compare_alns_{key}'] = sc['alns']
                     if sc.get('qaoa'):
                         if sc['qaoa'].get('status') == 'ok':
@@ -499,7 +499,19 @@ def enrich_solver_result(result: dict, sc_module) -> dict:
         current_time = 8.0
         for i in range(1, len(route)):
             prev, curr = route[i-1], route[i]
-            travel_time = (dm.get(prev) or {}).get(curr, 0) / max(avg_speed, 1)
+            dist = 0.0
+            try:
+                if hasattr(dm, "shape"):
+                    if 0 <= prev < dm.shape[0] and 0 <= curr < dm.shape[1]:
+                        dist = float(dm[prev][curr])
+                elif hasattr(dm, "get"):
+                    dist = float(dm.get(prev, {}).get(curr, 0))
+                else:
+                    if 0 <= prev < len(dm) and 0 <= curr < len(dm[prev]):
+                        dist = float(dm[prev][curr])
+            except Exception:
+                dist = 0.0
+            travel_time = dist / max(avg_speed, 1)
             current_time += travel_time
             if curr != 0:
                 tw_entry = tw.get(curr)
@@ -673,21 +685,24 @@ def compare_results():
     cl_tough3 = COMPUTED_STATE.get('compare_cl_tough3')
     cl_tough4 = COMPUTED_STATE.get('compare_cl_tough4')
 
+    def _is_pending(v):
+        return v is None or (isinstance(v, dict) and v.get('status') == 'failed')
+
     # Determine if any fast solver for any scenario needs computing.
     # Each solver is checked INDEPENDENTLY so a silent failure in one doesn't
     # permanently block retries for others on subsequent requests.
-    easy_pending  = (cl_easy is None
-                     or COMPUTED_STATE.get('compare_ort_easy')  is None
-                     or COMPUTED_STATE.get('compare_alns_easy') is None)
-    tough_pending  = (cl_tough is None
-                      or COMPUTED_STATE.get('compare_ort_tough')  is None
-                      or COMPUTED_STATE.get('compare_alns_tough') is None)
-    tough3_pending = (cl_tough3 is None
-                      or COMPUTED_STATE.get('compare_ort_tough3')  is None
-                      or COMPUTED_STATE.get('compare_alns_tough3') is None)
-    tough4_pending = (cl_tough4 is None
-                      or COMPUTED_STATE.get('compare_ort_tough4')  is None
-                      or COMPUTED_STATE.get('compare_alns_tough4') is None)
+    easy_pending  = (_is_pending(cl_easy)
+                     or _is_pending(COMPUTED_STATE.get('compare_ort_easy'))
+                     or _is_pending(COMPUTED_STATE.get('compare_alns_easy')))
+    tough_pending  = (_is_pending(cl_tough)
+                      or _is_pending(COMPUTED_STATE.get('compare_ort_tough'))
+                      or _is_pending(COMPUTED_STATE.get('compare_alns_tough')))
+    tough3_pending = (_is_pending(cl_tough3)
+                      or _is_pending(COMPUTED_STATE.get('compare_ort_tough3'))
+                      or _is_pending(COMPUTED_STATE.get('compare_alns_tough3')))
+    tough4_pending = (_is_pending(cl_tough4)
+                      or _is_pending(COMPUTED_STATE.get('compare_ort_tough4'))
+                      or _is_pending(COMPUTED_STATE.get('compare_alns_tough4')))
 
     if easy_pending or tough_pending or tough3_pending or tough4_pending:
         try:
