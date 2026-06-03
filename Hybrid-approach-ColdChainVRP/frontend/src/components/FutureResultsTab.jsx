@@ -200,7 +200,8 @@ export default function FutureResultsTab({ activeTab }) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
 
-      {/* TWO-COLUMN GRID */}
+      {/* TWO-COLUMN GRID (Temporarily hidden; remove "false &&" to restore) */}
+      {false && (
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem' }}>
 
       {/* LEFT COLUMN: Metrics, Bar Chart, and Genuineness Explainer */}
@@ -722,7 +723,8 @@ export default function FutureResultsTab({ activeTab }) {
 
       </div>
 
-      </div>{/* end 2-col grid */}
+      </div>
+      )}{/* end 2-col grid */}
 
       {/* FULL-WIDTH: Future Quantum Advantage */}
       <div className="card glass-panel" style={{ padding: '2.5rem' }}>
