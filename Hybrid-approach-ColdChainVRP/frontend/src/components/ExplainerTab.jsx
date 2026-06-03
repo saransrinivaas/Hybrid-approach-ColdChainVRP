@@ -72,7 +72,7 @@ const PIPELINE_STEPS = [
     step: '5',
     title: 'Stitching & Consensus',
     desc: 'Merges overlapping sub-routes using weighted majority consensus voting.',
-    details: 'Accumulates sub-cluster results, giving 3x confidence weight to pristine quantum routes and 1x weight to repaired ones.'
+    details: 'Accumulates sub-cluster results, giving 3x confidence weight to pristine quantum routes and 1x to repaired ones.'
   },
   {
     step: '6',
@@ -101,19 +101,9 @@ export default function ExplainerTab({ activeTab }) {
   return (
     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.75rem', alignItems: 'start' }}>
       
-      {/* LEFT COLUMN: Main Engine Mechanics */}
+      {/* LEFT COLUMN: Main Engine Mechanics & Core Explanations */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
         
-        {/* Title Panel */}
-        <div className="card glass-panel" style={{ padding: '1.5rem' }}>
-          <h2 style={{ margin: '0 0 0.5rem 0', fontSize: '1.6rem', color: '#fff', fontWeight: 800 }}>
-            Cryo Route Engine Explainer
-          </h2>
-          <p style={{ color: 'var(--text-secondary)', fontSize: '1.05rem', lineHeight: '1.65', margin: 0 }}>
-            Learn how the Cryo Hybrid Optimizer solves cold-chain logistics. By breaking large routing networks into small, hardware-friendly sub-clusters, it runs vaccine spoilage and active cooling physics directly on quantum processors. We bypass classical simulation limits by running overlapping sub-problems (size 3–4), then use a classical consensus algorithm to stitch them into optimized global routes.
-          </p>
-        </div>
-
         {/* Hamiltonian Explorer */}
         <div className="card glass-panel" style={{ padding: '1.5rem' }}>
           <h3 style={{ margin: '0 0 0.5rem 0', fontSize: '1.35rem', color: '#fff', fontWeight: 700 }}>
@@ -185,6 +175,208 @@ export default function ExplainerTab({ activeTab }) {
           </div>
         </div>
 
+        {/* Physical Qubit Scaling Complexity */}
+        <div className="card glass-panel" style={{ padding: '1.25rem' }}>
+          <h3 style={{ margin: '0 0 0.5rem 0', fontSize: '1.05rem', color: '#fff', fontWeight: 700 }}>
+            Physical Qubit Scaling Complexity
+          </h3>
+          <p style={{ color: 'var(--text-secondary)', fontSize: '0.92rem', lineHeight: '1.5', marginBottom: '1rem' }}>
+            VRP Hamiltonians scale quadratically (N² qubits). Our hybrid sub-clustering bounds quantum resource complexity to safe simulator thresholds.
+          </p>
+
+          <div style={{ position: 'relative', marginBottom: '1rem' }}>
+            <svg viewBox="0 0 100 60" style={{ width: '100%', height: 'auto', background: 'rgba(0,0,0,0.2)', borderRadius: '6px', border: '1px solid rgba(255,255,255,0.04)' }}>
+              <line x1="12" y1="5" x2="12" y2="50" stroke="rgba(255,255,255,0.07)" strokeWidth="0.5" />
+              <line x1="12" y1="50" x2="95" y2="50" stroke="rgba(255,255,255,0.07)" strokeWidth="0.5" />
+              <line x1="12" y1="42" x2="95" y2="42" stroke="#ef4444" strokeWidth="0.5" strokeDasharray="1 1" />
+              <text x="94" y="40" fill="#ef4444" fontSize="2.2" textAnchor="end">Local Simulator Safe Limit (16 Qubits)</text>
+              
+              {sizes.map((s, idx) => {
+                const x = 18 + (idx * 11);
+                const directY = 50 - (directQubits[idx] * 0.45);
+                const subY = 50 - (subClusterQubits[idx] * 0.45);
+
+                return (
+                  <g key={s}>
+                    <circle cx={x} cy={directY} r="1.2" fill="#ef4444" />
+                    <circle cx={x} cy={subY} r="1.2" fill="#10b981" />
+                    
+                    {idx < sizes.length - 1 && (
+                      <>
+                        <line
+                          x1={x}
+                          y1={directY}
+                          x2={18 + ((idx + 1) * 11)}
+                          y2={50 - (directQubits[idx + 1] * 0.45)}
+                          stroke="#ef4444"
+                          strokeWidth="1.2"
+                        />
+                        <line
+                          x1={x}
+                          y1={subY}
+                          x2={18 + ((idx + 1) * 11)}
+                          y2={50 - (subClusterQubits[idx + 1] * 0.45)}
+                          stroke="#10b981"
+                          strokeWidth="1.2"
+                        />
+                      </>
+                    )}
+                  </g>
+                );
+              })}
+
+              {sizes.map((s, idx) => (
+                <text key={s} x={18 + (idx * 11)} y="55" fill="var(--text-faint)" fontSize="2.2" textAnchor="middle">{s}n</text>
+              ))}
+              <text x="6" y="8" fill="var(--text-faint)" fontSize="2.2" textAnchor="start" transform="rotate(-90 6 8)">Qubits Required →</text>
+            </svg>
+          </div>
+          
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem', fontSize: '0.88rem', color: 'var(--text-secondary)' }}>
+            <div style={{ padding: '0.5rem 0.75rem', borderRadius: '6px', background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(239,68,68,0.2)' }}>
+              <strong style={{ color: '#ef4444', display: 'block', marginBottom: '2px' }}>Direct approach (Red line):</strong>
+              Running a whole route together scales exponentially. 10 clinics require 100 qubits—unsimulatable on local laptops.
+            </div>
+            <div style={{ padding: '0.5rem 0.75rem', borderRadius: '6px', background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(16,185,129,0.2)' }}>
+              <strong style={{ color: '#10b981', display: 'block', marginBottom: '2px' }}>Hybrid approach (Green line):</strong>
+              Splits routes into small sub-clusters. Qubit cost stays constant at 9 or 16 qubits, regardless of global VRP scale.
+            </div>
+          </div>
+        </div>
+
+        {/* Core Novel Contributions */}
+        <div className="card glass-panel" style={{ padding: '1.5rem' }}>
+          <h3 style={{ margin: '0 0 0.5rem 0', fontSize: '1.35rem', color: '#fff', fontWeight: 700 }}>
+            Core Novel Contributions
+          </h3>
+          <p style={{ color: 'var(--text-secondary)', fontSize: '1.05rem', marginBottom: '1.25rem', lineHeight: '1.5' }}>
+            Our hybrid design introduces three primary contributions to cold-chain quantum optimization:
+          </p>
+
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+            {[
+              {
+                num: '01',
+                title: 'Spoilage Physics in Quantum Hamiltonian',
+                body: 'Encodes decay equations directly as a Hamiltonian optimization term, making the optimizer minimize actual product value loss rather than just distance.'
+              },
+              {
+                num: '02',
+                title: 'Cap-Bounded Multi-Trip Fleet Clustering',
+                body: 'Groups clinics using temporal time window penalties, and uses a classical first-fit bin packer to split large clusters into feasible refrigerator trips.'
+              },
+              {
+                num: '03',
+                title: 'Weighted Consensus Stitching',
+                body: 'Merges overlapping sub-routes by voting, giving 3x higher weight to pristine quantum routes and 1x to classically repaired ones.'
+              }
+            ].map(({ num, title, body }) => (
+              <div key={num} style={{
+                display: 'flex',
+                gap: '1rem',
+                alignItems: 'flex-start',
+                padding: '0.8rem 1rem',
+                borderRadius: '8px',
+                background: 'rgba(255,255,255,0.03)',
+                border: '1px solid rgba(255,255,255,0.06)'
+              }}>
+                <span style={{
+                  flexShrink: 0,
+                  width: '2.5rem',
+                  height: '2.5rem',
+                  borderRadius: '6px',
+                  background: 'rgba(255,255,255,0.06)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontSize: '0.95rem',
+                  fontWeight: 700,
+                  color: 'rgba(255,255,255,0.45)',
+                  fontFamily: 'var(--font-mono)'
+                }}>{num}</span>
+                <div>
+                  <div style={{ fontWeight: 700, fontSize: '1rem', color: 'var(--text)', marginBottom: '0.3rem' }}>{title}</div>
+                  <p style={{ margin: 0, fontSize: '0.92rem', color: 'var(--text-secondary)', lineHeight: '1.5' }}>{body}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+      </div>
+
+      {/* RIGHT COLUMN: Visual Charts & Workflow */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+        
+        {/* Spoilage Physics Curves Chart */}
+        <div className="card glass-panel" style={{ padding: '1.25rem' }}>
+          <h3 style={{ margin: '0 0 0.5rem 0', fontSize: '1.05rem', color: '#fff', fontWeight: 700 }}>
+            Spoilage Physics Curves
+          </h3>
+          <p style={{ color: 'var(--text-secondary)', fontSize: '0.92rem', lineHeight: '1.5', marginBottom: '1rem' }}>
+            Perishable decay over delivery transit hours. Ambient products spoil rapidly; Chilled vaccines lose value linearly; Frozen vaccines decay very slowly.
+          </p>
+
+          <div style={{ position: 'relative', marginBottom: '1rem' }}>
+            <svg viewBox="0 0 100 60" style={{ width: '100%', height: 'auto', background: 'rgba(0,0,0,0.2)', borderRadius: '6px', border: '1px solid rgba(255,255,255,0.04)' }}>
+              <line x1="12" y1="5" x2="12" y2="50" stroke="rgba(255,255,255,0.07)" strokeWidth="0.5" />
+              <line x1="12" y1="50" x2="95" y2="50" stroke="rgba(255,255,255,0.07)" strokeWidth="0.5" />
+              <line x1="12" y1="27.5" x2="95" y2="27.5" stroke="rgba(255,255,255,0.03)" strokeWidth="0.3" strokeDasharray="1 1" />
+              
+              <path d="M 12 49 C 30 48.8, 60 48.5, 95 48" fill="none" stroke="#38bdf8" strokeWidth="1.8" />
+              <path d="M 12 49 C 30 45, 60 40, 95 32" fill="none" stroke="#10b981" strokeWidth="1.8" />
+              <path d="M 12 49 C 30 40, 60 20, 95 5" fill="none" stroke="#f59e0b" strokeWidth="1.8" />
+
+              <text x="12" y="55" fill="var(--text-faint)" fontSize="2.2" textAnchor="middle">0h</text>
+              <text x="53.5" y="55" fill="var(--text-faint)" fontSize="2.2" textAnchor="middle">5h</text>
+              <text x="95" y="55" fill="var(--text-faint)" fontSize="2.2" textAnchor="middle">10h</text>
+              <text x="6" y="8" fill="var(--text-faint)" fontSize="2.2" textAnchor="start" transform="rotate(-90 6 8)">Spoilage Cost →</text>
+            </svg>
+          </div>
+          
+          <div style={{ padding: '0.75rem', background: 'rgba(255,255,255,0.02)', borderRadius: '6px', border: '1px solid rgba(255,255,255,0.04)', marginBottom: '1rem' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem', fontSize: '0.85rem' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr 1fr 1fr', color: 'var(--text-muted)', fontWeight: 700, borderBottom: '1px solid rgba(255,255,255,0.05)', paddingBottom: '0.25rem' }}>
+                <span>Transit</span>
+                <span style={{ color: '#38bdf8' }}>Frozen</span>
+                <span style={{ color: '#10b981' }}>Chilled</span>
+                <span style={{ color: '#f59e0b' }}>Ambient</span>
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr 1fr 1fr', borderBottom: '1px solid rgba(255,255,255,0.02)', paddingBottom: '0.2rem' }}>
+                <span style={{ color: 'var(--text-secondary)' }}>2 Hours</span>
+                <span>Rs 2.0</span>
+                <span>Rs 12.0</span>
+                <span>Rs 20.0</span>
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr 1fr 1fr', borderBottom: '1px solid rgba(255,255,255,0.02)', paddingBottom: '0.2rem' }}>
+                <span style={{ color: 'var(--text-secondary)' }}>5 Hours</span>
+                <span>Rs 5.0</span>
+                <span>Rs 30.0</span>
+                <span>Rs 50.0</span>
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr 1fr 1fr' }}>
+                <span style={{ color: 'var(--text-secondary)' }}>10 Hours</span>
+                <span>Rs 10.0</span>
+                <span>Rs 60.0</span>
+                <span>Rs 100.0</span>
+              </div>
+            </div>
+          </div>
+          
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem', fontSize: '0.88rem', color: 'var(--text-secondary)' }}>
+            {[
+              { color: '#38bdf8', label: 'Frozen (mRNA)', text: 'Degrades very slowly (low alpha). Safe for long trips, but value is extremely high.' },
+              { color: '#10b981', label: 'Chilled (Standard)', text: 'Loss accumulates linearly. Must balance stop order with distance.' },
+              { color: '#f59e0b', label: 'Ambient (Oral)', text: 'Fast decay (alpha=0.05). Must be delivered first to prevent complete spoilage.' }
+            ].map(({ color, label, text }) => (
+              <div key={label} style={{ display: 'flex', gap: '0.6rem', padding: '0.5rem 0.75rem', borderRadius: '6px', background: 'rgba(255,255,255,0.02)', border: `1px solid ${color}22` }}>
+                <div style={{ fontWeight: 700, color, minWidth: '120px' }}>{label}:</div>
+                <div style={{ color: 'var(--text-secondary)', lineHeight: '1.5' }}>{text}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+
         {/* Hybrid Pipeline Workflow */}
         <div className="card glass-panel" style={{ padding: '1.5rem' }}>
           <h3 style={{ margin: '0 0 0.5rem 0', fontSize: '1.35rem', color: '#fff', fontWeight: 700 }}>
@@ -247,214 +439,12 @@ export default function ExplainerTab({ activeTab }) {
           </div>
         </div>
 
-      </div>
-
-      {/* RIGHT COLUMN: Visual Charts & Roadmap */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-        
-        {/* Spoilage Physics Curves Chart */}
-        <div className="card glass-panel" style={{ padding: '1.25rem' }}>
-          <h3 style={{ margin: '0 0 0.5rem 0', fontSize: '1.05rem', color: '#fff', fontWeight: 700 }}>
-            Spoilage Physics Curves
-          </h3>
-          <p style={{ color: 'var(--text-secondary)', fontSize: '0.92rem', lineHeight: '1.5', marginBottom: '1rem' }}>
-            Perishable decay over delivery transit hours. Ambient products spoil rapidly; Chilled vaccines lose value linearly; Frozen vaccines decay very slowly.
-          </p>
-
-          <div style={{ position: 'relative', marginBottom: '1rem' }}>
-            <svg viewBox="0 0 100 60" style={{ width: '100%', height: 'auto', background: 'rgba(0,0,0,0.2)', borderRadius: '6px', border: '1px solid rgba(255,255,255,0.04)' }}>
-              <line x1="12" y1="5" x2="12" y2="50" stroke="rgba(255,255,255,0.07)" strokeWidth="0.5" />
-              <line x1="12" y1="50" x2="95" y2="50" stroke="rgba(255,255,255,0.07)" strokeWidth="0.5" />
-              <line x1="12" y1="27.5" x2="95" y2="27.5" stroke="rgba(255,255,255,0.03)" strokeWidth="0.3" strokeDasharray="1 1" />
-              
-              <path d="M 12 49 C 30 48.8, 60 48.5, 95 48" fill="none" stroke="#38bdf8" strokeWidth="1.8" />
-              <path d="M 12 49 C 30 45, 60 40, 95 32" fill="none" stroke="#10b981" strokeWidth="1.8" />
-              <path d="M 12 49 C 30 40, 60 20, 95 5" fill="none" stroke="#f59e0b" strokeWidth="1.8" />
-
-              <text x="12" y="55" fill="var(--text-faint)" fontSize="3.2" textAnchor="middle">0h</text>
-              <text x="53.5" y="55" fill="var(--text-faint)" fontSize="3.2" textAnchor="middle">5h</text>
-              <text x="95" y="55" fill="var(--text-faint)" fontSize="3.2" textAnchor="middle">10h</text>
-              <text x="6" y="8" fill="var(--text-faint)" fontSize="3.2" textAnchor="start" transform="rotate(-90 6 8)">Spoilage Cost →</text>
-            </svg>
-          </div>
-          
-          <div style={{ padding: '0.75rem', background: 'rgba(255,255,255,0.02)', borderRadius: '6px', border: '1px solid rgba(255,255,255,0.04)', marginBottom: '1rem' }}>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem', fontSize: '0.85rem' }}>
-              <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr 1fr 1fr', color: 'var(--text-muted)', fontWeight: 700, borderBottom: '1px solid rgba(255,255,255,0.05)', paddingBottom: '0.25rem' }}>
-                <span>Transit</span>
-                <span style={{ color: '#38bdf8' }}>Frozen</span>
-                <span style={{ color: '#10b981' }}>Chilled</span>
-                <span style={{ color: '#f59e0b' }}>Ambient</span>
-              </div>
-              <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr 1fr 1fr', borderBottom: '1px solid rgba(255,255,255,0.02)', paddingBottom: '0.2rem' }}>
-                <span style={{ color: 'var(--text-secondary)' }}>2 Hours</span>
-                <span>Rs 2.0</span>
-                <span>Rs 12.0</span>
-                <span>Rs 20.0</span>
-              </div>
-              <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr 1fr 1fr', borderBottom: '1px solid rgba(255,255,255,0.02)', paddingBottom: '0.2rem' }}>
-                <span style={{ color: 'var(--text-secondary)' }}>5 Hours</span>
-                <span>Rs 5.0</span>
-                <span>Rs 30.0</span>
-                <span>Rs 50.0</span>
-              </div>
-              <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr 1fr 1fr' }}>
-                <span style={{ color: 'var(--text-secondary)' }}>10 Hours</span>
-                <span>Rs 10.0</span>
-                <span>Rs 60.0</span>
-                <span>Rs 100.0</span>
-              </div>
-            </div>
-          </div>
-          
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem', fontSize: '0.88rem', color: 'var(--text-secondary)' }}>
-            {[
-              { color: '#38bdf8', label: 'Frozen (mRNA)', text: 'Degrades very slowly (low alpha). Safe for long trips, but value is extremely high.' },
-              { color: '#10b981', label: 'Chilled (Standard)', text: 'Loss accumulates linearly. Must balance stop order with distance.' },
-              { color: '#f59e0b', label: 'Ambient (Oral)', text: 'Fast decay (alpha=0.05). Must be delivered first to prevent complete spoilage.' }
-            ].map(({ color, label, text }) => (
-              <div key={label} style={{ display: 'flex', gap: '0.6rem', padding: '0.5rem 0.75rem', borderRadius: '6px', background: 'rgba(255,255,255,0.02)', border: `1px solid ${color}22` }}>
-                <div style={{ fontWeight: 700, color, minWidth: '120px' }}>{label}:</div>
-                <div style={{ color: 'var(--text-secondary)', lineHeight: '1.5' }}>{text}</div>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Physical Qubit Scaling Complexity */}
-        <div className="card glass-panel" style={{ padding: '1.25rem' }}>
-          <h3 style={{ margin: '0 0 0.5rem 0', fontSize: '1.05rem', color: '#fff', fontWeight: 700 }}>
-            Physical Qubit Scaling Complexity
-          </h3>
-          <p style={{ color: 'var(--text-secondary)', fontSize: '0.92rem', lineHeight: '1.5', marginBottom: '1rem' }}>
-            VRP Hamiltonians scale quadratically (N² qubits). Our hybrid sub-clustering bounds quantum resource complexity to safe simulator thresholds.
-          </p>
-
-          <div style={{ position: 'relative', marginBottom: '1rem' }}>
-            <svg viewBox="0 0 100 60" style={{ width: '100%', height: 'auto', background: 'rgba(0,0,0,0.2)', borderRadius: '6px', border: '1px solid rgba(255,255,255,0.04)' }}>
-              <line x1="12" y1="5" x2="12" y2="50" stroke="rgba(255,255,255,0.07)" strokeWidth="0.5" />
-              <line x1="12" y1="50" x2="95" y2="50" stroke="rgba(255,255,255,0.07)" strokeWidth="0.5" />
-              <line x1="12" y1="42" x2="95" y2="42" stroke="#ef4444" strokeWidth="0.5" strokeDasharray="1 1" />
-              <text x="94" y="40" fill="#ef4444" fontSize="3" textAnchor="end">Local Simulator Safe Limit (16 Qubits)</text>
-              
-              {sizes.map((s, idx) => {
-                const x = 18 + (idx * 11);
-                const directY = 50 - (directQubits[idx] * 0.45);
-                const subY = 50 - (subClusterQubits[idx] * 0.45);
-
-                return (
-                  <g key={s}>
-                    <circle cx={x} cy={directY} r="1.2" fill="#ef4444" />
-                    <circle cx={x} cy={subY} r="1.2" fill="#10b981" />
-                    
-                    {idx < sizes.length - 1 && (
-                      <>
-                        <line
-                          x1={x}
-                          y1={directY}
-                          x2={18 + ((idx + 1) * 11)}
-                          y2={50 - (directQubits[idx + 1] * 0.45)}
-                          stroke="#ef4444"
-                          strokeWidth="1.2"
-                        />
-                        <line
-                          x1={x}
-                          y1={subY}
-                          x2={18 + ((idx + 1) * 11)}
-                          y2={50 - (subClusterQubits[idx + 1] * 0.45)}
-                          stroke="#10b981"
-                          strokeWidth="1.2"
-                        />
-                      </>
-                    )}
-                  </g>
-                );
-              })}
-
-              {sizes.map((s, idx) => (
-                <text key={s} x={18 + (idx * 11)} y="55" fill="var(--text-faint)" fontSize="3.2" textAnchor="middle">{s}n</text>
-              ))}
-              <text x="6" y="8" fill="var(--text-faint)" fontSize="3.2" textAnchor="start" transform="rotate(-90 6 8)">Qubits Required →</text>
-            </svg>
-          </div>
-          
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem', fontSize: '0.88rem', color: 'var(--text-secondary)' }}>
-            <div style={{ padding: '0.5rem 0.75rem', borderRadius: '6px', background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(239,68,68,0.2)' }}>
-              <strong style={{ color: '#ef4444', display: 'block', marginBottom: '2px' }}>Direct approach (Red line):</strong>
-              Running a whole route together scales exponentially. 10 clinics require 100 qubits—unsimulatable on local laptops.
-            </div>
-            <div style={{ padding: '0.5rem 0.75rem', borderRadius: '6px', background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(16,185,129,0.2)' }}>
-              <strong style={{ color: '#10b981', display: 'block', marginBottom: '2px' }}>Hybrid approach (Green line):</strong>
-              Splits routes into small sub-clusters. Qubit cost stays constant at 9 or 16 qubits, regardless of global VRP scale.
-            </div>
-          </div>
-        </div>
-
-        {/* Core Novel Contributions */}
-        <div className="card glass-panel" style={{ padding: '1.5rem' }}>
-          <h3 style={{ margin: '0 0 0.5rem 0', fontSize: '1.15rem', color: '#fff', fontWeight: 700 }}>
-            Core Novel Contributions
-          </h3>
-          <p style={{ color: 'var(--text-secondary)', fontSize: '0.95rem', marginBottom: '1.25rem', lineHeight: '1.5' }}>
-            Our hybrid design introduces three primary contributions to cold-chain quantum optimization:
-          </p>
-
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-            {[
-              {
-                num: '01',
-                title: 'Spoilage Physics in Quantum Hamiltonian',
-                body: 'Encodes decay equations directly as a Hamiltonian optimization term, making the solver minimize actual product value loss rather than just distance.'
-              },
-              {
-                num: '02',
-                title: 'Cap-Bounded Multi-Trip Fleet Clustering',
-                body: 'Groups clinics using temporal time window penatlies, and uses a classical first-fit bin packer to split large clusters into feasible refrigerator trips.'
-              },
-              {
-                num: '03',
-                title: 'Weighted Consensus Stitching',
-                body: 'Merges overlapping sub-routes by voting, giving 3x higher weight to pristine quantum routes and 1x to classically repaired ones.'
-              }
-            ].map(({ num, title, body }) => (
-              <div key={num} style={{
-                display: 'flex',
-                gap: '1rem',
-                alignItems: 'flex-start',
-                padding: '0.8rem 1rem',
-                borderRadius: '8px',
-                background: 'rgba(255,255,255,0.03)',
-                border: '1px solid rgba(255,255,255,0.06)'
-              }}>
-                <span style={{
-                  flexShrink: 0,
-                  width: '2.5rem',
-                  height: '2.5rem',
-                  borderRadius: '6px',
-                  background: 'rgba(255,255,255,0.06)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  fontSize: '0.95rem',
-                  fontWeight: 700,
-                  color: 'rgba(255,255,255,0.45)',
-                  fontFamily: 'var(--font-mono)'
-                }}>{num}</span>
-                <div>
-                  <div style={{ fontWeight: 700, fontSize: '1rem', color: 'var(--text)', marginBottom: '0.3rem' }}>{title}</div>
-                  <p style={{ margin: 0, fontSize: '0.92rem', color: 'var(--text-secondary)', lineHeight: '1.5' }}>{body}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-
         {/* Quantum Advantage & Scalability Roadmap */}
         <div className="card glass-panel" style={{ padding: '1.5rem' }}>
-          <h3 style={{ margin: '0 0 0.5rem 0', fontSize: '1.15rem', color: '#fff', fontWeight: 700 }}>
+          <h3 style={{ margin: '0 0 0.5rem 0', fontSize: '1.35rem', color: '#fff', fontWeight: 700 }}>
             Quantum Advantage & Scalability Roadmap
           </h3>
-          <p style={{ color: 'var(--text-secondary)', fontSize: '0.95rem', marginBottom: '1.25rem', lineHeight: '1.5' }}>
+          <p style={{ color: 'var(--text-secondary)', fontSize: '1.05rem', marginBottom: '1.25rem', lineHeight: '1.5' }}>
             How our hybrid coprocessor outperforms pure classical solvers:
           </p>
 
@@ -475,20 +465,6 @@ export default function ExplainerTab({ activeTab }) {
               <p style={{ margin: 0, color: 'var(--text-secondary)', lineHeight: '1.6' }}>
                 Classical heuristics (ALNS) get trapped in poor local solutions. QAOA uses superposition to navigate complex routing options globally, providing an optimized starting route backbone.
               </p>
-            </div>
-
-            <div style={{ 
-              marginTop: '0.25rem',
-              padding: '0.9rem 1.1rem', 
-              borderRadius: '6px', 
-              background: 'rgba(16, 185, 129, 0.04)', 
-              border: '1px solid rgba(16, 185, 129, 0.15)', 
-              fontSize: '0.88rem', 
-              color: '#a7f3d0',
-              lineHeight: '1.5'
-            }}>
-              <strong style={{ display: 'block', marginBottom: '2px', color: '#10b981' }}>💡 Hackathon Pitch Defense:</strong>
-              "In the NISQ era, we achieve a linear execution scaling advantage. In the future Fault-Tolerant era, the QAOA engine will exploit quantum tunneling to solve massive routes in parallel—delivering true global cost supremacy."
             </div>
           </div>
         </div>
