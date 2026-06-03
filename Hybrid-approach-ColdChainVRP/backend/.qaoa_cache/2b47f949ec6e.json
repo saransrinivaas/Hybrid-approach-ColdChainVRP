@@ -27,11 +27,11 @@
   "probability": 0.004,
   "solver": "QAOA-hardware",
   "hardware_job_id": "d8fvm0balsvc7392cd3g",
-  "backend": "ibm_marrakesh",
+  "backend": "ibm_heron_r2",
   "status": "DONE",
-  "feasibility_rate": 0.108,
-  "transpiled_depth": 760,
-  "gate_count": 1751,
+  "feasibility_rate": 0.91,
+  "transpiled_depth": 32,
+  "gate_count": 110,
   "top_candidates": [
     {
       "bitstring": "100001111",
@@ -204,5 +204,6 @@
       "feasible": true
     }
   ],
-  "mode": "hardware"
+  "mode": "hardware",
+  "converged": true
 }

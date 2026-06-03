@@ -1,28 +1,94 @@
 import functools
 import numpy as np
+import threading
+import sys
+import types
 
 try:
     import scenario_dynamic as scenario
 except ImportError:
     import scenario
 
-CLINICS = scenario.CLINICS
-DEPOT = scenario.DEPOT
-DISTANCE_MATRIX = scenario.DISTANCE_MATRIX
-DEMANDS = scenario.DEMANDS
-SPOILAGE = scenario.SPOILAGE
-AVG_SPEED_KMH = scenario.AVG_SPEED_KMH
-
 import temp_preprocessing
-CAPACITY = temp_preprocessing.CAPACITY
 
+_local = threading.local()
 
-# ─────────────────────────────────────────
-# CONSTANTS
-# ─────────────────────────────────────────
-AVG_SPEED   = AVG_SPEED_KMH  # alias kept for readability
-DEPOT_ID    = 0
-ALL_CLINICS = [c["id"] for c in CLINICS]  # derived from scenario, not hardcoded
+class LocalProxy:
+    def __init__(self, name, default_factory):
+        self._name = name
+        self._default_factory = default_factory
+
+    def _get_current_object(self):
+        if not hasattr(_local, self._name):
+            setattr(_local, self._name, self._default_factory())
+        return getattr(_local, self._name)
+
+    def __getitem__(self, key):
+        return self._get_current_object()[key]
+
+    def __setitem__(self, key, value):
+        self._get_current_object()[key] = value
+
+    def __len__(self):
+        return len(self._get_current_object())
+
+    def __iter__(self):
+        return iter(self._get_current_object())
+
+    def __contains__(self, item):
+        return item in self._get_current_object()
+
+    def __getattr__(self, name):
+        return getattr(self._get_current_object(), name)
+
+    def __truediv__(self, other):
+        return self._get_current_object() / other
+
+    def __rtruediv__(self, other):
+        return other / self._get_current_object()
+
+    def __add__(self, other):
+        return self._get_current_object() + other
+
+    def __radd__(self, other):
+        return other + self._get_current_object()
+
+    def __mul__(self, other):
+        return self._get_current_object() * other
+
+    def __rmul__(self, other):
+        return other * self._get_current_object()
+
+    def __str__(self):
+        return str(self._get_current_object())
+
+    def __repr__(self):
+        return repr(self._get_current_object())
+
+class _StitchingRepairModule(types.ModuleType):
+    def __setattr__(self, name, value):
+        if name in ["CLINICS", "DEPOT", "DISTANCE_MATRIX", "DEMANDS", "SPOILAGE", "AVG_SPEED_KMH", "AVG_SPEED", "CAPACITY", "ALL_CLINICS"]:
+            setattr(_local, name, value)
+            if name == "AVG_SPEED_KMH":
+                setattr(_local, "AVG_SPEED", value)
+        else:
+            super().__setattr__(name, value)
+
+# Set the module's class to the custom class
+sys.modules[__name__].__class__ = _StitchingRepairModule
+
+# Initialize proxies in the module namespace
+CLINICS = LocalProxy("CLINICS", lambda: scenario.CLINICS)
+DEPOT = LocalProxy("DEPOT", lambda: scenario.DEPOT)
+DISTANCE_MATRIX = LocalProxy("DISTANCE_MATRIX", lambda: scenario.DISTANCE_MATRIX)
+DEMANDS = LocalProxy("DEMANDS", lambda: scenario.DEMANDS)
+SPOILAGE = LocalProxy("SPOILAGE", lambda: scenario.SPOILAGE)
+AVG_SPEED_KMH = LocalProxy("AVG_SPEED_KMH", lambda: scenario.AVG_SPEED_KMH)
+CAPACITY = LocalProxy("CAPACITY", lambda: temp_preprocessing.CAPACITY)
+AVG_SPEED = LocalProxy("AVG_SPEED", lambda: scenario.AVG_SPEED_KMH)
+ALL_CLINICS = LocalProxy("ALL_CLINICS", lambda: [c["id"] for c in scenario.CLINICS])
+
+DEPOT_ID = 0
 
 # ─────────────────────────────────────────
 # HELPERS

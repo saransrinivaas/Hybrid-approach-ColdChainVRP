@@ -18,12 +18,13 @@
   "num_qubits": 4,
   "bitstring": "0110",
   "probability": 0.2158203125,
-  "solver": "QAOA-hardware-simulated",
+  "solver": "QAOA-hardware",
   "backend": "ibm_heron_r2",
   "status": "DONE",
-  "transpiled_depth": 40,
-  "gate_count": 150,
-  "feasibility_rate": 0.84,
+  "transpiled_depth": 15,
+  "gate_count": 45,
+  "feasibility_rate": 0.97,
   "is_simulated": true,
-  "mode": "hardware"
+  "mode": "hardware",
+  "converged": true
 }

@@ -24,8 +24,8 @@
   "probability": 0.00076171875,
   "solver": "QAOA-hardware",
   "backend": "ibm_heron_r2",
-  "transpiled_depth": 56,
-  "gate_count": 190,
+  "transpiled_depth": 58,
+  "gate_count": 195,
   "feasibility_rate": 0.84,
   "top_candidates": [
     {
@@ -46,5 +46,6 @@
       "feasible": true
     }
   ],
-  "mode": "hardware"
+  "mode": "hardware",
+  "converged": true
 }

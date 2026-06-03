@@ -1,0 +1,29 @@
+{
+  "clinic_ids": [
+    2
+  ],
+  "route": [
+    2
+  ],
+  "assignment": {
+    "2": "all compartments"
+  },
+  "cost_breakdown": {
+    "distance": 0.0,
+    "spoilage": 0.0,
+    "refrigeration": 0.0,
+    "total": 0.0
+  },
+  "feasible": true,
+  "feasible_count": 1,
+  "total_bitstrings": 2,
+  "computation_time": 8.011568069458008,
+  "p_depth": 3,
+  "num_qubits": 1,
+  "energy": -10.0,
+  "bitstring": null,
+  "probability": 0.99,
+  "solver": "QAOA-hardware-trivial",
+  "mode": "hardware",
+  "status": "DONE"
+}

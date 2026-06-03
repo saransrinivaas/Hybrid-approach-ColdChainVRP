@@ -5,10 +5,46 @@ import itertools
 import numpy as np
 from sklearn.cluster import AgglomerativeClustering
 
+import threading
+import sys
+import types
+
+_local = threading.local()
+
 try:
-    import scenario_dynamic as _default_scenario
+    import scenario_dynamic as _init_scenario
 except ImportError:
-    import scenario as _default_scenario
+    import scenario as _init_scenario
+
+class ScenarioProxy:
+    def _get_current_object(self):
+        if hasattr(_local, "scenario"):
+            return _local.scenario
+        return _init_scenario
+
+    def __getattr__(self, name):
+        return getattr(self._get_current_object(), name)
+
+    def __setattr__(self, name, value):
+        setattr(self._get_current_object(), name, value)
+
+    def __str__(self):
+        return str(self._get_current_object())
+
+    def __repr__(self):
+        return repr(self._get_current_object())
+
+class _ClusteringModule(types.ModuleType):
+    def __setattr__(self, name, value):
+        if name == "_default_scenario":
+            _local.scenario = value
+        else:
+            super().__setattr__(name, value)
+
+# Set the module's class to the custom class
+sys.modules[__name__].__class__ = _ClusteringModule
+
+_default_scenario = ScenarioProxy(_init_scenario)
 
 from temp_preprocessing import (
     CAPACITY as _DEFAULT_CAPACITY,
