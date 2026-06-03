@@ -159,7 +159,7 @@ def _save_computed_state_to_disk():
                         'fleet_spoilage':      q_data.get('fleet_spoilage'),
                         'fleet_refrigeration': q_data.get('fleet_refrigeration', 0.0),
                         'fleet_total_cost':    q_data.get('fleet_total_cost'),
-                        'total_time': pipe_data.get('total_time', 0.0),
+                        'total_time': q_data.get('total_time') or pipe_data.get('total_time', 0.0),
                         'status': 'ok',
                     }
                 else:
@@ -648,6 +648,7 @@ def _start_ilp_background():
                             print(f'[ILP Background] Running PuLP for {key}...')
                             COMPUTED_STATE[f'compare_pulp_{key}'] = run_solver_with_relaxed_fallback(_pulp.solve_scenario, sc)
                             print(f'[ILP Background] PuLP {key} done: {COMPUTED_STATE[f"compare_pulp_{key}"].get("status")}')
+                            _save_computed_state_to_disk()
                 except Exception as e:
                     print(f'[ILP Background] PuLP error: {e}')
             else:
@@ -661,6 +662,7 @@ def _start_ilp_background():
                     if COMPUTED_STATE.get(f'compare_gurobi_{key}') is None:
                         print(f'[ILP Background] Running Gurobi for {key}...')
                         COMPUTED_STATE[f'compare_gurobi_{key}'] = run_solver_with_relaxed_fallback(_gurobi.solve_scenario, sc)
+                        _save_computed_state_to_disk()
             except Exception as e:
                 print(f'[ILP Background] Gurobi not available or failed: {e}')
 
@@ -834,6 +836,9 @@ def compare_results():
             print(f"[compare-results] Inline evaluation error: {e}")
             import traceback; traceback.print_exc()
 
+    # Always try to kick off ILP background solvers if they haven't completed or started yet
+    _start_ilp_background()
+
     payload = {
         "easy":  {
             "classical": cl_easy,
@@ -890,7 +895,7 @@ def compare_results():
                 'fleet_spoilage':      q_data.get('fleet_spoilage'),
                 'fleet_refrigeration': q_data.get('fleet_refrigeration', 0.0),
                 'fleet_total_cost':    q_data.get('fleet_total_cost'),
-                'total_time': pipe_qaoa.get('total_time', 0.0),
+                'total_time': q_data.get('total_time') or pipe_qaoa.get('total_time', 0.0),
                 'status': 'ok',
             }
             payload["easy"]["qaoa"] = enrich_solver_result(qaoa_payload, _SC1_check)

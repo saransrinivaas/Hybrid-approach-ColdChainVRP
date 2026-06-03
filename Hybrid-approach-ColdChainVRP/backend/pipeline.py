@@ -320,9 +320,13 @@ if __name__ == "__main__":
         # Patch temp_preprocessing
         _tp.CAPACITY = capacity
 
+        import time
+        qaoa_start = time.time()
         vehicle_routes, gen_sc  = run_clustering(sc_ext=sc_ext)
         qaoa_results            = run_qaoa(vehicle_routes, gen_sc)
         final                   = run_stitching(qaoa_results, sc_ext=sc_ext)
+        qaoa_time               = round(time.time() - qaoa_start, 4)
+        final["total_time"]     = qaoa_time
 
         print("\n" + "=" * 55)
         print("  STEP 4 - CLASSICAL BASELINE (FOR COMPARISON)")
