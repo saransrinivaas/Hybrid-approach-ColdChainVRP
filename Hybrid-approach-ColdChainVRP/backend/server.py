@@ -466,9 +466,12 @@ def enrich_solver_result(result: dict, sc_module) -> dict:
     if not result or not result.get("routes"):
         return result
         
-    dm = sc_module.DISTANCE_MATRIX
-    tw = sc_module.TIME_WINDOWS
-    demands = sc_module.DEMANDS
+    if hasattr(sc_module, 'split_map'):
+        sc_ext = sc_module
+    else:
+        from node_splitting import apply_node_splitting
+        sc_ext = apply_node_splitting(sc_module)
+
     vehicles = {v["id"]: v for v in sc_module.VEHICLES}
     avg_speed = sc_module.AVG_SPEED_KMH
     
@@ -485,10 +488,16 @@ def enrich_solver_result(result: dict, sc_module) -> dict:
         veh_cap_feasible = True
         
         # Get vehicle info. Fallback to first vehicle if vid not found.
-        v_info = vehicles.get(vid, sc_module.VEHICLES[0])
+        base_vid = str(vid).split('_')[0]
+        v_info = vehicles.get(base_vid, sc_module.VEHICLES[0])
         
         for temp in ("frozen", "chilled", "ambient"):
-            used = sum(demands.get(cid, {}).get(temp, 0) for cid in inner)
+            used = 0
+            for cid in inner:
+                if cid in sc_ext.DEMANDS:
+                    used += sc_ext.DEMANDS[cid].get(temp, 0)
+                else:
+                    used += sc_module.DEMANDS.get(cid, {}).get(temp, 0)
             cap = v_info["compartments"][temp]["capacity"]
             cap_check[temp] = {"used": used, "cap": cap}
             if used > cap:
@@ -501,20 +510,29 @@ def enrich_solver_result(result: dict, sc_module) -> dict:
             prev, curr = route[i-1], route[i]
             dist = 0.0
             try:
-                if hasattr(dm, "shape"):
-                    if 0 <= prev < dm.shape[0] and 0 <= curr < dm.shape[1]:
-                        dist = float(dm[prev][curr])
-                elif hasattr(dm, "get"):
-                    dist = float(dm.get(prev, {}).get(curr, 0))
+                ext_dm = sc_ext.DISTANCE_MATRIX
+                if 0 <= prev < ext_dm.shape[0] and 0 <= curr < ext_dm.shape[1]:
+                    dist = float(ext_dm[prev][curr])
                 else:
-                    if 0 <= prev < len(dm) and 0 <= curr < len(dm[prev]):
-                        dist = float(dm[prev][curr])
+                    orig_dm = sc_module.DISTANCE_MATRIX
+                    if hasattr(orig_dm, "shape"):
+                        if 0 <= prev < orig_dm.shape[0] and 0 <= curr < orig_dm.shape[1]:
+                            dist = float(orig_dm[prev][curr])
+                    elif hasattr(orig_dm, "get"):
+                        dist = float(orig_dm.get(prev, {}).get(curr, 0))
+                    else:
+                        if 0 <= prev < len(orig_dm) and 0 <= curr < len(orig_dm[prev]):
+                            dist = float(orig_dm[prev][curr])
             except Exception:
                 dist = 0.0
             travel_time = dist / max(avg_speed, 1)
             current_time += travel_time
             if curr != 0:
-                tw_entry = tw.get(curr)
+                tw_entry = None
+                if curr in sc_ext.TIME_WINDOWS:
+                    tw_entry = sc_ext.TIME_WINDOWS[curr]
+                else:
+                    tw_entry = sc_module.TIME_WINDOWS.get(curr)
                 if tw_entry:
                     open_h, close_h = tw_entry
                     if current_time > close_h:

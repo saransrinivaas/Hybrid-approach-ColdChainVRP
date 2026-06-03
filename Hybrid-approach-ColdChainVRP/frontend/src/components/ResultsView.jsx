@@ -671,7 +671,6 @@ const SOLVER_OPTIONS = [
   { id: 'classical', label: 'Classical' },
   { id: 'alns',      label: 'ALNS' },
   { id: 'ortools',   label: 'OR-Tools' },
-  { id: 'gurobi',    label: 'Gurobi' },
   { id: 'pulp_cbc',  label: 'PuLP/CBC' },
   { id: 'qaoa',      label: 'Hybrid QAOA' },
 ];
@@ -682,7 +681,6 @@ function Step5Comparison({ results, compareResults, config, scenarioMeta, onRefr
   const cl = sc?.classical || results?.classical;
   const alns = sc?.alns;
   const ort = sc?.ortools;
-  const gur = sc?.gurobi;
   const pulp = sc?.pulp_cbc;
   const qa = sc?.qaoa || results?.qaoa;
 
@@ -790,7 +788,6 @@ function Step5Comparison({ results, compareResults, config, scenarioMeta, onRefr
   const clStats = getConstraintStats(cl);
   const alnsStats = getConstraintStats(alns);
   const ortStats = getConstraintStats(ort);
-  const gurStats = getConstraintStats(gur);
   const pulpStats = getConstraintStats(pulp);
   const qaStats = qaAvailable ? getConstraintStats(qa) : null;
 
@@ -809,7 +806,6 @@ function Step5Comparison({ results, compareResults, config, scenarioMeta, onRefr
     const clVal  = toFiniteNumber(cl?.[key]);
     const alnsVal = toFiniteNumber(alns?.[key]);
     const ortVal  = toFiniteNumber(ort?.[key]);
-    const gurVal  = toFiniteNumber(gur?.[key]);
     const pulpVal = toFiniteNumber(pulp?.[key]);
     const qaVal   = qaAvailable ? toFiniteNumber(qaM?.[key]) : null;
 
@@ -817,7 +813,6 @@ function Step5Comparison({ results, compareResults, config, scenarioMeta, onRefr
       { id: 'classical', val: clVal,  obj: cl   },
       { id: 'alns',      val: alnsVal, obj: alns  },
       { id: 'ortools',   val: ortVal,  obj: ort   },
-      { id: 'gurobi',    val: gurVal,  obj: gur   },
       { id: 'pulp',      val: pulpVal, obj: pulp  },
       { id: 'qaoa',      val: qaVal,   obj: qa    },
     ];
@@ -982,7 +977,6 @@ function Step5Comparison({ results, compareResults, config, scenarioMeta, onRefr
                 <th style={{ textAlign: 'left', padding: '0.5rem', color: 'var(--solver-classical)' }}>Classical</th>
                 <th style={{ textAlign: 'left', padding: '0.5rem', color: 'var(--solver-alns)' }}>ALNS</th>
                 <th style={{ textAlign: 'left', padding: '0.5rem', color: 'var(--solver-ortools)' }}>OR-Tools</th>
-                <th style={{ textAlign: 'left', padding: '0.5rem', color: 'var(--solver-gurobi)' }}>Gurobi</th>
                 <th style={{ textAlign: 'left', padding: '0.5rem', color: 'var(--solver-pulp)' }}>PuLP/CBC</th>
                 <th style={{ textAlign: 'left', padding: '0.5rem', color: 'var(--solver-qaoa)' }}>Hybrid QAOA</th>
               </tr>
@@ -1014,7 +1008,7 @@ function Step5Comparison({ results, compareResults, config, scenarioMeta, onRefr
         {compareResults?.ilp_computing && (
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem', marginTop: '0.85rem', color: 'var(--solver-qaoa)', fontSize: '0.72rem' }}>
             <Activity className="spin" size={12} />
-            <span>Asynchronous ILP solvers (Gurobi & PuLP) are still solving in the background...</span>
+            <span>Asynchronous ILP solver (PuLP) is still solving in the background...</span>
           </div>
         )}
       </div>
@@ -1032,7 +1026,6 @@ function Step5Comparison({ results, compareResults, config, scenarioMeta, onRefr
                 <th style={{ textAlign: 'left', padding: '0.5rem', color: 'var(--solver-classical)' }}>Classical</th>
                 <th style={{ textAlign: 'left', padding: '0.5rem', color: 'var(--solver-alns)' }}>ALNS</th>
                 <th style={{ textAlign: 'left', padding: '0.5rem', color: 'var(--solver-ortools)' }}>OR-Tools</th>
-                <th style={{ textAlign: 'left', padding: '0.5rem', color: 'var(--solver-gurobi)' }}>Gurobi</th>
                 <th style={{ textAlign: 'left', padding: '0.5rem', color: 'var(--solver-pulp)' }}>PuLP/CBC</th>
                 <th style={{ textAlign: 'left', padding: '0.5rem', color: 'var(--solver-qaoa)' }}>Hybrid QAOA</th>
               </tr>
@@ -1043,7 +1036,6 @@ function Step5Comparison({ results, compareResults, config, scenarioMeta, onRefr
                 <td style={{ padding: '0.55rem 0.5rem' }}>{renderStatus(clStats, 'frozen')}</td>
                 <td style={{ padding: '0.55rem 0.5rem' }}>{renderStatus(alnsStats, 'frozen')}</td>
                 <td style={{ padding: '0.55rem 0.5rem' }}>{renderStatus(ortStats, 'frozen')}</td>
-                <td style={{ padding: '0.55rem 0.5rem' }}>{renderStatus(gurStats, 'frozen')}</td>
                 <td style={{ padding: '0.55rem 0.5rem' }}>{renderStatus(pulpStats, 'frozen')}</td>
                 <td style={{ padding: '0.55rem 0.5rem' }}>{renderStatus(qaStats, 'frozen')}</td>
               </tr>
@@ -1052,7 +1044,6 @@ function Step5Comparison({ results, compareResults, config, scenarioMeta, onRefr
                 <td style={{ padding: '0.55rem 0.5rem' }}>{renderStatus(clStats, 'chilled')}</td>
                 <td style={{ padding: '0.55rem 0.5rem' }}>{renderStatus(alnsStats, 'chilled')}</td>
                 <td style={{ padding: '0.55rem 0.5rem' }}>{renderStatus(ortStats, 'chilled')}</td>
-                <td style={{ padding: '0.55rem 0.5rem' }}>{renderStatus(gurStats, 'chilled')}</td>
                 <td style={{ padding: '0.55rem 0.5rem' }}>{renderStatus(pulpStats, 'chilled')}</td>
                 <td style={{ padding: '0.55rem 0.5rem' }}>{renderStatus(qaStats, 'chilled')}</td>
               </tr>
@@ -1061,7 +1052,6 @@ function Step5Comparison({ results, compareResults, config, scenarioMeta, onRefr
                 <td style={{ padding: '0.55rem 0.5rem' }}>{renderStatus(clStats, 'ambient')}</td>
                 <td style={{ padding: '0.55rem 0.5rem' }}>{renderStatus(alnsStats, 'ambient')}</td>
                 <td style={{ padding: '0.55rem 0.5rem' }}>{renderStatus(ortStats, 'ambient')}</td>
-                <td style={{ padding: '0.55rem 0.5rem' }}>{renderStatus(gurStats, 'ambient')}</td>
                 <td style={{ padding: '0.55rem 0.5rem' }}>{renderStatus(pulpStats, 'ambient')}</td>
                 <td style={{ padding: '0.55rem 0.5rem' }}>{renderStatus(qaStats, 'ambient')}</td>
               </tr>
@@ -1070,7 +1060,6 @@ function Step5Comparison({ results, compareResults, config, scenarioMeta, onRefr
                 <td style={{ padding: '0.55rem 0.5rem' }}>{renderStatus(clStats, 'completeness')}</td>
                 <td style={{ padding: '0.55rem 0.5rem' }}>{renderStatus(alnsStats, 'completeness')}</td>
                 <td style={{ padding: '0.55rem 0.5rem' }}>{renderStatus(ortStats, 'completeness')}</td>
-                <td style={{ padding: '0.55rem 0.5rem' }}>{renderStatus(gurStats, 'completeness')}</td>
                 <td style={{ padding: '0.55rem 0.5rem' }}>{renderStatus(pulpStats, 'completeness')}</td>
                 <td style={{ padding: '0.55rem 0.5rem' }}>{renderStatus(qaStats, 'completeness')}</td>
               </tr>
@@ -1079,7 +1068,6 @@ function Step5Comparison({ results, compareResults, config, scenarioMeta, onRefr
                 <td style={{ padding: '0.55rem 0.5rem' }}>{renderStatus(clStats, 'timewindows')}</td>
                 <td style={{ padding: '0.55rem 0.5rem' }}>{renderStatus(alnsStats, 'timewindows')}</td>
                 <td style={{ padding: '0.55rem 0.5rem' }}>{renderStatus(ortStats, 'timewindows')}</td>
-                <td style={{ padding: '0.55rem 0.5rem' }}>{renderStatus(gurStats, 'timewindows')}</td>
                 <td style={{ padding: '0.55rem 0.5rem' }}>{renderStatus(pulpStats, 'timewindows')}</td>
                 <td style={{ padding: '0.55rem 0.5rem' }}>{renderStatus(qaStats, 'timewindows')}</td>
               </tr>
@@ -1088,7 +1076,6 @@ function Step5Comparison({ results, compareResults, config, scenarioMeta, onRefr
                 <td style={{ padding: '0.55rem 0.5rem' }}>{renderStatus(clStats, 'depot')}</td>
                 <td style={{ padding: '0.55rem 0.5rem' }}>{renderStatus(alnsStats, 'depot')}</td>
                 <td style={{ padding: '0.55rem 0.5rem' }}>{renderStatus(ortStats, 'depot')}</td>
-                <td style={{ padding: '0.55rem 0.5rem' }}>{renderStatus(gurStats, 'depot')}</td>
                 <td style={{ padding: '0.55rem 0.5rem' }}>{renderStatus(pulpStats, 'depot')}</td>
                 <td style={{ padding: '0.55rem 0.5rem' }}>{renderStatus(qaStats, 'depot')}</td>
               </tr>
@@ -1097,7 +1084,6 @@ function Step5Comparison({ results, compareResults, config, scenarioMeta, onRefr
                 <td style={{ padding: '0.55rem 0.5rem' }}>{renderStatus(clStats, 'feasibility')}</td>
                 <td style={{ padding: '0.55rem 0.5rem' }}>{renderStatus(alnsStats, 'feasibility')}</td>
                 <td style={{ padding: '0.55rem 0.5rem' }}>{renderStatus(ortStats, 'feasibility')}</td>
-                <td style={{ padding: '0.55rem 0.5rem' }}>{renderStatus(gurStats, 'feasibility')}</td>
                 <td style={{ padding: '0.55rem 0.5rem' }}>{renderStatus(pulpStats, 'feasibility')}</td>
                 <td style={{ padding: '0.55rem 0.5rem' }}>{renderStatus(qaStats, 'feasibility')}</td>
               </tr>
@@ -1108,7 +1094,7 @@ function Step5Comparison({ results, compareResults, config, scenarioMeta, onRefr
 
       {/* ── Dual Route Map Comparison ─────────────────────────────────────── */}
       {(() => {
-        const solverMap = { classical: cl, alns, ortools: ort, gurobi: gur, pulp_cbc: pulp, qaoa: qa };
+        const solverMap = { classical: cl, alns, ortools: ort, pulp_cbc: pulp, qaoa: qa };
         const depot = scenarioMeta?.easy?.depot || DEPOT;
         const leftResult  = solverMap[leftSolver];
         const rightResult = solverMap[rightSolver];
