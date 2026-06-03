@@ -123,7 +123,7 @@ export default function ExplainerTab({ activeTab }) {
                   style={{
                     padding: '0.6rem 1rem',
                     background: isSelected ? '#ec489925' : 'rgba(255,255,255,0.03)',
-                    color: isSelected ? '#ec4899' : 'var(--text)',
+                    color: isSelected ? '#ffffff' : 'var(--text)',
                     border: '1px solid rgba(255,255,255,0.08)',
                     borderRadius: '6px',
                     cursor: 'pointer',
