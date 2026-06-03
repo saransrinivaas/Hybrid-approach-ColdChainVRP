@@ -532,8 +532,7 @@ function ConstraintVerificationBlock({ classical, alns, ortools, pulp, qaoa, qaA
       borderRadius: '10px',
       padding: '1.1rem 1.2rem'
     }}>
-      <h4 style={{ marginBottom: '0.85rem', fontSize: '0.85rem', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.45rem', color: 'var(--text)' }}>
-        <ShieldAlert size={16} color="var(--accent)" />
+      <h4 style={{ marginBottom: '0.85rem', fontSize: '1.05rem', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.45rem', color: 'var(--text)' }}>
         Physical Constraint Verification Ledger
       </h4>
       <div style={{ overflowX: 'auto' }}>
@@ -910,7 +909,6 @@ export default function CompareTab({ runPipeline, compareActive = true }) {
     return (
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.65rem' }}>
         <h3 style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '0.4rem', color: SOLVERS[active].color }}>
-          {side === 'left' ? <Cpu size={15} /> : <Zap size={15} />}
           {SOLVERS[active].name}
         </h3>
         <select
@@ -1025,8 +1023,7 @@ export default function CompareTab({ runPipeline, compareActive = true }) {
       {cl && (
         <>
           <div key={activeScenario} className="glass-panel" style={{ padding: '1.1rem 1.15rem' }}>
-            <h3 style={{ marginBottom: '0.85rem', fontSize: '0.95rem', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.45rem' }}>
-              <BarChart2 size={16} strokeWidth={2} aria-hidden style={{ opacity: 0.7 }} />
+            <h3 style={{ marginBottom: '0.85rem', fontSize: '1.15rem', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.45rem' }}>
               Solver Comparison Matrix · {scenarioLabel}
             </h3>
 

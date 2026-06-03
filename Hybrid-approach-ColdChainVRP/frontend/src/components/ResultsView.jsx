@@ -170,7 +170,7 @@ function Step1Input({ config }) {
         {/* Vaccines */}
         <div className="glass-panel" style={{ padding: '1rem' }}>
           <h3 style={{ fontSize: '0.85rem', marginBottom: '0.75rem', display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
-            <Zap size={14} style={{ color: 'var(--accent)' }} /> Vaccines
+            Vaccines
           </h3>
           {(config.vaccines || []).map(v => (
             <div key={v.id} className="result-row" style={{ padding: '0.4rem 0', borderBottom: '1px solid var(--border)' }}>
@@ -186,7 +186,7 @@ function Step1Input({ config }) {
         {/* Fleet Capacity vs Total Demand */}
         <div className="glass-panel" style={{ padding: '1rem' }}>
           <h3 style={{ fontSize: '0.85rem', marginBottom: '0.3rem', display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
-            <Truck size={14} style={{ color: 'var(--accent)' }} /> Fleet Capacity vs Demand
+            Fleet Capacity vs Demand
           </h3>
           <p style={{ fontSize: '0.68rem', color: 'var(--text-faint)', margin: '0 0 0.85rem' }}>
             Total across {vehicles.length} vehicle(s). Red = demand exceeds fleet capacity.
@@ -214,7 +214,7 @@ function Step1Input({ config }) {
       {/* Row 2 — Demand per clinic table */}
       <div className="glass-panel" style={{ padding: '1rem' }}>
         <h3 style={{ fontSize: '0.85rem', marginBottom: '0.85rem', display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
-          <MapPin size={14} style={{ color: 'var(--accent)' }} /> Demand per Clinic
+          Demand per Clinic
         </h3>
         <div style={{ overflowX: 'auto' }}>
           <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.77rem' }}>
@@ -319,7 +319,7 @@ function Step2Clustering({ scenarioMeta, config, pipelineHasRun }) {
               <div key={vehicle.vehicleId} className="glass-panel" style={{ padding: '0.85rem', borderLeft: `3px solid ${color}` }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
                   <span style={{ fontWeight: 600, fontSize: '0.82rem', display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
-                    <Truck size={13} />{vehicle.vehicleId}
+                    {vehicle.vehicleId}
                   </span>
                   <span className="badge">{qubits} qubits</span>
                 </div>
@@ -360,7 +360,6 @@ function Step3Qubo() {
       </ExplainCard>
       <div className="glass-panel" style={{ padding: '1rem' }}>
         <h3 style={{ fontSize: '0.85rem', marginBottom: '0.75rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-          <Zap size={15} style={{ opacity: 0.7 }} />
           Hamiltonian Terms
         </h3>
         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
@@ -450,7 +449,7 @@ function Step4Stitching({ results, scenarioMeta, config }) {
                 <div key={vid} className="glass-panel" style={{ padding: '0.65rem 0.85rem' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.15rem', fontSize: '0.78rem' }}>
                     <span style={{ fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
-                      <Truck size={12} />{vid}
+                      {vid}
                     </span>
                     <span style={{ fontFamily: 'var(--font-mono)', color: 'var(--text-muted)', fontSize: '0.7rem' }}>
                       {vdata.distance_km != null ? `${vdata.distance_km} km` : ''} {vdata.spoilage_rs != null ? `· Rs ${vdata.spoilage_rs}` : ''} {vdata.feasible !== undefined ? (vdata.feasible ? <span style={{ color: 'var(--good)' }}>· OK</span> : <span style={{ color: 'var(--warn)' }}>· Repaired</span>) : ''}
@@ -954,8 +953,7 @@ function Step5Comparison({ results, compareResults, config, scenarioMeta, onRefr
     <div className="results-step-body">
       <div className="glass-panel" style={{ padding: '1.25rem 1.4rem' }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.95rem' }}>
-          <h3 style={{ fontSize: '0.88rem', fontWeight: 600, margin: 0, display: 'flex', alignItems: 'center', gap: '0.45rem', color: 'var(--text)' }}>
-            <BarChart2 size={16} style={{ color: 'var(--accent)' }} />
+          <h3 style={{ fontSize: '1.15rem', fontWeight: 600, margin: 0, display: 'flex', alignItems: 'center', gap: '0.45rem', color: 'var(--text)' }}>
             Solver Comparison Matrix (Custom Scenario)
           </h3>
           {onRefreshCompare && (
@@ -1014,8 +1012,7 @@ function Step5Comparison({ results, compareResults, config, scenarioMeta, onRefr
       </div>
 
       <div className="glass-panel" style={{ padding: '1.25rem 1.4rem', marginTop: '1.25rem' }}>
-        <h3 style={{ fontSize: '0.88rem', fontWeight: 600, marginBottom: '0.95rem', display: 'flex', alignItems: 'center', gap: '0.45rem', color: 'var(--text)' }}>
-          <ShieldAlert size={16} style={{ color: 'var(--accent)' }} />
+        <h3 style={{ fontSize: '1.05rem', fontWeight: 600, marginBottom: '0.95rem', display: 'flex', alignItems: 'center', gap: '0.45rem', color: 'var(--text)' }}>
           Physical Constraint Verification Ledger
         </h3>
         <div style={{ overflowX: 'auto' }}>
@@ -1103,7 +1100,7 @@ function Step5Comparison({ results, compareResults, config, scenarioMeta, onRefr
           <div className="glass-panel" style={{ padding: '1.25rem 1.4rem', marginTop: '1.25rem' }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' }}>
               <h3 style={{ fontSize: '0.88rem', fontWeight: 600, margin: 0, display: 'flex', alignItems: 'center', gap: '0.45rem', color: 'var(--text)' }}>
-                <Layers size={16} style={{ color: 'var(--accent)' }} /> Route Map Comparison
+                Route Map Comparison
               </h3>
               <span style={{ fontSize: '0.68rem', color: 'var(--text-faint)' }}>Select a solver for each map</span>
             </div>
@@ -1145,7 +1142,6 @@ function Step5Comparison({ results, compareResults, config, scenarioMeta, onRefr
 
       <div className="glass-panel" style={{ padding: '1rem', marginTop: '1.25rem' }}>
         <h3 style={{ fontSize: '0.85rem', marginBottom: '0.85rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-          <Route size={15} style={{ opacity: 0.7 }} />
           Theoretical Advantage Roadmap
         </h3>
         <div style={{ display: 'flex', flexDirection: 'column', gap: '0' }}>
