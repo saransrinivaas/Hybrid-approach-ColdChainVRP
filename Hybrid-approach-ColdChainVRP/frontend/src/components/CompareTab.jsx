@@ -940,12 +940,12 @@ export default function CompareTab({ runPipeline, compareActive = true }) {
   };
 
   const scenarioLabel = activeScenario === 'easy'
-    ? 'Scenario 1 (Configured)'
+    ? 'Scenario 1 (Baseline)'
     : activeScenario === 'tough'
-      ? 'Scenario 2 (Baseline)'
+      ? 'Scenario 2 (Tough)'
       : activeScenario === 'tough3'
-        ? 'Scenario 3 (Stress Test)'
-        : 'Scenario 4 (Edge Cases)';
+        ? 'Scenario 3 (Regional)'
+        : 'Scenario 4 (Stress Test)';
 
   return (
     <div className="compare-stack">

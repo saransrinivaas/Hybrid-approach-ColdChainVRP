@@ -1,41 +1,15 @@
 {
   "V1_1": {
     "clinic_ids": [
-      2001,
-      1
+      7001
     ],
     "sub_cluster_results": [
       {
         "clinic_ids": [
-          2001,
-          1
+          7001
         ],
         "route": [
-          2001,
-          1
-        ],
-        "feasible": true,
-        "cost": {
-          "distance": 5.8208,
-          "spoilage": 2.7164,
-          "refrigeration": 0.0175,
-          "total": 8.5547
-        },
-        "solver": "classical"
-      }
-    ]
-  },
-  "V1_2": {
-    "clinic_ids": [
-      2002
-    ],
-    "sub_cluster_results": [
-      {
-        "clinic_ids": [
-          2002
-        ],
-        "route": [
-          2002
+          7001
         ],
         "feasible": true,
         "cost": {
@@ -48,56 +22,59 @@
       }
     ]
   },
-  "V1_3": {
+  "V1_2": {
     "clinic_ids": [
       3,
-      2003
+      1,
+      2
     ],
     "sub_cluster_results": [
       {
         "clinic_ids": [
           3,
-          2003
+          1,
+          2
         ],
         "route": [
           3,
-          2003
+          2,
+          1
         ],
         "feasible": true,
         "cost": {
-          "distance": 1.7957,
-          "spoilage": 0.1197,
-          "refrigeration": 0.0054,
-          "total": 1.9208
+          "distance": 7.6166,
+          "spoilage": 4.9954,
+          "refrigeration": 0.0295,
+          "total": 12.6414
         },
-        "solver": "classical"
+        "solver": "QAOA-classical-fallback"
       }
     ]
   },
   "V2_1": {
     "clinic_ids": [
-      7,
+      8,
       4,
-      5
+      6
     ],
     "sub_cluster_results": [
       {
         "clinic_ids": [
-          7,
+          8,
           4,
-          5
+          6
         ],
         "route": [
-          7,
+          8,
           4,
-          5
+          6
         ],
         "feasible": true,
         "cost": {
-          "distance": 11.5416,
-          "spoilage": 7.1519,
-          "refrigeration": 0.046,
-          "total": 18.7395
+          "distance": 16.7428,
+          "spoilage": 7.7045,
+          "refrigeration": 0.066,
+          "total": 24.5134
         },
         "solver": "QAOA-classical-fallback"
       }
@@ -105,15 +82,38 @@
   },
   "V2_2": {
     "clinic_ids": [
-      6
+      7002
     ],
     "sub_cluster_results": [
       {
         "clinic_ids": [
-          6
+          7002
         ],
         "route": [
-          6
+          7002
+        ],
+        "feasible": true,
+        "cost": {
+          "distance": 0.0,
+          "spoilage": 0.0,
+          "refrigeration": 0.0,
+          "total": 0.0
+        },
+        "solver": "classical"
+      }
+    ]
+  },
+  "V2_3": {
+    "clinic_ids": [
+      5
+    ],
+    "sub_cluster_results": [
+      {
+        "clinic_ids": [
+          5
+        ],
+        "route": [
+          5
         ],
         "feasible": true,
         "cost": {

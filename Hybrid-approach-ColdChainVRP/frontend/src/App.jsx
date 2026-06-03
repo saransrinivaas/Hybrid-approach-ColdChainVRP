@@ -176,7 +176,7 @@ export default function App() {
             meta={scenarioMeta?.easy}
             pipelineEndpoint="/api/run-pipeline"
             resultsEndpoint="/api/results"
-            label="Scenario 1 (Configured)"
+            label="Scenario 1 (Baseline)"
             subtitle="Based on your inputs in the Input tab"
             accentColor="var(--solver-classical)"
             runPipeline={runSSE}
@@ -186,7 +186,7 @@ export default function App() {
             meta={scenarioMeta?.tough}
             pipelineEndpoint="/api/run-pipeline-easy"
             resultsEndpoint="/api/results-tough"
-            label="Scenario 2 (Baseline)"
+            label="Scenario 2 (Tough)"
             subtitle="10 clinics · 2 vehicles · uniform 8–18h windows"
             accentColor="var(--solver-qaoa)"
             runPipeline={runSSE}
@@ -196,7 +196,7 @@ export default function App() {
             meta={scenarioMeta?.tough3}
             pipelineEndpoint="/api/run-pipeline-tough3"
             resultsEndpoint="/api/results-tough3"
-            label="Scenario 3 (Stress Test)"
+            label="Scenario 3 (Regional)"
             subtitle="30 clinics · 3 vehicles · non-uniform operating windows"
             accentColor="var(--solver-alns)"
             runPipeline={runSSE}
@@ -206,7 +206,7 @@ export default function App() {
             meta={scenarioMeta?.tough4}
             pipelineEndpoint="/api/run-pipeline-scenario4"
             resultsEndpoint="/api/results-tough4"
-            label="Scenario 4 (Edge Cases)"
+            label="Scenario 4 (Stress Test)"
             subtitle="5 clinics · 4 vehicles · demand overflow node splitting"
             accentColor="var(--solver-gurobi)"
             runPipeline={runSSE}
