@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
-import { Moon, Play, Sun, GitCompare, Settings, Activity, BookOpen, Sparkles, Cpu, BarChart2 } from 'lucide-react';
+import { Play, GitCompare, Settings, Activity, BookOpen, Sparkles, Cpu, BarChart2 } from 'lucide-react';
 
 import ScenarioPanel from './components/ScenarioPanel';
 import CompareTab    from './components/CompareTab';
@@ -135,15 +135,7 @@ export default function App() {
               </button>
             ))}
           </nav>
-          <button
-            type="button"
-            className="theme-toggle"
-            onClick={() => setTheme(t => t === 'dark' ? 'light' : 'dark')}
-            aria-label={`Switch to ${theme === 'dark' ? 'light' : 'dark'} theme`}
-          >
-            {theme === 'dark' ? <Sun size={15} aria-hidden /> : <Moon size={15} aria-hidden />}
-            {theme === 'dark' ? 'Light' : 'Dark'}
-          </button>
+
         </div>
       </header>
 
