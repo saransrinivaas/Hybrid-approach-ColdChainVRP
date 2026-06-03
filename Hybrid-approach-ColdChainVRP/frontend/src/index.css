@@ -1302,11 +1302,15 @@ html[data-theme='light'] body {
 }
 
 .clinic-chip {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.5rem;
   padding: 0.45rem 0.55rem;
   background: var(--bg-elevated);
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
-  font-size: 0.82rem;
+  font-size: 0.95rem;
 }
 
 .clinic-chip.tight {
@@ -1321,8 +1325,7 @@ html[data-theme='light'] body {
 .clinic-chip .cd {
   color: var(--text-muted);
   font-family: var(--font-mono);
-  margin-top: 0.12rem;
-  font-size: 0.78rem;
+  font-size: 0.85rem;
 }
 
 .map-frame {
