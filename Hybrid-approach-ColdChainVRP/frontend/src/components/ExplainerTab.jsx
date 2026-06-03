@@ -129,7 +129,7 @@ export default function ExplainerTab({ activeTab }) {
                   onClick={() => setSelectedTerm(key)}
                   style={{
                     padding: '0.6rem 1rem',
-                    background: isSelected ? '#ec489925' : 'rgba(255,255,255,0.03)',
+                    background: isSelected ? 'rgba(255,255,255,0.12)' : 'rgba(255,255,255,0.03)',
                     color: isSelected ? '#ffffff' : 'var(--text)',
                     border: '1px solid rgba(255,255,255,0.08)',
                     borderRadius: '6px',
@@ -137,7 +137,7 @@ export default function ExplainerTab({ activeTab }) {
                     fontSize: '0.92rem',
                     fontWeight: 600,
                     transition: 'all 0.2s',
-                    borderLeft: '3px solid #ec4899'
+                    borderLeft: isSelected ? '3px solid #ffffff' : '3px solid rgba(255,255,255,0.1)'
                   }}
                 >
                   {key.toUpperCase()}
@@ -456,8 +456,8 @@ export default function ExplainerTab({ activeTab }) {
           </p>
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
-            <div style={{ padding: '0.8rem 1rem', borderRadius: '8px', background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.05)', fontSize: '0.92rem' }}>
-              <strong style={{ color: '#38bdf8', display: 'block', fontSize: '0.96rem', marginBottom: '0.25rem' }}>
+            <div style={{ padding: '0.8rem 1rem', borderRadius: '8px', background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.05)', fontSize: '1.0rem' }}>
+              <strong style={{ color: '#ffffff', display: 'block', fontSize: '1.05rem', marginBottom: '0.25rem' }}>
                 1. Linear Scaling vs Classical Exponential Wall
               </strong>
               <p style={{ margin: 0, color: 'var(--text-secondary)', lineHeight: '1.6' }}>
@@ -465,8 +465,8 @@ export default function ExplainerTab({ activeTab }) {
               </p>
             </div>
 
-            <div style={{ padding: '0.8rem 1rem', borderRadius: '8px', background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.05)', fontSize: '0.92rem' }}>
-              <strong style={{ color: '#10b981', display: 'block', fontSize: '0.96rem', marginBottom: '0.25rem' }}>
+            <div style={{ padding: '0.8rem 1rem', borderRadius: '8px', background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.05)', fontSize: '1.0rem' }}>
+              <strong style={{ color: '#ffffff', display: 'block', fontSize: '1.05rem', marginBottom: '0.25rem' }}>
                 2. Overcoming Heuristic Local Basins
               </strong>
               <p style={{ margin: 0, color: 'var(--text-secondary)', lineHeight: '1.6' }}>
