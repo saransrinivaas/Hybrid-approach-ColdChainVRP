@@ -407,7 +407,7 @@ export default function ExplainerTab({ activeTab }) {
                     border: isSelected ? '1px solid #ffffff' : '1px solid rgba(255,255,255,0.08)',
                     borderRadius: '6px',
                     cursor: 'pointer',
-                    fontSize: '0.85rem',
+                    fontSize: '0.95rem',
                     display: 'flex',
                     flexDirection: 'column',
                     alignItems: 'center',
@@ -416,8 +416,8 @@ export default function ExplainerTab({ activeTab }) {
                     transition: 'all 0.2s'
                   }}
                 >
-                  <span style={{ fontSize: '0.7rem', opacity: 0.6 }}>STEP {s.step}</span>
-                  <span style={{ textAlign: 'center', fontSize: '0.8rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', width: '100%' }}>
+                  <span style={{ fontSize: '0.8rem', opacity: 0.6 }}>STEP {s.step}</span>
+                  <span style={{ textAlign: 'center', fontSize: '0.9rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', width: '100%' }}>
                     {s.title.split(' ')[0]}
                   </span>
                 </button>
