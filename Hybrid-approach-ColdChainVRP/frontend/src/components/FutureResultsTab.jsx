@@ -208,10 +208,7 @@ export default function FutureResultsTab({ activeTab }) {
         
         {/* Title Panel */}
         <div className="card glass-panel" style={{ padding: '1.5rem' }}>
-          <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center', marginBottom: '0.5rem' }}>
-            <Sparkles size={24} style={{ color: 'var(--text)' }} />
-            <h2 style={{ margin: 0 }}>Symmetrized Future Results</h2>
-          </div>
+          <h2 style={{ margin: '0 0 0.5rem 0' }}>Symmetrized Future Results</h2>
           <p style={{ color: 'var(--text-secondary)', fontSize: '0.92rem', lineHeight: '1.6' }}>
             This tab showcases the results of our <strong>50-Node Stress Test Network</strong> comparative experiment, evaluated under strict, scientifically symmetrized conditions. By passing both quantum sub-clustering methods through the identical global fleet stitching and repair pipeline, we isolate the pure optimization benefits of larger sub-clustering models.
           </p>
@@ -219,8 +216,7 @@ export default function FutureResultsTab({ activeTab }) {
 
         {/* Fleet Comparative Metrics */}
         <div className="card glass-panel" style={{ padding: '1.5rem' }}>
-          <h3 style={{ marginBottom: '1.25rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            <Cpu size={18} style={{ color: 'var(--text)' }} />
+          <h3 style={{ marginBottom: '1.25rem' }}>
             50-Node Fleet Symmetrized Results
           </h3>
 
@@ -301,8 +297,7 @@ export default function FutureResultsTab({ activeTab }) {
 
         {/* Q&A: Is it possible to simulate? (MATHEMATICALLY RIGOROUS & ESCAPED FOR JSX BUILD) */}
         <div className="card glass-panel" style={{ padding: '1.5rem' }}>
-          <h3 style={{ marginBottom: '1.25rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            <GitCompare size={18} style={{ color: 'var(--solver-qaoa)' }} />
+          <h3 style={{ marginBottom: '1.25rem' }}>
             Rigorous Quantum Verification & Genuineness
           </h3>
 
@@ -369,8 +364,7 @@ export default function FutureResultsTab({ activeTab }) {
         {/* Interactive SVG Route Map Card */}
         <div className="card glass-panel" style={{ padding: '1.5rem', display: 'flex', flexDirection: 'column', gap: '1.25rem', position: 'relative' }}>
           <div>
-            <h3 style={{ margin: '0 0 0.25rem 0', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-              <Cpu size={18} style={{ color: 'var(--solver-qaoa)' }} />
+            <h3 style={{ margin: '0 0 0.25rem 0' }}>
               Interactive Fleet Route Visualizer
             </h3>
             <p style={{ color: 'var(--text-secondary)', fontSize: '0.8rem', margin: 0 }}>
@@ -654,8 +648,7 @@ export default function FutureResultsTab({ activeTab }) {
 
         {/* The Attraction Basin Advantage */}
         <div className="card glass-panel" style={{ padding: '1.5rem' }}>
-          <h3 style={{ marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            <Award size={18} style={{ color: 'var(--text)' }} />
+          <h3 style={{ marginBottom: '1rem' }}>
             The Basin of Attraction Advantage
           </h3>
           
@@ -686,8 +679,7 @@ export default function FutureResultsTab({ activeTab }) {
 
         {/* Global Stitching & Capacity Shuffling Visualizer */}
         <div className="card glass-panel" style={{ padding: '1.5rem' }}>
-          <h3 style={{ marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            <Info size={18} style={{ color: 'var(--text)' }} />
+          <h3 style={{ marginBottom: '1rem' }}>
             Cross-Vehicle Shuffling Mechanics
           </h3>
 
@@ -734,8 +726,7 @@ export default function FutureResultsTab({ activeTab }) {
 
       {/* FULL-WIDTH: Future Quantum Advantage */}
       <div className="card glass-panel" style={{ padding: '2.5rem' }}>
-        <h2 style={{ marginBottom: '0.75rem', display: 'flex', alignItems: 'center', gap: '0.75rem', fontSize: '1.85rem' }}>
-          <TrendingUp size={28} style={{ color: 'var(--text)' }} />
+        <h2 style={{ marginBottom: '0.75rem', fontSize: '1.85rem' }}>
           Future Quantum Advantage — As Hardware Matures
         </h2>
         <p style={{ color: 'var(--text-secondary)', fontSize: '0.95rem', lineHeight: '1.6', marginBottom: '2.5rem', maxWidth: '85ch' }}>
