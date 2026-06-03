@@ -1,0 +1,31 @@
+{
+  "clinic_ids": [
+    26,
+    27,
+    25
+  ],
+  "route": [
+    27,
+    26,
+    25
+  ],
+  "feasible": true,
+  "cost_breakdown": {
+    "distance": 10.4979,
+    "spoilage": 3.2306,
+    "refrigeration": 0.0415,
+    "total": 13.7701
+  },
+  "p_depth": 3,
+  "num_qubits": 9,
+  "bitstring": "100001010",
+  "probability": 0.0068359375,
+  "solver": "QAOA-hardware-simulated",
+  "backend": "ibm_heron_r2",
+  "status": "DONE",
+  "transpiled_depth": 48,
+  "gate_count": 170,
+  "feasibility_rate": 0.84,
+  "is_simulated": true,
+  "mode": "hardware"
+}

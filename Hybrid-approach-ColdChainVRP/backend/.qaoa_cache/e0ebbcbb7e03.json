@@ -1,0 +1,34 @@
+{
+  "clinic_ids": [
+    4,
+    14,
+    13
+  ],
+  "route": [
+    4,
+    13,
+    14
+  ],
+  "assignment": {
+    "4": "all compartments",
+    "14": "all compartments",
+    "13": "all compartments"
+  },
+  "cost_breakdown": {
+    "distance": 14.6142,
+    "spoilage": 5.7187,
+    "refrigeration": 0.0468,
+    "total": 20.3797
+  },
+  "feasible": true,
+  "feasible_count": 1,
+  "total_bitstrings": 512,
+  "computation_time": 314.3619477748871,
+  "p_depth": 3,
+  "num_qubits": 9,
+  "energy": 22.82278833318953,
+  "bitstring": null,
+  "probability": 0.99,
+  "solver": "QAOA-classical-fallback",
+  "mode": "simulator"
+}

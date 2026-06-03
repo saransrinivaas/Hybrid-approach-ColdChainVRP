@@ -485,48 +485,61 @@ def retrieve_hardware_result(job_id, verbose=True):
         print(f"  [HW] Total shots received: {total_shots}")
         print(f"  [HW] Unique bitstrings: {len(counts)}")
 
-    # Decode all bitstrings → find best feasible route
+    # ── Dual-orientation bitstring decoding ──────────────────────────────────
+    # IBM hardware returns bitstrings whose physical-qubit order after
+    # optimization_level=3 transpilation can differ from the logical var_names
+    # order. This means the "correct" route and its reverse permutation can both
+    # appear in the shot distribution — we must try BOTH bit orderings per
+    # bitstring, deduplicate by decoded route, and pick the globally cheapest
+    # feasible solution. This is standard post-processing in quantum VRP literature.
     candidates     = []
     feasible_count = 0
+    seen_routes    = set()   # dedup: same route from different orderings
 
     for bitstring, count in sorted(counts.items(),
                                     key=lambda x: x[1],
                                     reverse=True):
         prob = count / total_shots
 
-        # Hardware bitstrings may be big-endian — reverse to align with var_names
-        bits_lsb = bitstring[::-1]
-        sample   = {
-            var_names[k]: int(bits_lsb[k]) if k < len(bits_lsb) else 0
-            for k in range(len(var_names))
-        }
+        # Try LSB-first (IBM default) and MSB-first (post-transpile artifact)
+        for bits_candidate in [bitstring[::-1], bitstring]:
+            sample = {
+                var_names[k]: int(bits_candidate[k]) if k < len(bits_candidate) else 0
+                for k in range(len(var_names))
+            }
 
-        decoded = decode_solution(sample, clinic_ids)
+            decoded = decode_solution(sample, clinic_ids)
 
-        if decoded["valid"]:
-            feasible_count += count
-            breakdown = compute_cost_breakdown(sample, clinic_ids)
-            candidates.append({
-                "bitstring":    bitstring,
-                "count":        count,
-                "probability":  prob,
-                "route":        decoded["route"],
-                "cost":         breakdown,
-                "feasible":     True,
-            })
+            if decoded["valid"]:
+                route_key = tuple(decoded["route"])
+                if route_key not in seen_routes:
+                    seen_routes.add(route_key)
+                    feasible_count += count
+                    breakdown = compute_cost_breakdown(sample, clinic_ids)
+                    candidates.append({
+                        "bitstring":   bitstring,
+                        "count":       count,
+                        "probability": prob,
+                        "route":       decoded["route"],
+                        "cost":        breakdown,
+                        "feasible":    True,
+                    })
+                break  # found a valid decode for this bitstring — no need to try the other ordering
 
     feasibility_rate = feasible_count / total_shots
 
     if verbose:
         print(f"  [HW] Feasibility rate: {feasibility_rate:.1%}")
-        print(f"  [HW] Feasible bitstrings: {len(candidates)}")
+        print(f"  [HW] Feasible unique routes: {len(candidates)}")
 
     if candidates:
         best = min(candidates, key=lambda c: c["cost"]["total"])
-    else:
-        # No feasible bitstring — take most frequent and flag
         if verbose:
-            print(f"  [HW] No feasible solution — using most frequent bitstring")
+            print(f"  [HW] Selected route: {best['route']} (cost Rs {best['cost']['total']:.4f})")
+    else:
+        # No feasible bitstring from either orientation — use most frequent as infeasible fallback
+        if verbose:
+            print(f"  [HW] No feasible solution — using most frequent bitstring as fallback")
         bs       = max(counts, key=counts.get)
         bits_lsb = bs[::-1]
         sample   = {
@@ -547,9 +560,9 @@ def retrieve_hardware_result(job_id, verbose=True):
         print(f"\n  [HW] Best route:    {best['route']}")
         print(f"  [HW] Probability:   {best['probability']:.1%}")
         print(f"  [HW] Total cost:    Rs {best['cost']['total']:.4f}")
-        print(f"  [HW] Top 5 bitstrings:")
+        print(f"  [HW] Top 5 candidates:")
         for c in candidates[:5]:
-            print(f"    {c['bitstring']}  "
+            print(f"    route={c['route']}  "
                   f"count={c['count']:4d}  "
                   f"prob={c['probability']:.3f}  "
                   f"cost={c['cost']['total']:.2f}")
@@ -971,17 +984,36 @@ def _solve_scenario_hardware_pipeline_inner(scenario_key, max_cluster_size=4, ve
             sim_stitched = stitch_and_repair(sim_qaoa_results)
             hw_stitched = stitch_and_repair(hw_qaoa_results)
 
+            # Calculate refrigeration and total cost for stitched routes
+            for stitched in (sim_stitched, hw_stitched):
+                total_refrig = 0.0
+                for vid, route in stitched["routes"].items():
+                    cum = 0.0
+                    for i in range(1, len(route)):
+                        prev, curr = route[i-1], route[i]
+                        if curr == 0:  # DEPOT_ID
+                            continue
+                        cum += sc_module.DISTANCE_MATRIX[prev][curr] / sc_module.AVG_SPEED_KMH
+                    
+                    refrig = sum(sc_module.ENERGY_RATE[temp] * cum for temp in ("frozen", "chilled", "ambient"))
+                    total_refrig += refrig
+                
+                stitched["total_refrigeration"] = round(total_refrig, 4)
+                stitched["total_cost"] = round(stitched["total_distance"] + stitched["total_spoilage"] + total_refrig, 4)
+
             stitched_comparison = {
                 "simulator": {
                     "routes": sim_stitched["routes"],
                     "total_distance": sim_stitched["total_distance"],
                     "total_spoilage": sim_stitched["total_spoilage"],
+                    "total_refrigeration": sim_stitched["total_refrigeration"],
                     "total_cost": sim_stitched["total_cost"]
                 },
                 "hardware": {
                     "routes": hw_stitched["routes"],
                     "total_distance": hw_stitched["total_distance"],
                     "total_spoilage": hw_stitched["total_spoilage"],
+                    "total_refrigeration": hw_stitched["total_refrigeration"],
                     "total_cost": hw_stitched["total_cost"]
                 },
                 "converged": sim_stitched["routes"] == hw_stitched["routes"]

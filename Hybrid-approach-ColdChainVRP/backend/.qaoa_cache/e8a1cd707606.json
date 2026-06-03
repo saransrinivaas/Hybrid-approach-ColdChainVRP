@@ -8,40 +8,120 @@
   "route": [
     6,
     4,
-    3,
-    2
+    2,
+    3
   ],
-  "feasible": true,
+  "assignment": {},
   "cost_breakdown": {
-    "distance": 13.5011,
-    "spoilage": 10.9213,
+    "distance": 33.3239,
+    "spoilage": 53.062,
     "refrigeration": 0.0596,
-    "total": 24.4819
+    "total": 86.4454
   },
+  "feasible": true,
+  "feasible_count": 5,
+  "total_bitstrings": 250,
+  "computation_time": 0.0,
   "p_depth": 3,
   "num_qubits": 16,
-  "bitstring": "0100000100101000",
-  "probability": 0.00076171875,
+  "energy": null,
+  "bitstring": "1000000100101111",
+  "probability": 0.004,
   "solver": "QAOA-hardware",
-  "backend": "ibm_heron_r2",
-  "transpiled_depth": 56,
-  "gate_count": 190,
-  "feasibility_rate": 0.84,
+  "hardware_job_id": "d8fvoohvjngc73aqhe30",
+  "backend": "ibm_marrakesh",
+  "status": "DONE",
+  "feasibility_rate": 0.02,
+  "transpiled_depth": 1330,
+  "gate_count": 5177,
   "top_candidates": [
     {
-      "bitstring": "0100000100101000",
-      "probability": 0.00076171875,
+      "bitstring": "0010010001111001",
+      "count": 1,
+      "probability": 0.004,
       "route": [
-        6,
         4,
         3,
+        6,
         2
       ],
       "cost": {
-        "distance": 13.5011,
-        "spoilage": 10.9213,
+        "distance": 58.7284,
+        "spoilage": 28.7925,
         "refrigeration": 0.0596,
-        "total": 24.4819
+        "total": 87.5805
+      },
+      "feasible": true
+    },
+    {
+      "bitstring": "0100001011000111",
+      "count": 1,
+      "probability": 0.004,
+      "route": [
+        2,
+        6,
+        3,
+        4
+      ],
+      "cost": {
+        "distance": 58.3001,
+        "spoilage": 35.3011,
+        "refrigeration": 0.0596,
+        "total": 93.6608
+      },
+      "feasible": true
+    },
+    {
+      "bitstring": "1000000100101111",
+      "count": 1,
+      "probability": 0.004,
+      "route": [
+        6,
+        4,
+        2,
+        3
+      ],
+      "cost": {
+        "distance": 33.3239,
+        "spoilage": 53.062,
+        "refrigeration": 0.0596,
+        "total": 86.4454
+      },
+      "feasible": true
+    },
+    {
+      "bitstring": "1000100110100111",
+      "count": 1,
+      "probability": 0.004,
+      "route": [
+        6,
+        4,
+        2,
+        3
+      ],
+      "cost": {
+        "distance": 51.9102,
+        "spoilage": 41.8098,
+        "refrigeration": 0.0596,
+        "total": 93.7796
+      },
+      "feasible": true
+    },
+    {
+      "bitstring": "1000101000110111",
+      "count": 1,
+      "probability": 0.004,
+      "route": [
+        4,
+        6,
+        2,
+        3
+      ],
+      "cost": {
+        "distance": 60.3711,
+        "spoilage": 39.6034,
+        "refrigeration": 0.0596,
+        "total": 100.0341
       },
       "feasible": true
     }

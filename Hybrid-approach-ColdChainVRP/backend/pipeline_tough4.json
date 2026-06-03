@@ -1,0 +1,527 @@
+{
+  "classical": {
+    "solver": "Classical (NN+2opt+ORopt)",
+    "routes": {
+      "V1": {
+        "route": [
+          0,
+          1,
+          0
+        ],
+        "stops": [
+          {
+            "id": 0,
+            "name": "Depot",
+            "lat": 13.0827,
+            "lon": 80.2707
+          },
+          {
+            "id": 1,
+            "name": "Tambaram PHC",
+            "lat": 12.9249,
+            "lon": 80.1
+          },
+          {
+            "id": 0,
+            "name": "Depot",
+            "lat": 13.0827,
+            "lon": 80.2707
+          }
+        ],
+        "distance_km": 50.987,
+        "spoilage_rs": 12.3218,
+        "refrigeration_rs": 0.0765,
+        "total_cost_rs": 63.3853,
+        "feasible": true,
+        "capacity": {
+          "frozen": {
+            "used": 3,
+            "cap": 10
+          },
+          "chilled": {
+            "used": 4,
+            "cap": 10
+          },
+          "ambient": {
+            "used": 2,
+            "cap": 10
+          }
+        },
+        "computation_time": 0.0,
+        "solver": "Classical (NN+2opt+ORopt)"
+      },
+      "V2": {
+        "route": [
+          0,
+          2,
+          0
+        ],
+        "stops": [
+          {
+            "id": 0,
+            "name": "Depot",
+            "lat": 13.0827,
+            "lon": 80.2707
+          },
+          {
+            "id": 2,
+            "name": "Chromepet Clinic",
+            "lat": 12.9516,
+            "lon": 80.1462
+          },
+          {
+            "id": 0,
+            "name": "Depot",
+            "lat": 13.0827,
+            "lon": 80.2707
+          }
+        ],
+        "distance_km": 39.7208,
+        "spoilage_rs": 22.1774,
+        "refrigeration_rs": 0.0596,
+        "total_cost_rs": 61.9578,
+        "feasible": false,
+        "capacity": {
+          "frozen": {
+            "used": 2,
+            "cap": 10
+          },
+          "chilled": {
+            "used": 15,
+            "cap": 10
+          },
+          "ambient": {
+            "used": 1,
+            "cap": 10
+          }
+        },
+        "computation_time": 0.0,
+        "solver": "Classical (NN+2opt+ORopt)"
+      },
+      "V3": {
+        "route": [
+          0,
+          4,
+          0
+        ],
+        "stops": [
+          {
+            "id": 0,
+            "name": "Depot",
+            "lat": 13.0827,
+            "lon": 80.2707
+          },
+          {
+            "id": 4,
+            "name": "Guindy Hospital",
+            "lat": 13.0067,
+            "lon": 80.2206
+          },
+          {
+            "id": 0,
+            "name": "Depot",
+            "lat": 13.0827,
+            "lon": 80.2707
+          }
+        ],
+        "distance_km": 20.0868,
+        "spoilage_rs": 1.6739,
+        "refrigeration_rs": 0.0301,
+        "total_cost_rs": 21.7908,
+        "feasible": true,
+        "capacity": {
+          "frozen": {
+            "used": 1,
+            "cap": 10
+          },
+          "chilled": {
+            "used": 1,
+            "cap": 10
+          },
+          "ambient": {
+            "used": 1,
+            "cap": 10
+          }
+        },
+        "computation_time": 0.0,
+        "solver": "Classical (NN+2opt+ORopt)"
+      },
+      "V4": {
+        "route": [
+          0,
+          5,
+          3,
+          0
+        ],
+        "stops": [
+          {
+            "id": 0,
+            "name": "Depot",
+            "lat": 13.0827,
+            "lon": 80.2707
+          },
+          {
+            "id": 5,
+            "name": "Adyar Clinic",
+            "lat": 13.0012,
+            "lon": 80.2565
+          },
+          {
+            "id": 3,
+            "name": "Pallavaram PHC",
+            "lat": 12.9675,
+            "lon": 80.1491
+          },
+          {
+            "id": 0,
+            "name": "Depot",
+            "lat": 13.0827,
+            "lon": 80.2707
+          }
+        ],
+        "distance_km": 39.7921,
+        "spoilage_rs": 32.1476,
+        "refrigeration_rs": 0.0643,
+        "total_cost_rs": 72.0039,
+        "feasible": false,
+        "capacity": {
+          "frozen": {
+            "used": 25,
+            "cap": 10
+          },
+          "chilled": {
+            "used": 4,
+            "cap": 10
+          },
+          "ambient": {
+            "used": 21,
+            "cap": 10
+          }
+        },
+        "computation_time": 0.0,
+        "solver": "Classical (NN+2opt+ORopt)"
+      }
+    },
+    "fleet_distance": 150.5867,
+    "fleet_spoilage": 68.3207,
+    "fleet_refrigeration": 0.2305,
+    "fleet_total_cost": 219.1379,
+    "total_time": 0.0,
+    "status": "ok"
+  },
+  "qaoa": {
+    "solver": "QAOA (p=3)",
+    "routes": {
+      "V1_1": {
+        "route": [
+          0,
+          3001,
+          0
+        ],
+        "stops": [
+          {
+            "id": 0,
+            "name": "Depot"
+          },
+          {
+            "id": 3001,
+            "name": "Pallavaram PHC (Part 1)"
+          },
+          {
+            "id": 0,
+            "name": "Depot"
+          }
+        ],
+        "distance_km": 36.7492,
+        "spoilage_rs": 10.106,
+        "refrigeration_rs": 0.0551,
+        "total_cost_rs": 46.9104,
+        "feasible": true,
+        "capacity": {
+          "frozen": {
+            "used": 10,
+            "cap": 10
+          },
+          "chilled": {
+            "used": 2,
+            "cap": 10
+          },
+          "ambient": {
+            "used": 3,
+            "cap": 10
+          }
+        },
+        "computation_time": 0.0041,
+        "solver": "QAOA (p=3)"
+      },
+      "V1_2": {
+        "route": [
+          0,
+          2002,
+          1,
+          0
+        ],
+        "stops": [
+          {
+            "id": 0,
+            "name": "Depot"
+          },
+          {
+            "id": 2002,
+            "name": "Chromepet Clinic (Part 2)"
+          },
+          {
+            "id": 1,
+            "name": "Tambaram PHC"
+          },
+          {
+            "id": 0,
+            "name": "Depot"
+          }
+        ],
+        "distance_km": 51.1747,
+        "spoilage_rs": 19.0327,
+        "refrigeration_rs": 0.077,
+        "total_cost_rs": 70.2845,
+        "feasible": true,
+        "capacity": {
+          "frozen": {
+            "used": 3,
+            "cap": 10
+          },
+          "chilled": {
+            "used": 9,
+            "cap": 10
+          },
+          "ambient": {
+            "used": 2,
+            "cap": 10
+          }
+        },
+        "computation_time": 0.0041,
+        "solver": "QAOA (p=3)"
+      },
+      "V2_1": {
+        "route": [
+          0,
+          3003,
+          2001,
+          0
+        ],
+        "stops": [
+          {
+            "id": 0,
+            "name": "Depot"
+          },
+          {
+            "id": 3003,
+            "name": "Pallavaram PHC (Part 3)"
+          },
+          {
+            "id": 2001,
+            "name": "Chromepet Clinic (Part 1)"
+          },
+          {
+            "id": 0,
+            "name": "Depot"
+          }
+        ],
+        "distance_km": 40.0307,
+        "spoilage_rs": 17.3313,
+        "refrigeration_rs": 0.0605,
+        "total_cost_rs": 57.4225,
+        "feasible": true,
+        "capacity": {
+          "frozen": {
+            "used": 7,
+            "cap": 10
+          },
+          "chilled": {
+            "used": 10,
+            "cap": 10
+          },
+          "ambient": {
+            "used": 1,
+            "cap": 10
+          }
+        },
+        "computation_time": 0.0041,
+        "solver": "QAOA (p=3)"
+      },
+      "V2_2": {
+        "route": [
+          0,
+          3002,
+          0
+        ],
+        "stops": [
+          {
+            "id": 0,
+            "name": "Depot"
+          },
+          {
+            "id": 3002,
+            "name": "Pallavaram PHC (Part 2)"
+          },
+          {
+            "id": 0,
+            "name": "Depot"
+          }
+        ],
+        "distance_km": 36.7492,
+        "spoilage_rs": 3.0624,
+        "refrigeration_rs": 0.0551,
+        "total_cost_rs": 39.8668,
+        "feasible": true,
+        "capacity": {
+          "frozen": {
+            "used": 10,
+            "cap": 10
+          },
+          "chilled": {
+            "used": 0,
+            "cap": 10
+          },
+          "ambient": {
+            "used": 0,
+            "cap": 10
+          }
+        },
+        "computation_time": 0.0041,
+        "solver": "QAOA (p=3)"
+      },
+      "V3": {
+        "route": [
+          0,
+          4,
+          0
+        ],
+        "stops": [
+          {
+            "id": 0,
+            "name": "Depot"
+          },
+          {
+            "id": 4,
+            "name": "Guindy Hospital"
+          },
+          {
+            "id": 0,
+            "name": "Depot"
+          }
+        ],
+        "distance_km": 20.0868,
+        "spoilage_rs": 1.6739,
+        "refrigeration_rs": 0.0301,
+        "total_cost_rs": 21.7908,
+        "feasible": true,
+        "capacity": {
+          "frozen": {
+            "used": 1,
+            "cap": 10
+          },
+          "chilled": {
+            "used": 1,
+            "cap": 10
+          },
+          "ambient": {
+            "used": 1,
+            "cap": 10
+          }
+        },
+        "computation_time": 0.0041,
+        "solver": "QAOA (p=3)"
+      },
+      "V4_1": {
+        "route": [
+          0,
+          5001,
+          0
+        ],
+        "stops": [
+          {
+            "id": 0,
+            "name": "Depot"
+          },
+          {
+            "id": 5001,
+            "name": "Adyar Clinic (Part 1)"
+          },
+          {
+            "id": 0,
+            "name": "Depot"
+          }
+        ],
+        "distance_km": 18.384,
+        "spoilage_rs": 8.8856,
+        "refrigeration_rs": 0.0276,
+        "total_cost_rs": 27.2972,
+        "feasible": true,
+        "capacity": {
+          "frozen": {
+            "used": 0,
+            "cap": 10
+          },
+          "chilled": {
+            "used": 2,
+            "cap": 10
+          },
+          "ambient": {
+            "used": 10,
+            "cap": 10
+          }
+        },
+        "computation_time": 0.0041,
+        "solver": "QAOA (p=3)"
+      },
+      "V4_2": {
+        "route": [
+          0,
+          5002,
+          0
+        ],
+        "stops": [
+          {
+            "id": 0,
+            "name": "Depot"
+          },
+          {
+            "id": 5002,
+            "name": "Adyar Clinic (Part 2)"
+          },
+          {
+            "id": 0,
+            "name": "Depot"
+          }
+        ],
+        "distance_km": 18.384,
+        "spoilage_rs": 6.128,
+        "refrigeration_rs": 0.0276,
+        "total_cost_rs": 24.5396,
+        "feasible": true,
+        "capacity": {
+          "frozen": {
+            "used": 0,
+            "cap": 10
+          },
+          "chilled": {
+            "used": 0,
+            "cap": 10
+          },
+          "ambient": {
+            "used": 8,
+            "cap": 10
+          }
+        },
+        "computation_time": 0.0041,
+        "solver": "QAOA (p=3)"
+      }
+    },
+    "fleet_distance": 221.5586,
+    "fleet_spoilage": 66.2199,
+    "fleet_refrigeration": 0.333,
+    "fleet_total_cost": 288.1115,
+    "total_time": 0.0041,
+    "status": "ok"
+  }
+}

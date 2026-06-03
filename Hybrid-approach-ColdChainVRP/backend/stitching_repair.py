@@ -217,8 +217,9 @@ def build_consensus_route(sub_results: list, all_clinic_ids: list) -> list:
             return 1       # b before a
         # Tie: place higher-spoilage clinic first to minimise decay time
         def spoilage_urgency(cid):
+            d = DEMANDS.get(cid, {})
             return sum(
-                SPOILAGE[t]["alpha"] * SPOILAGE[t]["value"] * DEMANDS[cid][t]
+                SPOILAGE[t]["alpha"] * SPOILAGE[t]["value"] * d.get(t, 0)
                 for t in ("frozen", "chilled", "ambient")
             )
         sa, sb = spoilage_urgency(a), spoilage_urgency(b)
@@ -378,8 +379,6 @@ def repair_cross_vehicle(vehicle_routes: dict) -> dict:
             continue
         print(f"    [OVERFLOW] {vid} {bad_temp}")
         offload = max(inner, key=lambda c: DEMANDS[c][bad_temp])
-        inner.remove(offload)
-        vehicle_routes[vid] = add_depot(inner)
         moved = False
         for other_vid, other_route in vehicle_routes.items():
             if other_vid == vid:
@@ -395,10 +394,14 @@ def repair_cross_vehicle(vehicle_routes: dict) -> dict:
                         best_cost, best_pos = cost, pos
                 vehicle_routes[other_vid].insert(best_pos, offload)
                 print(f"    Moved Clinic {offload} → {other_vid}")
+                
+                # Successfully moved, now remove from original
+                inner.remove(offload)
+                vehicle_routes[vid] = add_depot(inner)
                 moved = True
                 break
         if not moved:
-            print(f"    [WARN] Could not offload Clinic {offload}")
+            print(f"    [WARN] Could not offload Clinic {offload} -> keeping in original route despite overflow")
 
     return vehicle_routes
 
@@ -428,8 +431,8 @@ def cross_vehicle_or_opt(vehicle_routes: dict) -> dict:
         for src_vid in list(vehicle_routes.keys()):
             src_route = vehicle_routes[src_vid]
             src_inner = [c for c in src_route if c != DEPOT_ID]
-            if len(src_inner) <= 1:
-                continue  # keep at least 1 stop per vehicle
+            if len(src_inner) == 0:
+                continue
             for node in list(src_inner):
                 src_without = [c for c in src_inner if c != node]
                 new_src     = add_depot(src_without)
@@ -580,6 +583,9 @@ def stitch_and_repair(qaoa_results: dict) -> dict:
     print(f"\n{'=' * 55}")
     print("  FINAL ROUTES")
     print(f"{'=' * 55}")
+
+    # Clean up empty routes (routes with only depot endpoints) to eliminate redundant trips
+    vehicle_routes = {vid: r for vid, r in vehicle_routes.items() if len([c for c in r if c != DEPOT_ID]) > 0}
 
     for vid, route in vehicle_routes.items():
         dist     = route_distance(route)

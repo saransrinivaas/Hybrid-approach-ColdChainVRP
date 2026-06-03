@@ -7,7 +7,20 @@ from pyqubo import Array
 # based on the clinic IDs to prevent KeyError on key mismatch.
 # ─────────────────────────────────────────
 def _get_scenario_params(clinic_ids):
-    max_id = max(clinic_ids) if clinic_ids else 0
+    import sys
+    mod = sys.modules[__name__]
+    max_raw_id = max(clinic_ids) if clinic_ids else 0
+    if hasattr(mod, 'DISTANCE_MATRIX') and mod.DISTANCE_MATRIX is not None:
+        if max_raw_id < len(mod.DISTANCE_MATRIX):
+            # Dynamically copy missing attributes from scenario fallback to mod
+            for attr in ('AVG_SPEED_KMH', 'ENERGY_RATE', 'DEPOT'):
+                if not hasattr(mod, attr):
+                    import scenario as _fallback_sc
+                    setattr(mod, attr, getattr(_fallback_sc, attr))
+            return mod
+
+    real_ids = [cid // 1000 if cid >= 1000 else cid for cid in clinic_ids]
+    max_id = max(real_ids) if real_ids else 0
     if max_id > 10:
         # Scenario 3 has clinic IDs up to 30
         import scenario3 as sc
@@ -16,7 +29,7 @@ def _get_scenario_params(clinic_ids):
     # Try custom/dynamic scenario first
     try:
         import scenario_dynamic as sc
-        if all(cid in sc.DEMANDS for cid in clinic_ids):
+        if all(cid in sc.DEMANDS for cid in real_ids):
             return sc
     except Exception:
         pass

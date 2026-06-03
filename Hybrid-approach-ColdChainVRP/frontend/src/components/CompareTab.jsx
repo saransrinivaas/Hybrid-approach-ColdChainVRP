@@ -385,6 +385,10 @@ function ConstraintVerificationBlock({ classical, alns, ortools, pulp, qaoa, qaA
       const vChilledCap = r.capacity?.chilled?.cap ?? limits.chilled;
       const vAmbientCap = r.capacity?.ambient?.cap ?? limits.ambient;
 
+      const capFrozenOk = vFrozen <= vFrozenCap;
+      const capChilledOk = vChilled <= vChilledCap;
+      const capAmbientOk = vAmbient <= vAmbientCap;
+
       vehicleStats[vid] = {
         frozen: vFrozen,
         chilled: vChilled,
@@ -392,35 +396,47 @@ function ConstraintVerificationBlock({ classical, alns, ortools, pulp, qaoa, qaA
         frozenCap: vFrozenCap,
         chilledCap: vChilledCap,
         ambientCap: vAmbientCap,
-        frozenOk: vFrozen <= vFrozenCap,
-        chilledOk: vChilled <= vChilledCap,
-        ambientOk: vAmbient <= vAmbientCap
+        frozenOk: capFrozenOk,
+        chilledOk: capChilledOk,
+        ambientOk: capAmbientOk
       };
 
       maxFrozen = Math.max(maxFrozen, vFrozen);
       maxChilled = Math.max(maxChilled, vChilled);
       maxAmbient = Math.max(maxAmbient, vAmbient);
 
-      if (r.feasible === false) {
+      // Derive feasibility from actual capacity data, not just cached r.feasible flag
+      // This catches stale cache where feasible:true but capacity clearly overflows
+      const capFeasible = capFrozenOk && capChilledOk && capAmbientOk;
+      if (r.feasible === false || !capFeasible) {
         allFeasible = false;
       }
       // Read time_window_feasible written by backend enrich_solver_result
       if (typeof r.time_window_feasible === 'boolean') {
         twFlagFound = true;
-        if (!r.time_window_feasible) twAllPassed = false;
+        if (!r.time_window_feasible) {
+          twAllPassed = false;
+          allFeasible = false; // TW failure also makes trip infeasible
+        }
       }
       const route = Array.isArray(r) ? r : (r.route || []);
       route.forEach(id => {
         if (id !== 0) {
           const originalId = id >= 1000 ? Math.floor(id / 1000) : id;
-          clinicsDelivered.add(originalId);
+          // Only count clinic IDs that belong to this scenario (1..totalClinics)
+          // Rejects stale QAOA results from larger old scenarios
+          if (originalId >= 1 && originalId <= totalClinics) {
+            clinicsDelivered.add(originalId);
+          }
         }
       });
       if (r && r.stops) {
         r.stops.forEach(s => {
           if (s.id !== 0 && s.id !== undefined) {
             const originalId = s.id >= 1000 ? Math.floor(s.id / 1000) : s.id;
-            clinicsDelivered.add(originalId);
+            if (originalId >= 1 && originalId <= totalClinics) {
+              clinicsDelivered.add(originalId);
+            }
           }
         });
       }

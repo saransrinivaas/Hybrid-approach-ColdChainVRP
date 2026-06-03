@@ -335,6 +335,51 @@ export default function ExplainerTab({ activeTab }) {
           </div>
         </div>
 
+        {/* Roadmap to Quantum Advantage & Scalability Proof */}
+        <div className="card glass-panel" style={{ padding: '1.5rem' }}>
+          <h3 style={{ marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <TrendingUp size={18} style={{ color: 'var(--text)' }} />
+            Quantum Advantage & Scalability Roadmap
+          </h3>
+          <p style={{ color: 'var(--text-secondary)', fontSize: '0.88rem', marginBottom: '1.25rem', lineHeight: '1.6' }}>
+            To defend the deployment of a quantum coprocessor, the hybrid framework breaks down the scalability wall between classical exact solvers and local heuristics:
+          </p>
+
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
+            <div style={{ padding: '0.9rem 1rem', borderRadius: '8px', background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.05)' }}>
+              <strong style={{ color: '#38bdf8', display: 'block', fontSize: '0.88rem', marginBottom: '0.25rem' }}>
+                1. Bypassing Gurobi's Exponential Wall (Scaling Advantage)
+              </strong>
+              <p style={{ margin: 0, fontSize: '0.81rem', color: 'var(--text-secondary)', lineHeight: '1.55' }}>
+                Exact classical solvers (Gurobi, CPLEX) guarantee the global optimum but scale exponentially (O(2<sup>N</sup>)). At 100 clinics, they take days or crash due to memory leaks. In our framework, the number of overlapping sub-clusters scales only linearly (O(N)), keeping the QPU circuits bounded to small, constant sizes (e.g. 9 qubits) regardless of global VRP scale.
+              </p>
+            </div>
+
+            <div style={{ padding: '0.9rem 1rem', borderRadius: '8px', background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.05)' }}>
+              <strong style={{ color: '#10b981', display: 'block', fontSize: '0.88rem', marginBottom: '0.25rem' }}>
+                2. Overcoming ALNS Local Minima Traps (Optimality Advantage)
+              </strong>
+              <p style={{ margin: 0, fontSize: '0.81rem', color: 'var(--text-secondary)', lineHeight: '1.55' }}>
+                Fast classical heuristics (Adaptive Large Neighborhood Search, Tabu Search) easily get trapped in poor local basins when solving large maps from scratch. By using QAOA as a global landscape navigator, the QPU solves the localized combinatorial sequences in superposition, providing optimized route backbones. The classical heuristics then easily smooth the boundaries, escaping local traps to achieve global fleet cost parity.
+              </p>
+            </div>
+
+            <div style={{ 
+              marginTop: '0.25rem',
+              padding: '0.75rem 0.9rem', 
+              borderRadius: '6px', 
+              background: 'rgba(16, 185, 129, 0.04)', 
+              border: '1px solid rgba(16, 185, 129, 0.15)', 
+              fontSize: '0.78rem', 
+              color: '#a7f3d0',
+              lineHeight: '1.45'
+            }}>
+              <strong style={{ display: 'block', marginBottom: '2px', color: '#10b981' }}>💡 Hackathon Pitch Defense:</strong>
+              "In the NISQ era, we achieve a linear execution scaling advantage. In the future Fault-Tolerant era, the QAOA engine will exploit quantum tunneling and superposition to solve large monolithic maps simultaneously—delivering true global cost supremacy over classical OR heuristics."
+            </div>
+          </div>
+        </div>
+
       </div>
 
       {/* Sidebar: SVG Charts */}

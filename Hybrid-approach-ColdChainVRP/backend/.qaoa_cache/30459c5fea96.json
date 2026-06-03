@@ -1,0 +1,28 @@
+{
+  "clinic_ids": [
+    3
+  ],
+  "route": [
+    3
+  ],
+  "assignment": {
+    "3": "all compartments"
+  },
+  "cost_breakdown": {
+    "distance": 0.0,
+    "spoilage": 0.0,
+    "refrigeration": 0.0,
+    "total": 0.0
+  },
+  "feasible": true,
+  "feasible_count": 1,
+  "total_bitstrings": 2,
+  "computation_time": 21.315419912338257,
+  "p_depth": 3,
+  "num_qubits": 1,
+  "energy": -10.0,
+  "bitstring": null,
+  "probability": 0.99,
+  "solver": "QAOA-classical-fallback",
+  "mode": "simulator"
+}

@@ -67,7 +67,7 @@ export default function ScenarioPanel({
         .then(r => r.json())
         .then(d => {
           if (!d.error) {
-            const key = scenarioKey === 'easy' ? 'easy' : scenarioKey === 'tough' ? 'tough' : 'tough3';
+            const key = scenarioKey === 'easy' ? 'easy' : scenarioKey === 'tough' ? 'tough' : scenarioKey === 'tough3' ? 'tough3' : 'tough4';
             const found = d[key];
             if (found?.clinics?.length > 0) setLocalMeta(found);
           }
@@ -107,11 +107,13 @@ export default function ScenarioPanel({
   const routeLines = solverResults?.routes
     ? Object.entries(solverResults.routes).map(([vid, vdata], idx) => {
         const color = VEHICLE_COLORS[idx % VEHICLE_COLORS.length];
-        const positions = (vdata.route || []).map(id => {
+        const route = Array.isArray(vdata) ? vdata : (vdata.route || []);
+        const positions = route.map(id => {
           if (id === 0 && depot && typeof depot.lat === 'number' && typeof depot.lon === 'number') {
             return [depot.lat, depot.lon];
           }
-          const c = clinics.find(x => x.id === id);
+          const originalId = id >= 1000 ? Math.floor(id / 1000) : id;
+          const c = clinics.find(x => x.id === originalId);
           return c && typeof c.lat === 'number' && typeof c.lon === 'number' ? [c.lat, c.lon] : null;
         }).filter(Boolean);
         return { vid, color, positions };
@@ -211,9 +213,10 @@ export default function ScenarioPanel({
           {clinics.map((c) => {
             let color = accentColor;
             if (solverResults?.routes) {
-              const entry = Object.entries(solverResults.routes).find(([, vd]) =>
-                (vd.route || []).includes(c.id)
-              );
+              const entry = Object.entries(solverResults.routes).find(([, vd]) => {
+                const route = Array.isArray(vd) ? vd : (vd.route || []);
+                return route.some(id => (id >= 1000 ? Math.floor(id / 1000) : id) === c.id);
+              });
               if (entry) color = VEHICLE_COLORS[Object.keys(solverResults.routes).indexOf(entry[0]) % VEHICLE_COLORS.length];
             }
             const tight = c.time_window && (c.time_window[1] - c.time_window[0]) <= 4;
@@ -244,9 +247,11 @@ export default function ScenarioPanel({
           </div>
           {Object.entries(solverResults.routes).map(([vid, vdata], idx) => {
             const color = VEHICLE_COLORS[idx % VEHICLE_COLORS.length];
-            const stops = (vdata.route || []).map(id => {
+            const route = Array.isArray(vdata) ? vdata : (vdata.route || []);
+            const stops = vdata.stops || route.map(id => {
               if (id === 0 && depot) return depot;
-              return clinics.find(x => x.id === id);
+              const originalId = id >= 1000 ? Math.floor(id / 1000) : id;
+              return clinics.find(x => x.id === originalId);
             }).filter(Boolean);
             return (
               <div key={vid} className="panel-route-row" style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>

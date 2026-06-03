@@ -488,7 +488,7 @@ def enrich_solver_result(result: dict, sc_module) -> dict:
         v_info = vehicles.get(vid, sc_module.VEHICLES[0])
         
         for temp in ("frozen", "chilled", "ambient"):
-            used = sum(demands[cid][temp] for cid in inner)
+            used = sum(demands.get(cid, {}).get(temp, 0) for cid in inner)
             cap = v_info["compartments"][temp]["capacity"]
             cap_check[temp] = {"used": used, "cap": cap}
             if used > cap:
@@ -499,14 +499,16 @@ def enrich_solver_result(result: dict, sc_module) -> dict:
         current_time = 8.0
         for i in range(1, len(route)):
             prev, curr = route[i-1], route[i]
-            travel_time = dm[prev][curr] / avg_speed
+            travel_time = (dm.get(prev) or {}).get(curr, 0) / max(avg_speed, 1)
             current_time += travel_time
             if curr != 0:
-                open_h, close_h = tw[curr]
-                if current_time > close_h:
-                    veh_tw_feasible = False
-                elif current_time < open_h:
-                    current_time = open_h
+                tw_entry = tw.get(curr)
+                if tw_entry:
+                    open_h, close_h = tw_entry
+                    if current_time > close_h:
+                        veh_tw_feasible = False
+                    elif current_time < open_h:
+                        current_time = open_h
                     
         rdata["capacity"] = cap_check
         # We enrich with a "feasible" boolean representing strict physical compliance
@@ -1211,9 +1213,9 @@ def hardware_run_scenario():
                     "routes": hw_data["routes"],
                     "fleet_distance": hw_data.get("total_distance"),
                     "fleet_spoilage": hw_data.get("total_spoilage"),
-                    "fleet_refrigeration": 0.0,
+                    "fleet_refrigeration": hw_data.get("total_refrigeration", 0.0),
                     "fleet_total_cost": hw_data.get("total_cost"),
-                    "total_time": 0.0,
+                    "total_time": res.get("execution_time", 0.0),
                     "status": "ok"
                 }
                 COMPUTED_STATE[f'compare_qaoa_{scenario_key}'] = qaoa_payload

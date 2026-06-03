@@ -1,0 +1,43 @@
+{
+  "clinic_ids": [
+    1,
+    2,
+    3,
+    4,
+    5,
+    6
+  ],
+  "route": [
+    1,
+    2,
+    3,
+    6,
+    4,
+    5
+  ],
+  "assignment": {
+    "1": "all compartments",
+    "2": "all compartments",
+    "3": "all compartments",
+    "4": "all compartments",
+    "5": "all compartments",
+    "6": "all compartments"
+  },
+  "cost_breakdown": {
+    "distance": 21.9964,
+    "spoilage": 48.2959,
+    "refrigeration": 0.1358,
+    "total": 70.4281
+  },
+  "feasible": true,
+  "feasible_count": 1,
+  "total_bitstrings": 2,
+  "computation_time": 0.08007526397705078,
+  "p_depth": 3,
+  "num_qubits": 0,
+  "energy": null,
+  "bitstring": null,
+  "probability": 1.0,
+  "solver": "classical",
+  "mode": "simulator"
+}

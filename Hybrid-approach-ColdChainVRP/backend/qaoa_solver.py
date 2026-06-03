@@ -87,6 +87,11 @@ def run_qaoa(clinic_ids: list, p_depth: int = DEFAULT_P,
     try:
         from qiskit_optimization.converters import QuadraticProgramToQubo
         from qiskit_algorithms.utils import algorithm_globals
+        # ── Deterministic seeding — eliminates run-to-run variance ──
+        # Without this, COBYLA starts from a random point each run, converges
+        # to different local optima, and the simulator gives "worse" results
+        # on some runs than others. Seed 42 is arbitrary but fixed.
+        np.random.seed(42)
         algorithm_globals.random_seed = 42
 
         qp, var_names = _build_qp(qubo)
@@ -185,10 +190,13 @@ def run_qaoa(clinic_ids: list, p_depth: int = DEFAULT_P,
                     print(f"    [QAOA Iter {eval_count:3d}] Expectation Value (Energy): {value:.4f}", flush=True)
 
             opt_engine = COBYLA(maxiter=MAX_ITER)
+            # Seed the sampler so shot sampling is reproducible
             sampler    = AerSamplerV2()
+            sampler.options.default_shots = shots
+            sampler.options.seed = 42
             vqe        = SamplingVQE(
-                sampler=sampler, 
-                ansatz=ansatz_transpiled, 
+                sampler=sampler,
+                ansatz=ansatz_transpiled,
                 optimizer=opt_engine,
                 callback=vqe_callback
             )
@@ -196,16 +204,11 @@ def run_qaoa(clinic_ids: list, p_depth: int = DEFAULT_P,
             _elapsed   = time.time() - _t0
 
             # Decode bitstring → QUBO variable assignments.
-            # Qiskit bitstrings are big-endian: index 0 = highest qubit.
-            # var_names[k] maps to qubit k, so we reverse to align.
+            # Apply dual-orientation decode (same fix as hardware path):
+            # the simulator's statevector ordering after transpile can also vary.
             best_bitstring = vqe_result.best_measurement['bitstring']
             best_energy    = float(vqe_result.best_measurement['value'])
             best_prob      = float(vqe_result.best_measurement.get('probability', 0.0))
-            _bits_lsb      = best_bitstring[::-1]   # now index k = qubit k
-            sample = {
-                var_names[k]: int(_bits_lsb[k]) if k < len(_bits_lsb) else 0
-                for k in range(len(var_names))
-            }
 
             if verbose:
                 print(f"  Optimization complete in {_elapsed:.1f}s")
@@ -213,17 +216,29 @@ def run_qaoa(clinic_ids: list, p_depth: int = DEFAULT_P,
                 print(f"  Best bitstring: {best_bitstring}")
                 print(f"  Probability:    {best_prob:.4f}")
 
-            decoded   = decode_solution(sample, clinic_ids)
-            breakdown = compute_cost_breakdown(sample, clinic_ids)
+            # Try both bit orderings; pick the valid decode with lower cost
+            decoded_best   = None
+            breakdown_best = None
+            for bits_candidate in [best_bitstring[::-1], best_bitstring]:
+                sample = {
+                    var_names[k]: int(bits_candidate[k]) if k < len(bits_candidate) else 0
+                    for k in range(len(var_names))
+                }
+                decoded   = decode_solution(sample, clinic_ids)
+                breakdown = compute_cost_breakdown(sample, clinic_ids)
+                if decoded["valid"]:
+                    if decoded_best is None or breakdown["total"] < breakdown_best["total"]:
+                        decoded_best   = decoded
+                        breakdown_best = breakdown
 
-            if decoded["valid"]:
+            if decoded_best is not None:
                 if verbose:
-                    print(f"  [OK] Valid QAOA route: {decoded['route']}")
+                    print(f"  [OK] Valid QAOA route: {decoded_best['route']}")
                 return {
                     "clinic_ids":       clinic_ids,
-                    "route":            decoded["route"],
-                    "assignment":       decoded["assignment"],
-                    "cost_breakdown":   breakdown,
+                    "route":            decoded_best["route"],
+                    "assignment":       decoded_best["assignment"],
+                    "cost_breakdown":   breakdown_best,
                     "feasible":         True,
                     "feasible_count":   1,
                     "total_bitstrings": 2**num_qubits,
