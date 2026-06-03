@@ -240,11 +240,11 @@ export default function ExplainerTab({ activeTab }) {
           </div>
           
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem', fontSize: '0.88rem', color: 'var(--text-secondary)' }}>
-            <div style={{ padding: '0.5rem 0.75rem', borderRadius: '6px', background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(239,68,68,0.2)' }}>
+            <div style={{ padding: '0.5rem 0.75rem', borderRadius: '6px', background: 'rgba(255,255,255,0.02)' }}>
               <strong style={{ color: '#ef4444', display: 'block', marginBottom: '2px' }}>Direct approach (Red line):</strong>
               Running a whole route together scales exponentially. 10 clinics require 100 qubits—unsimulatable on local laptops.
             </div>
-            <div style={{ padding: '0.5rem 0.75rem', borderRadius: '6px', background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(16,185,129,0.2)' }}>
+            <div style={{ padding: '0.5rem 0.75rem', borderRadius: '6px', background: 'rgba(255,255,255,0.02)' }}>
               <strong style={{ color: '#10b981', display: 'block', marginBottom: '2px' }}>Hybrid approach (Green line):</strong>
               Splits routes into small sub-clusters. Qubit cost stays constant at 9 or 16 qubits, regardless of global VRP scale.
             </div>
