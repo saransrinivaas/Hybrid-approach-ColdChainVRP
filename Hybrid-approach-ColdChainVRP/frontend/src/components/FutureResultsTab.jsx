@@ -731,7 +731,7 @@ export default function FutureResultsTab({ activeTab }) {
         <h2 style={{ marginBottom: '0.75rem', fontSize: '1.85rem' }}>
           Future Quantum Advantage — As Hardware Matures
         </h2>
-        <p style={{ color: '#e2e8f0', fontSize: '0.95rem', lineHeight: '1.6', marginBottom: '2.5rem', maxWidth: '85ch' }}>
+        <p style={{ color: '#e2e8f0', fontSize: '1.05rem', lineHeight: '1.6', marginBottom: '2.5rem', maxWidth: '85ch' }}>
           The <strong>Cryo Hybrid Optimiser</strong> is <strong>architected to scale</strong> with quantum hardware. No redesign needed — only the sub-solver stub needs to be swapped for a real QAOA call. Each hardware generation below unlocks a new performance tier automatically.
         </p>
 
@@ -739,7 +739,7 @@ export default function FutureResultsTab({ activeTab }) {
           {[
             {
               era: '2024 – 2026', label: 'NISQ Era',
-              heading: 'Current Dominance & Spatial Presets',
+              heading: 'Outperforming Classical Solvers Today',
               subclusterSize: '4 Nodes (16 Qubits)',
               body: <>Standard classical exact solvers struggle heavily right now because they optimize strictly for distance, ignoring thermodynamic product decay entirely. Our hybrid QAOA-Or-opt pipeline performs significantly better right now by coupling spatial routing directly with temperature preservation. Even in the NISQ era, our hybrid co-design achieves superior, fully feasible routes where classical exact solvers hit boundary exceptions and return completely unusable sequences.</>,
               badge: 'NOW'
@@ -772,19 +772,19 @@ export default function FutureResultsTab({ activeTab }) {
                 {/* Left Column: Metadata */}
                 <div style={{ flex: '0 0 220px', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                    <span style={{ fontSize: '0.65rem', fontWeight: 700, padding: '0.15rem 0.4rem', borderRadius: '4px', background: 'rgba(56, 189, 248, 0.1)', border: '1px solid rgba(56, 189, 248, 0.3)', color: '#38bdf8' }}>{badge}</span>
-                    <span style={{ fontSize: '0.75rem', color: '#cbd5e1', fontStyle: 'italic' }}>{label}</span>
+                    <span style={{ fontSize: '0.75rem', fontWeight: 700, padding: '0.15rem 0.4rem', borderRadius: '4px', background: 'rgba(56, 189, 248, 0.1)', border: '1px solid rgba(56, 189, 248, 0.3)', color: '#38bdf8' }}>{badge}</span>
+                    <span style={{ fontSize: '0.85rem', color: '#cbd5e1', fontStyle: 'italic' }}>{label}</span>
                   </div>
-                  <div style={{ fontSize: '0.75rem', color: '#94a3b8', fontFamily: 'var(--font-mono)' }}>{era}</div>
-                  <div style={{ fontWeight: 600, fontSize: '0.75rem', color: '#cbd5e1', padding: '0.25rem 0.4rem', background: 'rgba(255,255,255,0.04)', borderRadius: '4px', border: '1px solid rgba(255,255,255,0.08)', display: 'inline-block', width: 'fit-content' }}>
+                  <div style={{ fontSize: '0.85rem', color: '#94a3b8', fontFamily: 'var(--font-mono)' }}>{era}</div>
+                  <div style={{ fontWeight: 600, fontSize: '0.85rem', color: '#cbd5e1', padding: '0.25rem 0.4rem', background: 'rgba(255,255,255,0.04)', borderRadius: '4px', border: '1px solid rgba(255,255,255,0.08)', display: 'inline-block', width: 'fit-content' }}>
                     Qubits Required: {subclusterSize}
                   </div>
                 </div>
  
                 {/* Right Column: Content */}
                 <div style={{ flex: 1 }}>
-                  <div style={{ fontWeight: 700, fontSize: '1.05rem', color: '#ffffff', marginBottom: '0.35rem' }}>{heading}</div>
-                  <p style={{ margin: 0, fontSize: '0.85rem', color: '#cbd5e1', lineHeight: '1.5' }}>{body}</p>
+                  <div style={{ fontWeight: 700, fontSize: '1.15rem', color: '#ffffff', marginBottom: '0.35rem' }}>{heading}</div>
+                  <p style={{ margin: 0, fontSize: '0.95rem', color: '#cbd5e1', lineHeight: '1.5' }}>{body}</p>
                 </div>
  
               </div>
@@ -792,7 +792,7 @@ export default function FutureResultsTab({ activeTab }) {
           })}
         </div>
  
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', padding: '1rem 1.25rem', borderRadius: '8px', background: 'rgba(56, 189, 248, 0.05)', border: '1px solid rgba(56, 189, 248, 0.2)', fontSize: '0.85rem', color: '#e2e8f0', lineHeight: '1.6' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', padding: '1rem 1.25rem', borderRadius: '8px', background: 'rgba(56, 189, 248, 0.05)', border: '1px solid rgba(56, 189, 248, 0.2)', fontSize: '0.95rem', color: '#e2e8f0', lineHeight: '1.6' }}>
           <div>
             <strong style={{ color: '#ffffff' }}>The Fundamental Limit of Classical Solvers:</strong> Classical algorithms (MILP, Branch-and-Cut, local search heuristics) are mathematically bound by exponential scaling limits. To run in reasonable time, they must separate routing from physics—first finding a spatial route, then post-evaluating spoilage constraints. This disconnected approach is structurally blind to thermo-spatial trade-offs, often missing massive cost reductions.
           </div>
