@@ -157,7 +157,7 @@ export default function ExplainerTab({ activeTab }) {
               overflowX: 'auto'
             }}
           >
-            <div key={selectedTerm} style={{ fontSize: '1.35rem', color: '#ec4899' }}>
+            <div key={selectedTerm} style={{ fontSize: '1.35rem', color: '#ffffff' }}>
               {HAMILTONIAN_TERMS[selectedTerm].math}
             </div>
           </div>
