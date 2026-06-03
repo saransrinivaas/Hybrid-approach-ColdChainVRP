@@ -402,9 +402,9 @@ export default function ExplainerTab({ activeTab }) {
                   onClick={() => setSelectedStep(s.step)}
                   style={{
                     padding: '0.75rem 0.5rem',
-                    background: isSelected ? '#f97316' : 'rgba(255,255,255,0.03)',
+                    background: isSelected ? 'rgba(255,255,255,0.12)' : 'rgba(255,255,255,0.03)',
                     color: isSelected ? '#ffffff' : 'var(--text)',
-                    border: '1px solid rgba(255,255,255,0.08)',
+                    border: isSelected ? '1px solid #ffffff' : '1px solid rgba(255,255,255,0.08)',
                     borderRadius: '6px',
                     cursor: 'pointer',
                     fontSize: '0.85rem',
@@ -431,7 +431,7 @@ export default function ExplainerTab({ activeTab }) {
               background: 'rgba(255,255,255,0.02)',
               borderRadius: '8px',
               border: '1px solid rgba(255,255,255,0.05)',
-              borderLeft: '4px solid #f97316'
+              borderLeft: '4px solid #ffffff'
             }}
           >
             <div style={{ fontWeight: 700, fontSize: '1.05rem', color: '#ffffff', marginBottom: '0.4rem' }}>
