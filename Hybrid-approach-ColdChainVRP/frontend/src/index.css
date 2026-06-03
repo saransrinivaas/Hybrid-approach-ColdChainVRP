@@ -1306,7 +1306,7 @@ html[data-theme='light'] body {
   background: var(--bg-elevated);
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
-  font-size: 0.72rem;
+  font-size: 0.82rem;
 }
 
 .clinic-chip.tight {
@@ -1322,7 +1322,7 @@ html[data-theme='light'] body {
   color: var(--text-muted);
   font-family: var(--font-mono);
   margin-top: 0.12rem;
-  font-size: 0.68rem;
+  font-size: 0.78rem;
 }
 
 .map-frame {

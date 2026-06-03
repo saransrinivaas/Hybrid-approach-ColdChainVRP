@@ -352,7 +352,7 @@
       "fleet_spoilage": 97.7316,
       "fleet_refrigeration": 0.1591,
       "fleet_total_cost": 189.8668,
-      "total_time": 0.0559,
+      "total_time": 0.0649,
       "status": "ok"
     }
   },
@@ -1017,7 +1017,7 @@
       "fleet_spoilage": 87.5083,
       "fleet_refrigeration": 0.1925,
       "fleet_total_cost": 190.8052,
-      "total_time": 0.1055,
+      "total_time": 0.0764,
       "status": "ok"
     }
   },
@@ -2052,7 +2052,7 @@
       "fleet_spoilage": 149.7481,
       "fleet_refrigeration": 0.3823,
       "fleet_total_cost": 313.9212,
-      "total_time": 2.2369,
+      "total_time": 2.5163,
       "status": "ok"
     }
   },
