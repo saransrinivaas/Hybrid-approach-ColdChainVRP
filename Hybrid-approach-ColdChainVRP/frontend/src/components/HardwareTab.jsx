@@ -506,29 +506,53 @@ export default function HardwareTab({ runPipeline, activeTab }) {
       <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
         {/* Physical IBM Quantum Hardware Execution Ledger */}
         <div style={{ 
-          background: isNode3 ? 'rgba(16, 185, 129, 0.03)' : 'rgba(59, 130, 246, 0.03)', 
-          border: `1px solid ${isNode3 ? 'rgba(16, 185, 129, 0.15)' : 'rgba(255,255,255,0.05)'}`, 
+          background: isNode3 ? 'rgba(16, 185, 129, 0.02)' : 'rgba(59, 130, 246, 0.02)', 
+          border: `1px solid ${isNode3 ? 'rgba(16, 185, 129, 0.1)' : 'rgba(255,255,255,0.05)'}`, 
           borderRadius: '8px', 
-          padding: '1.2rem',
+          padding: '1rem 1.2rem',
           fontSize: '0.8rem',
           color: '#ccc',
-          lineHeight: '1.5',
           boxShadow: 'none'
         }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#fff', fontWeight: 700, marginBottom: '0.5rem' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#fff', fontWeight: 700, marginBottom: '0.85rem' }}>
             <Info size={16} color={isNode3 ? '#10b981' : '#3b82f6'} />
             <span>{isNode3 ? 'Fidelity-Tuned 3-Node Sub-cluster Physical Ledger' : 'Standard 4-Node Sub-cluster Physical Ledger'}</span>
           </div>
-          <p style={{ margin: '0 0 0.5rem 0' }}>
-            {isNode3 
-              ? 'Evaluating VRP subclusters using a dynamic max size of 3 stops. This reduces CNOT quantum circuit gate depth to only ~680 gates, allowing Heron r2 to execute well within its physical decoherence window for high-fidelity convergence:' 
-              : 'All sub-clusters are submitted directly and physically to the physical superconducting qubits of ibm_heron_r2. Simulated noise model fallbacks are 100% disabled as requested:'}
-          </p>
-          <ul style={{ margin: 0, paddingLeft: '1.25rem', display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
-            <li><strong>QPU Coherence Optimization:</strong> {isNode3 ? 'Targeting p=3 parameters on 9 active qubits. Gate count cut by over 50% compared to standard 4-node runs.' : 'Every VRP sub-cluster (up to 4 clinics / 16 qubits) is compiled, warm-started classically, and executed on physical superconducting chips.'}</li>
-            <li><strong>Scenario 3 Full Evaluation:</strong> Scenario 3 dynamically compiles and evaluates all <strong>12 sub-clusters</strong> (192 qubits total) spanning all trips for Vehicles V1, V2, and V3 to guarantee complete stress-test coverage.</li>
-            <li><strong>Consensus Stitching:</strong> When all sub-clusters for a scenario are complete, the server runs a classical consensus stitching and thermodynamic-spatial Or-opt local search post-processor to build perfect side-by-side comparative route profiles.</li>
-          </ul>
+          
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(18rem, 1fr))',
+            gap: '0.75rem'
+          }}>
+            <div style={{ background: 'rgba(255,255,255,0.015)', border: '1px solid rgba(255,255,255,0.04)', padding: '0.75rem', borderRadius: '6px' }}>
+              <strong style={{ display: 'block', fontSize: '0.74rem', color: isNode3 ? '#10b981' : '#3b82f6', textTransform: 'uppercase', marginBottom: '0.25rem', letterSpacing: '0.04em' }}>
+                QPU Optimization
+              </strong>
+              <span style={{ fontSize: '0.74rem', color: '#aaa', lineHeight: '1.4' }}>
+                {isNode3 
+                  ? 'Max 3 stops per cluster. Gate depth cut to ~680 gates, enabling high-fidelity coherence window execution on Heron r2.' 
+                  : 'Max 4 stops per cluster (16 qubits). Executed directly on superconducting hardware without noise fallbacks.'}
+              </span>
+            </div>
+
+            <div style={{ background: 'rgba(255,255,255,0.015)', border: '1px solid rgba(255,255,255,0.04)', padding: '0.75rem', borderRadius: '6px' }}>
+              <strong style={{ display: 'block', fontSize: '0.74rem', color: isNode3 ? '#10b981' : '#3b82f6', textTransform: 'uppercase', marginBottom: '0.25rem', letterSpacing: '0.04em' }}>
+                Evaluation Scale
+              </strong>
+              <span style={{ fontSize: '0.74rem', color: '#aaa', lineHeight: '1.4' }}>
+                Scenario 3 compiles all 12 sub-clusters (192 qubits total) across Vehicles V1, V2, and V3 for complete stress-test coverage.
+              </span>
+            </div>
+
+            <div style={{ background: 'rgba(255,255,255,0.015)', border: '1px solid rgba(255,255,255,0.04)', padding: '0.75rem', borderRadius: '6px' }}>
+              <strong style={{ display: 'block', fontSize: '0.74rem', color: isNode3 ? '#10b981' : '#3b82f6', textTransform: 'uppercase', marginBottom: '0.25rem', letterSpacing: '0.04em' }}>
+                Post-Processing
+              </strong>
+              <span style={{ fontSize: '0.74rem', color: '#aaa', lineHeight: '1.4' }}>
+                Consensus stitching uses coupled thermodynamic-spatial local search (Or-opt) to reconstruct fully feasible global routes.
+              </span>
+            </div>
+          </div>
         </div>
         
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(28rem, 1fr))', gap: '1.5rem' }}>
@@ -924,24 +948,24 @@ export default function HardwareTab({ runPipeline, activeTab }) {
             key={sub.id}
             onClick={() => setActiveSubTab(sub.id)}
             style={{
-              background: activeSubTab === sub.id ? 'rgba(59, 130, 246, 0.12)' : '#111',
-              border: activeSubTab === sub.id ? '1px solid #3b82f6' : '1px solid rgba(255,255,255,0.05)',
-              borderRadius: '4px',
-              padding: '0.65rem 1.1rem',
-              color: activeSubTab === sub.id ? '#fff' : '#aaa',
-              fontSize: '0.8rem',
-              fontWeight: 700,
+              background: activeSubTab === sub.id ? '#ffffff' : 'transparent',
+              border: activeSubTab === sub.id ? '1px solid transparent' : '1px solid rgba(255,255,255,0.1)',
+              borderRadius: '8px',
+              padding: '0.55rem 1.15rem',
+              color: activeSubTab === sub.id ? '#111111' : '#999999',
+              fontSize: '0.78rem',
+              fontWeight: 600,
               cursor: 'pointer',
               whiteSpace: 'nowrap',
               transition: 'all 0.15s ease',
               textAlign: 'left',
               display: 'flex',
               flexDirection: 'column',
-              gap: '2px'
+              gap: '1px'
             }}
           >
             <span>{sub.label}</span>
-            <span style={{ fontSize: '0.64rem', fontWeight: 500, color: activeSubTab === sub.id ? '#3b82f6' : '#666' }}>
+            <span style={{ fontSize: '0.64rem', fontWeight: 500, color: activeSubTab === sub.id ? '#555555' : '#666666' }}>
               {sub.desc}
             </span>
           </button>
@@ -961,12 +985,12 @@ export default function HardwareTab({ runPipeline, activeTab }) {
               background: 'rgba(59, 130, 246, 0.05)', 
               border: '1px solid rgba(59, 130, 246, 0.15)', 
               borderRadius: '6px', 
-              padding: '0.75rem 1rem', 
-              fontSize: '0.78rem', 
+              padding: '0.6rem 0.85rem', 
+              fontSize: '0.75rem', 
               color: '#93c5fd', 
-              lineHeight: '1.4' 
+              lineHeight: '1.35' 
             }}>
-              <strong>Quantum Hardware Transparency Disclosure:</strong> Sub-clusters of sizes 2, 3, and 4 clinics are submitted directly to the physical IBM QPU. To stay within active queue limits and prevent high-decoherence execution crashes, sizes 5 and 6 clinics (25 and 36 qubits) are modeled using a calibrated noise-horizon simulator to map hardware phase noise and gate-depth limits.
+              <strong>QPU Execution Rule:</strong> Sizes 2-4 run on physical qubits. Sizes 5-6 run on a calibrated noise-horizon simulator to map hardware phase decay limits without queue aborts.
             </div>
             
             <div style={{ display: 'grid', gridTemplateColumns: '1.35fr 1fr', gap: '1.5rem', alignItems: 'start' }}>
@@ -1151,12 +1175,12 @@ export default function HardwareTab({ runPipeline, activeTab }) {
               background: 'rgba(59, 130, 246, 0.05)', 
               border: '1px solid rgba(59, 130, 246, 0.15)', 
               borderRadius: '6px', 
-              padding: '0.75rem 1rem', 
-              fontSize: '0.78rem', 
+              padding: '0.6rem 0.85rem', 
+              fontSize: '0.75rem', 
               color: '#93c5fd', 
-              lineHeight: '1.4' 
+              lineHeight: '1.35' 
             }}>
-              <strong>Quantum Hardware Transparency Disclosure:</strong> This sweeps grid and compile benchmark ledgers evaluate circuit depths, CNOT gate scaling, and QPU execution latencies using pre-analyzed lookups to optimize your run configurations without consuming active physical QPU credits.
+              <strong>Transparency Note:</strong> Swarm transpiling, CNOT gate scaling, and latency sweep ledgers use lookup benchmarks to optimize configuration without consuming QPU credits.
             </div>
             
             <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: '1.5rem', alignItems: 'start' }}>
@@ -1275,12 +1299,12 @@ export default function HardwareTab({ runPipeline, activeTab }) {
               background: 'rgba(59, 130, 246, 0.05)', 
               border: '1px solid rgba(59, 130, 246, 0.15)', 
               borderRadius: '6px', 
-              padding: '0.75rem 1rem', 
-              fontSize: '0.78rem', 
+              padding: '0.6rem 0.85rem', 
+              fontSize: '0.75rem', 
               color: '#93c5fd', 
-              lineHeight: '1.4' 
+              lineHeight: '1.35' 
             }}>
-              <strong>Quantum Hardware Transparency Disclosure:</strong> This sweeps grid and compile benchmark ledgers evaluate circuit depths, CNOT gate scaling, and QPU execution latencies using pre-analyzed lookups to optimize your run configurations without consuming active physical QPU credits.
+              <strong>Transparency Note:</strong> Swarm transpiling, CNOT gate scaling, and latency sweep ledgers use lookup benchmarks to optimize configuration without consuming QPU credits.
             </div>
             
             {isLoadingSweeps ? (
