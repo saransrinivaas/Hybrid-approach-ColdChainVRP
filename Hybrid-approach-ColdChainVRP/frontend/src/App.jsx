@@ -172,33 +172,23 @@ export default function App() {
       <div style={{ display: activeTab === 'scenarios' ? 'block' : 'none' }}>
         <div className="app-scenarios-grid">
           <ScenarioPanel
-            scenarioKey="easy"
-            meta={scenarioMeta?.easy}
-            pipelineEndpoint="/api/run-pipeline"
-            resultsEndpoint="/api/results"
-            label="Scenario 1 (Baseline)"
-            subtitle="Based on your inputs in the Input tab"
-            accentColor="var(--solver-classical)"
-            runPipeline={runSSE}
-          />
-          <ScenarioPanel
             scenarioKey="tough"
             meta={scenarioMeta?.tough}
             pipelineEndpoint="/api/run-pipeline-easy"
             resultsEndpoint="/api/results-tough"
-            label="Scenario 2 (Tough)"
+            label="Scenario 1 (Baseline)"
             subtitle="10 clinics · 2 vehicles · uniform 8–18h windows"
             accentColor="var(--solver-qaoa)"
             runPipeline={runSSE}
           />
           <ScenarioPanel
-            scenarioKey="tough3"
-            meta={scenarioMeta?.tough3}
-            pipelineEndpoint="/api/run-pipeline-tough3"
-            resultsEndpoint="/api/results-tough3"
-            label="Scenario 3 (Regional)"
-            subtitle="30 clinics · 3 vehicles · non-uniform operating windows"
-            accentColor="var(--solver-alns)"
+            scenarioKey="easy"
+            meta={scenarioMeta?.easy}
+            pipelineEndpoint="/api/run-pipeline"
+            resultsEndpoint="/api/results"
+            label="Scenario 2 (Configured)"
+            subtitle="Based on your inputs in the Input tab"
+            accentColor="var(--solver-classical)"
             runPipeline={runSSE}
           />
           <ScenarioPanel
@@ -206,9 +196,19 @@ export default function App() {
             meta={scenarioMeta?.tough4}
             pipelineEndpoint="/api/run-pipeline-scenario4"
             resultsEndpoint="/api/results-tough4"
-            label="Scenario 4 (Stress Test)"
+            label="Scenario 3 (Edge Cases)"
             subtitle="5 clinics · 4 vehicles · demand overflow node splitting"
             accentColor="var(--solver-gurobi)"
+            runPipeline={runSSE}
+          />
+          <ScenarioPanel
+            scenarioKey="tough3"
+            meta={scenarioMeta?.tough3}
+            pipelineEndpoint="/api/run-pipeline-tough3"
+            resultsEndpoint="/api/results-tough3"
+            label="Scenario 4 (Stress Test)"
+            subtitle="30 clinics · 3 vehicles · non-uniform operating windows"
+            accentColor="var(--solver-alns)"
             runPipeline={runSSE}
           />
         </div>

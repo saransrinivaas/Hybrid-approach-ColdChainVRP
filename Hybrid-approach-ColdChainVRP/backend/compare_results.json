@@ -3037,7 +3037,7 @@
       "fleet_spoilage": 0.0,
       "fleet_refrigeration": 0.0,
       "fleet_total_cost": 0.0,
-      "total_time": 0.0035,
+      "total_time": 0.005,
       "status": "failed"
     },
     "gurobi": {
@@ -3057,7 +3057,7 @@
       "fleet_spoilage": 0.0,
       "fleet_refrigeration": 0.0,
       "fleet_total_cost": 0.0,
-      "total_time": 0.1284,
+      "total_time": 0.1563,
       "status": "failed"
     },
     "alns": {
@@ -3101,51 +3101,10 @@
               "cap": 10
             }
           },
-          "computation_time": 0.1015,
+          "computation_time": 0.2137,
           "solver": "ALNS Metaheuristic"
         },
         "V2": {
-          "route": [
-            0,
-            0
-          ],
-          "stops": [
-            {
-              "id": 0,
-              "name": "Depot",
-              "lat": 13.0827,
-              "lon": 80.2707
-            },
-            {
-              "id": 0,
-              "name": "Depot",
-              "lat": 13.0827,
-              "lon": 80.2707
-            }
-          ],
-          "distance_km": 0.0,
-          "spoilage_rs": 0.0,
-          "refrigeration_rs": 0.0,
-          "total_cost_rs": 0.0,
-          "feasible": true,
-          "capacity": {
-            "frozen": {
-              "used": 0,
-              "cap": 10
-            },
-            "chilled": {
-              "used": 0,
-              "cap": 10
-            },
-            "ambient": {
-              "used": 0,
-              "cap": 10
-            }
-          },
-          "computation_time": 0.1015,
-          "solver": "ALNS Metaheuristic"
-        },
-        "V3": {
           "route": [
             0,
             5,
@@ -3218,7 +3177,48 @@
               "cap": 10
             }
           },
-          "computation_time": 0.1015,
+          "computation_time": 0.2137,
+          "solver": "ALNS Metaheuristic"
+        },
+        "V3": {
+          "route": [
+            0,
+            0
+          ],
+          "stops": [
+            {
+              "id": 0,
+              "name": "Depot",
+              "lat": 13.0827,
+              "lon": 80.2707
+            },
+            {
+              "id": 0,
+              "name": "Depot",
+              "lat": 13.0827,
+              "lon": 80.2707
+            }
+          ],
+          "distance_km": 0.0,
+          "spoilage_rs": 0.0,
+          "refrigeration_rs": 0.0,
+          "total_cost_rs": 0.0,
+          "feasible": true,
+          "capacity": {
+            "frozen": {
+              "used": 0,
+              "cap": 10
+            },
+            "chilled": {
+              "used": 0,
+              "cap": 10
+            },
+            "ambient": {
+              "used": 0,
+              "cap": 10
+            }
+          },
+          "computation_time": 0.2137,
           "solver": "ALNS Metaheuristic"
         },
         "V4": {
@@ -3259,7 +3259,7 @@
               "cap": 10
             }
           },
-          "computation_time": 0.1015,
+          "computation_time": 0.2137,
           "solver": "ALNS Metaheuristic"
         }
       },
@@ -3267,7 +3267,7 @@
       "fleet_spoilage": 75.7327,
       "fleet_refrigeration": 0.0889,
       "fleet_total_cost": 130.9501,
-      "total_time": 0.1015,
+      "total_time": 0.2137,
       "status": "ok"
     },
     "qaoa": {
@@ -3312,7 +3312,7 @@
               "cap": 10
             }
           },
-          "computation_time": 0.0039,
+          "computation_time": 0.002,
           "solver": "QAOA (p=3)"
         },
         "V3": {
@@ -3364,7 +3364,7 @@
               "cap": 10
             }
           },
-          "computation_time": 0.0039,
+          "computation_time": 0.002,
           "solver": "QAOA (p=3)"
         },
         "V4_1": {
@@ -3411,7 +3411,7 @@
               "cap": 10
             }
           },
-          "computation_time": 0.0039,
+          "computation_time": 0.002,
           "solver": "QAOA (p=3)"
         },
         "V4_2": {
@@ -3463,7 +3463,7 @@
               "cap": 10
             }
           },
-          "computation_time": 0.0039,
+          "computation_time": 0.002,
           "solver": "QAOA (p=3)"
         }
       },
@@ -3471,7 +3471,7 @@
       "fleet_spoilage": 69.1716,
       "fleet_refrigeration": 0.2699,
       "fleet_total_cost": 239.9912,
-      "total_time": 0.0039,
+      "total_time": 0.002,
       "status": "ok"
     }
   }

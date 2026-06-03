@@ -617,7 +617,7 @@ function isValidComparePayload(d) {
 }
 
 export default function CompareTab({ runPipeline, compareActive = true }) {
-  const [activeScenario, setActiveScenario] = useState('easy');
+  const [activeScenario, setActiveScenario] = useState('tough');
   const [logs, setLogs] = useState([]);
   const [isRunning, setIsRunning] = useState(false);
   const [results, setResults] = useState(null);
@@ -939,12 +939,12 @@ export default function CompareTab({ runPipeline, compareActive = true }) {
     );
   };
 
-  const scenarioLabel = activeScenario === 'easy'
+  const scenarioLabel = activeScenario === 'tough'
     ? 'Scenario 1 (Baseline)'
-    : activeScenario === 'tough'
-      ? 'Scenario 2 (Tough)'
-      : activeScenario === 'tough3'
-        ? 'Scenario 3 (Regional)'
+    : activeScenario === 'easy'
+      ? 'Scenario 2 (Configured)'
+      : activeScenario === 'tough4'
+        ? 'Scenario 3 (Edge Cases)'
         : 'Scenario 4 (Stress Test)';
 
   return (
@@ -956,32 +956,32 @@ export default function CompareTab({ runPipeline, compareActive = true }) {
               <h2 style={{ margin: 0, paddingRight: '1rem', borderRight: '1px solid rgba(255,255,255,0.2)' }}>Compare solvers</h2>
               <div style={{ display: 'flex', gap: '0.5rem' }}>
                 <button
-                  className={`btn ${activeScenario === 'easy' ? 'btn-primary' : 'btn-secondary'}`}
-                  onClick={() => setActiveScenario('easy')}
-                  style={{ padding: '0.4rem 0.8rem', fontSize: '0.8rem' }}
-                >
-                  Scenario 1
-                </button>
-                <button
                   className={`btn ${activeScenario === 'tough' ? 'btn-primary' : 'btn-secondary'}`}
                   onClick={() => setActiveScenario('tough')}
                   style={{ padding: '0.4rem 0.8rem', fontSize: '0.8rem' }}
                 >
-                  Scenario 2
+                  Scenario 1 (Baseline)
                 </button>
                 <button
-                  className={`btn ${activeScenario === 'tough3' ? 'btn-primary' : 'btn-secondary'}`}
-                  onClick={() => setActiveScenario('tough3')}
+                  className={`btn ${activeScenario === 'easy' ? 'btn-primary' : 'btn-secondary'}`}
+                  onClick={() => setActiveScenario('easy')}
                   style={{ padding: '0.4rem 0.8rem', fontSize: '0.8rem' }}
                 >
-                  Scenario 3
+                  Scenario 2 (Configured)
                 </button>
                 <button
                   className={`btn ${activeScenario === 'tough4' ? 'btn-primary' : 'btn-secondary'}`}
                   onClick={() => setActiveScenario('tough4')}
                   style={{ padding: '0.4rem 0.8rem', fontSize: '0.8rem' }}
                 >
-                  Scenario 4
+                  Scenario 3 (Edge Cases)
+                </button>
+                <button
+                  className={`btn ${activeScenario === 'tough3' ? 'btn-primary' : 'btn-secondary'}`}
+                  onClick={() => setActiveScenario('tough3')}
+                  style={{ padding: '0.4rem 0.8rem', fontSize: '0.8rem' }}
+                >
+                  Scenario 4 (Stress Test)
                 </button>
               </div>
               {cl && resultsSource === 'disk' && (
@@ -1143,10 +1143,16 @@ export default function CompareTab({ runPipeline, compareActive = true }) {
                     { label: 'Vehicles', value: meta.num_vehicles },
                     { label: 'Total demand', value: `${meta.total_demand} units` },
                     { label: 'Tight windows', value: meta.tight_windows || 0 },
+                    {
+                      label: 'Vehicle Capacity',
+                      value: meta.capacity
+                        ? `F:${meta.capacity.frozen || 0} / C:${meta.capacity.chilled || 0} / A:${meta.capacity.ambient || 0}`
+                        : '—'
+                    },
                   ].map(({ label, value }) => (
                     <div key={label} className="scenario-detail-stat">
                       <div className="sdl">{label}</div>
-                      <div className="sdv">{value}</div>
+                      <div className="sdv" style={label === 'Vehicle Capacity' ? { fontSize: '0.78rem' } : {}}>{value}</div>
                     </div>
                   ))}
                 </div>
