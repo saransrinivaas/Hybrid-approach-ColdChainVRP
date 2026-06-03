@@ -773,7 +773,7 @@ export default function FutureResultsTab({ activeTab }) {
                 <div style={{ flex: '0 0 220px', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                     <span style={{ fontSize: '0.75rem', fontWeight: 700, padding: '0.15rem 0.4rem', borderRadius: '4px', background: 'rgba(56, 189, 248, 0.1)', border: '1px solid rgba(56, 189, 248, 0.3)', color: '#38bdf8' }}>{badge}</span>
-                    <span style={{ fontSize: '0.85rem', color: '#cbd5e1', fontStyle: 'italic' }}>{label}</span>
+                    <span style={{ fontSize: '0.85rem', color: '#cbd5e1' }}>{label}</span>
                   </div>
                   <div style={{ fontSize: '0.85rem', color: '#94a3b8', fontFamily: 'var(--font-mono)' }}>{era}</div>
                   <div style={{ fontWeight: 600, fontSize: '0.85rem', color: '#cbd5e1', padding: '0.25rem 0.4rem', background: 'rgba(255,255,255,0.04)', borderRadius: '4px', border: '1px solid rgba(255,255,255,0.08)', display: 'inline-block', width: 'fit-content' }}>
