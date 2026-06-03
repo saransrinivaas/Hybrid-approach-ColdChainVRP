@@ -89,6 +89,13 @@ export default function ExplainerTab({ activeTab }) {
   useEffect(() => {
     if (activeTab === 'explainer' && window.MathJax && window.MathJax.typesetPromise) {
       setTimeout(() => {
+        try {
+          if (window.MathJax.typesetClear) {
+            window.MathJax.typesetClear();
+          }
+        } catch (e) {
+          console.warn('MathJax clear error:', e);
+        }
         window.MathJax.typesetPromise().catch((err) => console.log('MathJax typesetting error:', err));
       }, 50);
     }
@@ -150,7 +157,7 @@ export default function ExplainerTab({ activeTab }) {
               overflowX: 'auto'
             }}
           >
-            <div style={{ fontSize: '1.35rem', color: '#ec4899' }}>
+            <div key={selectedTerm} style={{ fontSize: '1.35rem', color: '#ec4899' }}>
               {HAMILTONIAN_TERMS[selectedTerm].math}
             </div>
           </div>
