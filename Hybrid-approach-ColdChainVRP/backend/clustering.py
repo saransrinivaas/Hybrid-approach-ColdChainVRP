@@ -17,10 +17,14 @@ except ImportError:
     import scenario as _init_scenario
 
 class ScenarioProxy:
+    def __init__(self, fallback=None):
+        self.__dict__['_fallback'] = fallback
+
     def _get_current_object(self):
         if hasattr(_local, "scenario"):
             return _local.scenario
-        return _init_scenario
+        fallback = self.__dict__.get('_fallback')
+        return fallback if fallback is not None else _init_scenario
 
     def __getattr__(self, name):
         return getattr(self._get_current_object(), name)

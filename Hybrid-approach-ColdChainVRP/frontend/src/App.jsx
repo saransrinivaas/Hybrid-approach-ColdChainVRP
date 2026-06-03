@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
-import { Moon, Play, Sun, GitCompare, Settings, Activity, BookOpen, Sparkles, Cpu } from 'lucide-react';
+import { Moon, Play, Sun, GitCompare, Settings, Activity, BookOpen, Sparkles, Cpu, BarChart2 } from 'lucide-react';
 
 import ScenarioPanel from './components/ScenarioPanel';
 import CompareTab    from './components/CompareTab';
@@ -10,6 +10,7 @@ import ResultsView   from './components/ResultsView';
 import ExplainerTab  from './components/ExplainerTab';
 import FutureResultsTab from './components/FutureResultsTab';
 import HardwareTab   from './components/HardwareTab';
+import BenchmarkingTab from './components/BenchmarkingTab';
 import { API_BASE }  from './data';
 import { runSSE }    from './utils/sse';
 import cryoLogo     from './assets/cryo_logo.png';
@@ -91,6 +92,7 @@ export default function App() {
     { id: 'scenarios', label: 'Scenarios', icon: Play      },
     { id: 'compare',   label: 'Compare',   icon: GitCompare },
     { id: 'hardware',  label: 'Quantum Hardware', icon: Cpu },
+    { id: 'benchmarking', label: 'Benchmarking', icon: BarChart2 },
     { id: 'explainer', label: 'Explainer', icon: BookOpen   },
     { id: 'future',    label: 'Future Results', icon: Sparkles },
   ];
@@ -222,6 +224,11 @@ export default function App() {
       {/* ── Quantum Hardware tab ── */}
       <div style={{ display: activeTab === 'hardware' ? 'block' : 'none' }}>
         <HardwareTab runPipeline={runSSE} activeTab={activeTab} />
+      </div>
+
+      {/* ── Benchmarking tab ── */}
+      <div style={{ display: activeTab === 'benchmarking' ? 'block' : 'none' }}>
+        <BenchmarkingTab />
       </div>
 
       {/* ── Explainer tab ── */}
