@@ -606,15 +606,36 @@ def _start_ilp_background():
             importlib.reload(_SC2b)
             importlib.reload(_SC3b)
             importlib.reload(_SC4b)
-            import gurobi_solver as _gurobi, pulp_solver as _pulp
-            for key, sc in [('easy', _SC1b), ('tough', _SC2b), ('tough3', _SC3b), ('tough4', _SC4b)]:
-                if PULP_AVAILABLE:
-                    if COMPUTED_STATE.get(f'compare_pulp_{key}') is None:
-                        COMPUTED_STATE[f'compare_pulp_{key}'] = run_solver_with_relaxed_fallback(_pulp.solve_scenario, sc)
-                else:
-                    print('[INFO] PuLP not available; skipping PuLP solver.')
+
+            # ── PuLP (CBC) ────────────────────────────────────────────────────
+            # Imported and run INDEPENDENTLY of Gurobi so a missing Gurobi
+            # licence/installation never prevents PuLP results from appearing.
+            if PULP_AVAILABLE:
+                try:
+                    import pulp_solver as _pulp
+                    for key, sc in [('easy', _SC1b), ('tough', _SC2b), ('tough3', _SC3b), ('tough4', _SC4b)]:
+                        if COMPUTED_STATE.get(f'compare_pulp_{key}') is None:
+                            print(f'[ILP Background] Running PuLP for {key}...')
+                            COMPUTED_STATE[f'compare_pulp_{key}'] = run_solver_with_relaxed_fallback(_pulp.solve_scenario, sc)
+                            print(f'[ILP Background] PuLP {key} done: {COMPUTED_STATE[f"compare_pulp_{key}"].get("status")}')
+                except Exception as e:
+                    print(f'[ILP Background] PuLP error: {e}')
+            else:
+                print('[INFO] PuLP not available; skipping PuLP solver.')
+
+            # ── Gurobi ────────────────────────────────────────────────────────
+            # Optional — only runs if Gurobi is installed and licensed.
+            try:
+                import gurobi_solver as _gurobi
+                for key, sc in [('easy', _SC1b), ('tough', _SC2b), ('tough3', _SC3b), ('tough4', _SC4b)]:
+                    if COMPUTED_STATE.get(f'compare_gurobi_{key}') is None:
+                        print(f'[ILP Background] Running Gurobi for {key}...')
+                        COMPUTED_STATE[f'compare_gurobi_{key}'] = run_solver_with_relaxed_fallback(_gurobi.solve_scenario, sc)
+            except Exception as e:
+                print(f'[ILP Background] Gurobi not available or failed: {e}')
+
         except Exception as e:
-            print(f"[ILP Background] Error: {e}")
+            print(f"[ILP Background] Critical error: {e}")
         finally:
             with _ilp_thread_lock:
                 _ilp_running = False
@@ -1119,9 +1140,30 @@ def configure_scenario():
         with open(out_path, "w", encoding="utf-8") as f:
             f.write("\n".join(lines) + "\n")
 
-        # Clear cached dynamic scenario comparison results to force re-evaluation on new configuration
-        for k in ['compare_cl_easy', 'compare_ort_easy', 'compare_gurobi_easy', 'compare_pulp_easy', 'compare_alns_easy', 'compare_qaoa_easy', 'pipeline_easy']:
+        # Clear cached dynamic scenario comparison results — both in memory AND on disk.
+        # Without the disk clear, stale solver data (from a previous clinic configuration)
+        # gets reloaded from compare_results.json on the next server restart and shows
+        # wrong routes/infeasible results against the newly configured scenario.
+        for k in ['compare_cl_easy', 'compare_ort_easy', 'compare_gurobi_easy',
+                  'compare_pulp_easy', 'compare_alns_easy', 'compare_qaoa_easy', 'pipeline_easy']:
             COMPUTED_STATE[k] = None
+
+        # Also wipe easy-scenario solvers from the on-disk compare_results.json
+        try:
+            cr_path = os.path.join(BACKEND_DIR, 'compare_results.json')
+            if os.path.exists(cr_path):
+                with open(cr_path, 'r', encoding='utf-8') as _f:
+                    _cr = json.load(_f)
+                if 'easy' in _cr:
+                    # Keep QAOA result if it happens to match the new clinic set,
+                    # but wipe all classical solvers so they rerun against the new scenario
+                    for _solver in ('classical', 'ortools', 'gurobi', 'pulp_cbc', 'alns'):
+                        _cr['easy'].pop(_solver, None)
+                    with open(cr_path, 'w', encoding='utf-8') as _f:
+                        json.dump(_cr, _f, indent=2)
+                    print("[CONFIGURE] Cleared stale easy-scenario solver data from compare_results.json")
+        except Exception as _ce:
+            print(f"[CONFIGURE] Warning: could not clear compare_results.json: {_ce}")
 
         return jsonify({"status": "ok", "scenario_file": "scenario_dynamic.py",
                         "num_clinics": len(included), "num_vehicles": num_vehicles})
@@ -1199,7 +1241,9 @@ def hardware_run_scenario():
     max_cluster_size = int(data.get("max_cluster_size", 4))
     
     try:
+        _hw_start = time.time()
         res = solve_scenario_hardware_pipeline(scenario_key, max_cluster_size=max_cluster_size, verbose=True)
+        _hw_elapsed = round(time.time() - _hw_start, 4)
         
         # Integrate QPU stitched results directly into the Compare Tab state!
         subclusters = res.get("subclusters", [])
@@ -1215,7 +1259,7 @@ def hardware_run_scenario():
                     "fleet_spoilage": hw_data.get("total_spoilage"),
                     "fleet_refrigeration": hw_data.get("total_refrigeration", 0.0),
                     "fleet_total_cost": hw_data.get("total_cost"),
-                    "total_time": res.get("execution_time", 0.0),
+                    "total_time": _hw_elapsed,
                     "status": "ok"
                 }
                 COMPUTED_STATE[f'compare_qaoa_{scenario_key}'] = qaoa_payload
