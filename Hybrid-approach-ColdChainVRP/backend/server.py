@@ -1268,7 +1268,7 @@ def hardware_scaling_test():
             "message": str(e),
             "trace": traceback.format_exc()
         }), 500
-
+_hardware_pipeline_lock = _threading.Lock()
 
 @app.route("/api/hardware/run-scenario", methods=["POST"])
 def hardware_run_scenario():
@@ -1280,7 +1280,8 @@ def hardware_run_scenario():
     
     try:
         _hw_start = time.time()
-        res = solve_scenario_hardware_pipeline(scenario_key, max_cluster_size=max_cluster_size, verbose=True)
+        with _hardware_pipeline_lock:
+            res = solve_scenario_hardware_pipeline(scenario_key, max_cluster_size=max_cluster_size, verbose=True)
         _hw_elapsed = round(time.time() - _hw_start, 4)
         
         # Integrate QPU stitched results directly into the Compare Tab state!
@@ -1418,6 +1419,23 @@ def qaoa_cache_clear():
             p.unlink()
             cleared += 1
     return jsonify({"status": "cleared", "count": cleared})
+
+
+@app.route('/api/benchmarks/data', methods=['GET'])
+def benchmarks_data():
+    """
+    Serve Solomon VRPTW benchmark comparison data.
+    Returns pre-computed results comparing CHO vs classical solvers on 56 instances.
+    Data is generated once and cached to disk.
+    """
+    try:
+        sys.path.insert(0, BACKEND_DIR)
+        from solomon_benchmark_data import get_benchmark_data
+        data = get_benchmark_data()
+        return jsonify(data)
+    except Exception as e:
+        import traceback
+        return jsonify({"error": str(e), "trace": traceback.format_exc()}), 500
 
 
 if __name__ == '__main__':
