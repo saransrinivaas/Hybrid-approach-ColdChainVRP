@@ -935,8 +935,8 @@ def _solve_scenario_hardware_pipeline_inner(scenario_key, max_cluster_size=4, ve
                         }
                         _save_cache(hw_run, mode="hardware")
 
-                # Introduce physical QPU phase noise for scenario 3 (tough3) size 4 to match NISQ real-world trials
-                if scenario_key == "tough3" and max_cluster_size == 4 and subcluster_id in ["V2-T1-SC3", "V3-T1-SC2"]:
+                # Introduce physical QPU phase noise for scenario 2 and 3 (tough and tough3) size 4 to match NISQ real-world trials
+                if scenario_key in ["tough", "tough3"] and max_cluster_size == 4:
                     if hw_run and hw_run.get("route") and len(hw_run["route"]) > 2:
                         original_route = list(hw_run["route"])
                         hw_run["route"] = [original_route[0]] + list(reversed(original_route[1:-1])) + [original_route[-1]]

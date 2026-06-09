@@ -32,8 +32,9 @@ def main():
         try:
             results = solve_scenario_hardware_pipeline(sc, verbose=False)
             elapsed = time.time() - t_sc_start
-            print(f"[SUCCESS] {sc.upper()} pre-cached successfully! ({len(results)} sub-clusters in {elapsed:.2f}s)")
-            for r in results:
+            subclusters = results.get("subclusters", [])
+            print(f"[SUCCESS] {sc.upper()} pre-cached successfully! ({len(subclusters)} sub-clusters in {elapsed:.2f}s)")
+            for r in subclusters:
                 print(f"  - Sub-cluster {r['subcluster_id']}: Qubits={r['simulator']['num_qubits']} | Feasible={r['simulator']['feasible']} | Route={r['simulator']['route']}")
         except Exception as e:
             print(f"[ERROR] Failed to pre-cache {sc}: {str(e)}")
