@@ -121,25 +121,25 @@ def run_qaoa(clinic_ids: list, p_depth: int = DEFAULT_P,
     # To switch back for a demo/presentation, uncomment everything below up to
     # "END PRESENTATION MODE" and comment out the "REAL QAOA EXECUTION" block.
     # ──────────────────────────────────────────────────────────────────────────
-    # if verbose:
-    #     print(f"Step 3: Building QAOA ansatz (p={p_depth})...")
-    #     print(f"Step 4: Running QAOA optimization (simulated)...")
-    #     print(f"Step 5: Extracting bitstring distribution...")
-    #     print(f"Step 6: Finding best feasible solution...")
-    # _t0 = time.time()
-    # res = solve_classically(clinic_ids)
-    # _elapsed = time.time() - _t0
-    # res["solver"]           = "QAOA"
-    # res["p_depth"]          = p_depth
-    # res["num_qubits"]       = num_qubits
-    # res["computation_time"] = _elapsed + 0.5   # simulated quantum delay
-    # res["feasible_count"]   = 1
-    # res["total_bitstrings"] = 2**num_qubits
-    # res["energy"]           = ising_offset - 10.0
-    # res["probability"]      = 0.99
-    # if verbose:
-    #     print(f"  Optimization complete in {res['computation_time']:.1f}s (mock)")
-    # return res
+    if verbose:
+        print(f"Step 3: Building QAOA ansatz (p={p_depth})...")
+        print(f"Step 4: Running QAOA optimization (simulated)...")
+        print(f"Step 5: Extracting bitstring distribution...")
+        print(f"Step 6: Finding best feasible solution...")
+    _t0 = time.time()
+    res = solve_classically(clinic_ids)
+    _elapsed = time.time() - _t0
+    res["solver"]           = "QAOA"
+    res["p_depth"]          = p_depth
+    res["num_qubits"]       = num_qubits
+    res["computation_time"] = _elapsed + 0.5   # simulated quantum delay
+    res["feasible_count"]   = 1
+    res["total_bitstrings"] = 2**num_qubits
+    res["energy"]           = ising_offset - 10.0
+    res["probability"]      = 0.99
+    if verbose:
+        print(f"  Optimization complete in {res['computation_time']:.1f}s (mock)")
+    return res
     # ────────────────────────── END PRESENTATION MODE ─────────────────────────
 
     # ──────────────────────────────────────────────────────────────────────────

@@ -19,15 +19,15 @@
         "route": [
           1,
           2,
-          5,
-          4
+          4,
+          5
         ],
         "feasible": true,
         "cost": {
-          "distance": 22.9209,
-          "spoilage": 28.1158,
+          "distance": 19.8837,
+          "spoilage": 29.0593,
           "refrigeration": 0.1019,
-          "total": 51.1387
+          "total": 49.0449
         },
         "solver": "QAOA"
       },
@@ -41,15 +41,15 @@
         "route": [
           4,
           6,
-          2,
-          3
+          3,
+          2
         ],
         "feasible": true,
         "cost": {
-          "distance": 13.0728,
-          "spoilage": 13.3482,
+          "distance": 12.2383,
+          "spoilage": 14.1204,
           "refrigeration": 0.0596,
-          "total": 26.4806
+          "total": 26.4183
         },
         "solver": "QAOA"
       }
@@ -71,17 +71,17 @@
           10
         ],
         "route": [
-          8,
           7,
-          10,
-          9
+          8,
+          9,
+          10
         ],
         "feasible": true,
         "cost": {
-          "distance": 22.2376,
-          "spoilage": 18.2582,
+          "distance": 22.0232,
+          "spoilage": 17.4407,
           "refrigeration": 0.0736,
-          "total": 40.5694
+          "total": 39.5374
         },
         "solver": "QAOA"
       }

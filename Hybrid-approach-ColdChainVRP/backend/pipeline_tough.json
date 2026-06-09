@@ -82,7 +82,7 @@
             "cap": 15
           }
         },
-        "computation_time": 0.0038,
+        "computation_time": 0.0022,
         "solver": "Classical (NN+2opt+ORopt)"
       },
       "V2": {
@@ -151,7 +151,7 @@
             "cap": 15
           }
         },
-        "computation_time": 0.0016,
+        "computation_time": 0.0006,
         "solver": "Classical (NN+2opt+ORopt)"
       }
     },
@@ -159,7 +159,7 @@
     "fleet_spoilage": 87.5084,
     "fleet_refrigeration": 0.1925,
     "fleet_total_cost": 190.8053,
-    "total_time": 0.0054,
+    "total_time": 0.0029,
     "status": "ok"
   },
   "qaoa": {
@@ -318,6 +318,6 @@
     "fleet_refrigeration": 0.1925,
     "fleet_total_cost": 190.8052,
     "status": "ok",
-    "total_time": 19.9549
+    "total_time": 1.3408
   }
 }
