@@ -15,7 +15,7 @@
 2. [Why It Matters](#why-it-matters)
 3. [The Core Gap in Modern Solvers](#the-core-gap-in-modern-solvers)
 4. [Novel Contributions & Mathematical Formulation](#novel-contributions--mathematical-formulation)
-   - [The Global Hamiltonian $\mathcal{H}_{\text{total}}$](#the-global-hamiltonian-h_texttotal)
+   - [The Global Hamiltonian $`\mathcal{H}_{\text{total}}`$](#the-global-hamiltonian-h_texttotal)
    - [Level-1 Composite K-Means Clustering](#level-1-composite-k-means-clustering)
    - [First-Fit Multi-Compartment Trip Splitting](#first-fit-multi-compartment-trip-splitting)
    - [Quality-Weighted Consensus Voting](#quality-weighted-consensus-voting)
@@ -60,7 +60,9 @@ Cold-chain optimization failures have real-world consequences. A spoiled vaccine
 ## The Core Gap in Modern Solvers
 
 Every commercial and open-source routing tool in industry today—including **Google OR-Tools, Gurobi, CPLEX, Descartes, PTV, and Paragon**—approaches perishability through a simple heuristic constraint:
-$$\text{Arrival Time} \le \text{Delivery Deadline}$$
+```math
+\text{Arrival Time} \le \text{Delivery Deadline}
+```
 
 This represents a major simplification. In reality:
 1. **Perishability is Continuous & Exponential**: A frozen vaccine (like mRNA-based Covid vaccines) degrades continuously and exponentially with time and temperature exposure, whereas an ambient vaccine is highly resilient.
@@ -71,56 +73,76 @@ This represents a major simplification. In reality:
 
 ## Novel Contributions & Mathematical Formulation
 
-### The Global Hamiltonian $\mathcal{H}_{\text{total}}$
+### The Global Hamiltonian $`\mathcal{H}_{\text{total}}`$
 
-This project bridges the gap by compiling the multi-physics of distance, continuous vaccine spoilage, active refrigeration draw, and routing constraints directly into a single **Quadratic Unconstrained Binary Optimization (QUBO)** Hamiltonian. The system represents routing for a sub-cluster of $n$ clinics using a grid of binary decision variables $x[i,t] \in \{0, 1\}$:
-$$x[i,t] = \begin{cases} 1, & \text{if clinic } i \text{ is visited at sequence slot } t \\ 0, & \text{otherwise} \end{cases}$$
-where $i, t \in \{0, \dots, n-1\}$. This requires $n^2$ variables (mapped to $n^2$ physical qubits).
+This project bridges the gap by compiling the multi-physics of distance, continuous vaccine spoilage, active refrigeration draw, and routing constraints directly into a single **Quadratic Unconstrained Binary Optimization (QUBO)** Hamiltonian. The system represents routing for a sub-cluster of $`n`$ clinics using a grid of binary decision variables $`x[i,t] \in \{0, 1\}`$:
+```math
+x[i,t] = \begin{cases} 1, & \text{if clinic } i \text{ is visited at sequence slot } t \\ 0, & \text{otherwise} \end{cases}
+```
+where $`i, t \in \{0, \dots, n-1\}`$. This requires $`n^2`$ variables (mapped to $`n^2`$ physical qubits).
 
 The target objective minimized by the quantum computer is:
-$$\mathcal{H}_{\text{total}} = \mathcal{H}_{\text{distance}} + \mathcal{H}_{\text{spoilage}} + \mathcal{H}_{\text{refrigeration}} + \mathcal{H}_{\text{visit}} + \mathcal{H}_{\text{position}}$$
+```math
+\mathcal{H}_{\text{total}} = \mathcal{H}_{\text{distance}} + \mathcal{H}_{\text{spoilage}} + \mathcal{H}_{\text{refrigeration}} + \mathcal{H}_{\text{visit}} + \mathcal{H}_{\text{position}}
+```
 
-#### 1. Travel Distance Cost ($\mathcal{H}_{\text{distance}}$)
+#### 1. Travel Distance Cost ($`\mathcal{H}_{\text{distance}}`$)
 Minimizes the spatial path length traversed by the truck between consecutive sequence stops:
-$$\mathcal{H}_{\text{distance}} = \sum_{i=0}^{n-1} \sum_{j \neq i} d(i,j) \sum_{t=0}^{n-2} x[i,t] \cdot x[j,t+1]$$
-* Where $d(i,j)$ is the Haversine distance between clinic $i$ and clinic $j$.
-* This maps to **quadratic couplers** ($J_{ij} Z_i Z_j$) between sequence positions in the Ising spin glass system.
+```math
+\mathcal{H}_{\text{distance}} = \sum_{i=0}^{n-1} \sum_{j \neq i} d(i,j) \sum_{t=0}^{n-2} x[i,t] \cdot x[j,t+1]
+```
+* Where $`d(i,j)`$ is the Haversine distance between clinic $i$ and clinic $j$.
+* This maps to **quadratic couplers** ($`J_{ij} Z_i Z_j`$) between sequence positions in the Ising spin glass system.
 
-#### 2. Thermodynamic Spoilage Cost ($\mathcal{H}_{\text{spoilage}}$) — **NOVELTY**
+#### 2. Thermodynamic Spoilage Cost ($`\mathcal{H}_{\text{spoilage}}`$) — **NOVELTY**
 Embeds product decay physics directly into the Hamiltonian. Rather than computing spoilage post-hoc, this term penalizes solutions where perishables sit in the truck for too long:
-$$\mathcal{H}_{\text{spoilage}} = \sum_{i=0}^{n-1} \sum_{t=0}^{n-1} \left( \sum_{c \in C} \text{Value}_c \cdot \alpha_c \cdot D_{i,c} \right) \cdot \bar{t}_{\text{arrival}}(t) \cdot x[i,t]$$
-* **$C = \{\text{frozen}, \text{chilled}, \text{ambient}\}$**: Vaccine temperature compartments.
-* **$\text{Value}_c$**: Base monetary value per unit of vaccine in compartment $c$ (e.g., Frozen $\approx$ ₹500, Ambient $\approx$ ₹50).
-* **$\alpha_c$**: Hourly spoilage decay rate (Frozen $\alpha = 0.001$, Chilled $\alpha = 0.010$, Ambient $\alpha = 0.050$).
-* **$D_{i,c}$**: Demand of clinic $i$ for vaccines of type $c$.
-* **$\bar{t}_{\text{arrival}}(t)$**: Pre-estimated arrival time at sequence slot $t$, computed based on average sub-cluster speeds to keep the term linear (order-independent):
-$$\bar{t}_{\text{arrival}}(t) = t \cdot \bar{t}_{\text{hop}} \quad \text{where} \quad \bar{t}_{\text{hop}} = \frac{\sum_{i \neq j} d(i,j)}{n(n-1) \cdot \text{Speed}}$$
+```math
+\mathcal{H}_{\text{spoilage}} = \sum_{i=0}^{n-1} \sum_{t=0}^{n-1} \left( \sum_{c \in C} \text{Value}_c \cdot \alpha_c \cdot D_{i,c} \right) \cdot \bar{t}_{\text{arrival}}(t) \cdot x[i,t]
+```
+* **$`C = \{\text{frozen}, \text{chilled}, \text{ambient}\}$`**: Vaccine temperature compartments.
+* **$`\text{Value}_c`$**: Base monetary value per unit of vaccine in compartment $c$ (e.g., Frozen $`\approx`$ ₹500, Ambient $`\approx`$ ₹50).
+* **$`\alpha_c`$**: Hourly spoilage decay rate (Frozen $`\alpha = 0.001`$, Chilled $`\alpha = 0.010`$, Ambient $`\alpha = 0.050`$).
+* **$`D_{i,c}`$**: Demand of clinic $i$ for vaccines of type $c$.
+* **$`\bar{t}_{\text{arrival}}(t)`$**: Pre-estimated arrival time at sequence slot $t$, computed based on average sub-cluster speeds to keep the term linear (order-independent):
+```math
+\bar{t}_{\text{arrival}}(t) = t \cdot \bar{t}_{\text{hop}} \quad \text{where} \quad \bar{t}_{\text{hop}} = \frac{\sum_{i \neq j} d(i,j)}{n(n-1) \cdot \text{Speed}}
+```
 * This linear term behaves as a **local Z-magnetic field**, which quantum hardware can optimize with zero overhead.
 
-#### 3. Active Refrigeration Energy ($\mathcal{H}_{\text{refrigeration}}$) — **NOVELTY**
+#### 3. Active Refrigeration Energy ($`\mathcal{H}_{\text{refrigeration}}`$) — **NOVELTY**
 Models the energy cost of maintaining active refrigeration across all compartments:
-$$\mathcal{H}_{\text{refrigeration}} = \sum_{i=0}^{n-1} \sum_{t=0}^{n-1} \left( \frac{\sum_{c \in C} \text{Power}_c \cdot T_{\text{duration}}}{n} \right) \cdot x[i,t]$$
-* **$\text{Power}_c$**: Electrical power drawing rate for compartment $c$ (kWh/h).
-* **$T_{\text{duration}}$**: Estimated total trip transit duration based on sub-cluster geometry.
+```math
+\mathcal{H}_{\text{refrigeration}} = \sum_{i=0}^{n-1} \sum_{t=0}^{n-1} \left( \frac{\sum_{c \in C} \text{Power}_c \cdot T_{\text{duration}}}{n} \right) \cdot x[i,t]
+```
+* **$`\text{Power}_c`$**: Electrical power drawing rate for compartment $c$ (kWh/h).
+* **$`T_{\text{duration}}`$**: Estimated total trip transit duration based on sub-cluster geometry.
 
-#### 4. Visit-Once Constraint ($\mathcal{H}_{\text{visit}}$)
-A mathematical penalty enforcing that each clinic $i$ is visited exactly once:
-$$\mathcal{H}_{\text{visit}} = M \cdot \sum_{i=0}^{n-1} \left( \sum_{t=0}^{n-1} x[i,t] - 1 \right)^2$$
-* **$M$**: Penalty scaling factor, configured as $2 \times \max(d(i,j))$ to ensure invalid states are energetically blocked.
+#### 4. Visit-Once Constraint ($`\mathcal{H}_{\text{visit}}`$)
+A mathematical penalty enforcing that each clinic $`i`$ is visited exactly once:
+```math
+\mathcal{H}_{\text{visit}} = M \cdot \sum_{i=0}^{n-1} \left( \sum_{t=0}^{n-1} x[i,t] - 1 \right)^2
+```
+* **$`M`$**: Penalty scaling factor, configured as $`2 \times \max(d(i,j))`$ to ensure invalid states are energetically blocked.
 
-#### 5. Position-Once Constraint ($\mathcal{H}_{\text{position}}$)
-Enforces that each sequence position $t$ in the route is occupied by exactly one clinic:
-$$\mathcal{H}_{\text{position}} = M \cdot \sum_{t=0}^{n-1} \left( \sum_{i=0}^{n-1} x[i,t] - 1 \right)^2$$
+#### 5. Position-Once Constraint ($`\mathcal{H}_{\text{position}}`$)
+Enforces that each sequence position $`t`$ in the route is occupied by exactly one clinic:
+```math
+\mathcal{H}_{\text{position}} = M \cdot \sum_{t=0}^{n-1} \left( \sum_{i=0}^{n-1} x[i,t] - 1 \right)^2
+```
 
 ---
 
 ### Level-1 Composite K-Means Clustering
 
 Standard clustering algorithms group nodes strictly based on geographical coordinate distance. Our framework uses a **composite distance metric** incorporating spatial location and operating-window penalties:
-$$D_{ij} = \text{Haversine}(i, j) \cdot (1 + \lambda \cdot \text{Penalty}_{ij})$$
-* **$\lambda = 0.6$**: Weight of the temporal penalty.
-* **$\text{Penalty}_{ij}$**: Compares operating windows. If operating hours do not overlap, a high penalty is added:
-$$\text{Penalty}_{ij} = \text{GapPenalty} + (1 - \text{OverlapFraction})$$
+```math
+D_{ij} = \text{Haversine}(i, j) \cdot (1 + \lambda \cdot \text{Penalty}_{ij})
+```
+* **$`\lambda = 0.6`$**: Weight of the temporal penalty.
+* **$`\text{Penalty}_{ij}`$**: Compares operating windows. If operating hours do not overlap, a high penalty is added:
+```math
+\text{Penalty}_{ij} = \text{GapPenalty} + (1 - \text{OverlapFraction})
+```
 This groups clinics that can be served sequentially within their open hours, ensuring temporal compatibility.
 
 ---
@@ -131,7 +153,9 @@ A classical two-level hierarchical planner manages fleet capacity limits:
 1. **Strict Fleet Capping**: The K-means algorithm groups clinics strictly into the actual fleet size (`n_clusters = n_vehicles`).
 2. **First-Fit Trip Splitting**: A greedy bin-packing algorithm automatically divides a vehicle's clinics into multiple trips, ensuring each individual trip strictly satisfies the frozen, chilled, and ambient capacity limits.
 3. **Urgency-Based Pre-Sorting**: Before routing, clinics are pre-sorted based on their composite urgency index:
-$$\text{Urgency}_i = \sum_{c \in C} (\text{Value}_c \cdot \alpha_c \cdot D_{i,c}) + \frac{1}{\text{CloseTime}_i}$$
+```math
+\text{Urgency}_i = \sum_{c \in C} (\text{Value}_c \cdot \alpha_c \cdot D_{i,c}) + \frac{1}{\text{CloseTime}_i}
+```
 
 ---
 
@@ -145,15 +169,21 @@ After solving overlapping $K \le 4$ node sub-problems using simulated QAOA, sub-
 
 ### Spoilage-Aware Local Search (Or-Opt) — **NOVELTY**
 
-In standard transport planning software (e.g., Google OR-Tools or corporate VRP engines), local search heuristics like **Or-Opt** (which relocates a sequence of $1$, $2$, or $3$ consecutive nodes from one part of a route to another) evaluate moves strictly based on a spatial cost reduction:
-$$\Delta \text{Cost}_{\text{traditional}} = \Delta \text{Distance} < 0$$
-While checking time windows strictly as a binary feasibility deadline check ($\text{ArrivalTime} \le \text{Deadline}$). This spatial-only heuristic is highly flawed for cold-chain systems: it will happily accept a path relocation that saves $1 \text{ km}$ of geographic distance even if it delays a high-value frozen vaccine batch by $2 \text{ hours}$, resulting in significant thermal spoilage costs.
+In standard transport planning software (e.g., Google OR-Tools or corporate VRP engines), local search heuristics like **Or-Opt** (which relocates a sequence of $`1`$, $`2`$, or $`3`$ consecutive nodes from one part of a route to another) evaluate moves strictly based on a spatial cost reduction:
+```math
+\Delta \text{Cost}_{\text{traditional}} = \Delta \text{Distance} < 0
+```
+While checking time windows strictly as a binary feasibility deadline check ($`\text{ArrivalTime} \le \text{Deadline}`$). This spatial-only heuristic is highly flawed for cold-chain systems: it will happily accept a path relocation that saves $`1 \text{ km}`$ of geographic distance even if it delays a high-value frozen vaccine batch by $`2 \text{ hours}`$, resulting in significant thermal spoilage costs.
 
 To bridge this operational gap, we formulated a novel **Multi-Physics Spoilage-Aware Or-Opt** delta check. It couples spatial path re-insertion directly with thermodynamic decay rates:
-$$\Delta \text{Cost}_{\text{spoilage-aware}} = \Delta \text{Distance} + \Delta \text{Spoilage} < 0$$
+```math
+\Delta \text{Cost}_{\text{spoilage-aware}} = \Delta \text{Distance} + \Delta \text{Spoilage} < 0
+```
 
-Where the continuous change in spoilage value ($\Delta \text{Spoilage}$) represents the direct change in product decay value over the cumulative arrival times:
-$$\Delta \text{Spoilage} = \sum_{i \in \text{Route}} \left( \sum_{c \in C} \text{Value}_c \cdot \alpha_c \cdot D_{i,c} \right) \cdot \Delta t_{\text{arrival}}(i)$$
+Where the continuous change in spoilage value ($`\Delta \text{Spoilage}`$) represents the direct change in product decay value over the cumulative arrival times:
+```math
+\Delta \text{Spoilage} = \sum_{i \in \text{Route}} \left( \sum_{c \in C} \text{Value}_c \cdot \alpha_c \cdot D_{i,c} \right) \cdot \Delta t_{\text{arrival}}(i)
+```
 
 #### Why this is a major scientific contribution:
 1. **Value-Preserving Detour Management**: A minor detour that saves high-value perishables is automatically accepted, while spatial shortcuts that increase product exposure are rejected.
@@ -170,8 +200,10 @@ Direct classical simulation of a 100-qubit circuit at full statevector resolutio
 ### Bypassing the Wall: Perfect Adiabatic Convergence
 Instead of running the massive, unsimulatable 100-qubit circuit itself, we simulated its mathematically perfect, error-corrected, noise-free future output.
 
-In quantum mechanics, a perfect adiabatic QAOA circuit ($p \rightarrow \infty$) is guaranteed to converge with probability 1 to the unique global optimum ground state $|\psi_0\rangle$ of the QUBO cost Hamiltonian:
-$$\mathcal{H} |\psi_0\rangle = E_{\min} |\psi_0\rangle$$
+In quantum mechanics, a perfect adiabatic QAOA circuit ($`p \rightarrow \infty`$) is guaranteed to converge with probability 1 to the unique global optimum ground state $`|\psi_0\rangle`$ of the QUBO cost Hamiltonian:
+```math
+\mathcal{H} |\psi_0\rangle = E_{\min} |\psi_0\rangle
+```
 
 By implementing a high-performance classical permutation/local search solver on the 10-node sub-cluster, we locate this identical unique ground state instantly. This produces routing outputs that are **mathematically indistinguishable** and **100% physically identical** to what future physical quantum computers will deliver. This bypasses the classical statevector memory bottleneck while maintaining absolute scientific genuineness.
 
