@@ -64,8 +64,31 @@ def _build_qp(qubo):
 # ─────────────────────────────────────────
 def _cache_key(clinic_ids, p_depth, mode):
     import hashlib
-    raw = f"{sorted(clinic_ids)}-p{p_depth}-{mode}"
+    import sys
+    
+    scenario_suffix = ""
+    sc_mod = sys.modules.get('scenario_dynamic')
+    if sc_mod:
+        try:
+            depot = getattr(sc_mod, 'DEPOT', {})
+            clinics = getattr(sc_mod, 'CLINICS', [])
+            demands = getattr(sc_mod, 'DEMANDS', {})
+            vehicles = getattr(sc_mod, 'VEHICLES', [])
+            
+            depot_str = f"{depot.get('lat')}-{depot.get('lon')}"
+            clinics_str = "|".join(f"{c.get('id')}:{c.get('lat')}:{c.get('lon')}" for c in sorted(clinics, key=lambda x: x.get('id', 0)))
+            demands_str = "|".join(f"{k}:{v}" for k, v in sorted(demands.items()))
+            vehicles_str = "|".join(str(v) for v in vehicles)
+            
+            config_str = f"{depot_str}_{clinics_str}_{demands_str}_{vehicles_str}"
+            config_hash = hashlib.md5(config_str.encode()).hexdigest()[:8]
+            scenario_suffix = f"-{config_hash}"
+        except Exception:
+            pass
+
+    raw = f"{sorted(clinic_ids)}-p{p_depth}-{mode}{scenario_suffix}"
     return hashlib.md5(raw.encode()).hexdigest()[:12]
+
 
 def _load_cache(clinic_ids, p_depth, mode):
     CACHE_DIR.mkdir(exist_ok=True)

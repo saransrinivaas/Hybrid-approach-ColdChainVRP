@@ -8,19 +8,19 @@
     6
   ],
   "route": [
-    5,
+    1,
+    2,
+    3,
     4,
     6,
-    3,
-    2,
-    1
+    5
   ],
   "feasible": false,
   "cost_breakdown": {
-    "distance": 29.695140000000002,
-    "spoilage": 67.61426,
-    "refrigeration": 0.1358,
-    "total": 95.07793500000001
+    "distance": 42.79095,
+    "spoilage": 88.66423999999999,
+    "refrigeration": 0.1792,
+    "total": 128.530665
   },
   "p_depth": 3,
   "num_qubits": 36,

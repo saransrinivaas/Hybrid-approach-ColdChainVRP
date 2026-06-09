@@ -569,7 +569,7 @@
       "feasible": true
     },
     "qaoa": {
-      "solver": "Hybrid QAOA (Hardware QPU, size 3)",
+      "solver": "Hybrid QAOA (Hardware QPU, size 4)",
       "routes": {
         "V1": [
           0,
@@ -591,7 +591,7 @@
       "fleet_spoilage": 74.2647,
       "fleet_refrigeration": 0.2264,
       "fleet_total_cost": 188.5231,
-      "total_time": 0.1308,
+      "total_time": 29.5557,
       "status": "ok"
     }
   },
@@ -1234,7 +1234,7 @@
       "status": "ok"
     },
     "qaoa": {
-      "solver": "Hybrid QAOA (Hardware QPU, size 3)",
+      "solver": "Hybrid QAOA (Hardware QPU, size 4)",
       "routes": {
         "V1": [
           0,
@@ -1259,7 +1259,7 @@
       "fleet_spoilage": 87.5083,
       "fleet_refrigeration": 0.1925,
       "fleet_total_cost": 190.8052,
-      "total_time": 0.1407,
+      "total_time": 0.3851,
       "status": "ok"
     }
   },
@@ -2294,7 +2294,7 @@
       "fleet_spoilage": 149.7481,
       "fleet_refrigeration": 0.3823,
       "fleet_total_cost": 313.9212,
-      "total_time": 7.4618,
+      "total_time": 30.0084,
       "status": "ok"
     }
   },

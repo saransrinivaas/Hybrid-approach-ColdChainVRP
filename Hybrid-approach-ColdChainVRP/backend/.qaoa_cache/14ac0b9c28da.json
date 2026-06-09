@@ -19,7 +19,7 @@
   "p_depth": 3,
   "num_qubits": 9,
   "bitstring": "100001010",
-  "probability": 0.0078125,
+  "probability": 0.0068359375,
   "solver": "QAOA-hardware-simulated",
   "backend": "ibm_heron_r2",
   "status": "DONE",

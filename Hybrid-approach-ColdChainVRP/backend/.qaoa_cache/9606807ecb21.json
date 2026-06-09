@@ -5,9 +5,9 @@
     19
   ],
   "route": [
-    11,
+    17,
     19,
-    17
+    11
   ],
   "feasible": true,
   "cost_breakdown": {
@@ -18,8 +18,8 @@
   },
   "p_depth": 3,
   "num_qubits": 9,
-  "bitstring": "010100001",
-  "probability": 0.0107421875,
+  "bitstring": "010001100",
+  "probability": 0.015625,
   "solver": "QAOA-hardware-simulated",
   "backend": "ibm_heron_r2",
   "status": "DONE",

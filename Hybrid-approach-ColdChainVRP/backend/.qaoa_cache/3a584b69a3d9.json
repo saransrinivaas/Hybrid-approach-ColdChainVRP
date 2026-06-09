@@ -6,71 +6,28 @@
     18
   ],
   "route": [
+    18,
     15,
     12,
-    18,
     22
   ],
-  "assignment": {},
-  "cost_breakdown": {
-    "distance": 40.0452,
-    "spoilage": 5.8134,
-    "refrigeration": 0.0469,
-    "total": 45.9054
-  },
   "feasible": true,
-  "feasible_count": 2,
-  "total_bitstrings": 250,
-  "computation_time": 0.0,
+  "cost_breakdown": {
+    "distance": 11.3537,
+    "spoilage": 4.1648,
+    "refrigeration": 0.0469,
+    "total": 15.5653
+  },
   "p_depth": 3,
   "num_qubits": 16,
-  "energy": null,
-  "bitstring": "0100010100101010",
-  "probability": 0.004,
-  "solver": "QAOA-hardware",
-  "hardware_job_id": "d8fvcjpvjngc73aqgtvg",
-  "backend": "ibm_marrakesh",
+  "bitstring": "0001001001001000",
+  "probability": 0.0009765625,
+  "solver": "QAOA-hardware-simulated",
+  "backend": "ibm_heron_r2",
   "status": "DONE",
-  "feasibility_rate": 0.008,
-  "transpiled_depth": 1362,
-  "gate_count": 5425,
-  "top_candidates": [
-    {
-      "bitstring": "1000100111011110",
-      "count": 1,
-      "probability": 0.004,
-      "route": [
-        15,
-        22,
-        12,
-        18
-      ],
-      "cost": {
-        "distance": 37.3374,
-        "spoilage": 10.8459,
-        "refrigeration": 0.0469,
-        "total": 48.2302
-      },
-      "feasible": true
-    },
-    {
-      "bitstring": "0100010100101010",
-      "count": 1,
-      "probability": 0.004,
-      "route": [
-        15,
-        12,
-        18,
-        22
-      ],
-      "cost": {
-        "distance": 40.0452,
-        "spoilage": 5.8134,
-        "refrigeration": 0.0469,
-        "total": 45.9054
-      },
-      "feasible": true
-    }
-  ],
+  "transpiled_depth": 56,
+  "gate_count": 190,
+  "feasibility_rate": 0.84,
+  "is_simulated": true,
   "mode": "hardware"
 }

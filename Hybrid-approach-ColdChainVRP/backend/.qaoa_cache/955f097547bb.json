@@ -8,12 +8,12 @@
     6
   ],
   "route": [
-    1,
-    2,
-    3,
+    5,
     6,
     4,
-    5
+    3,
+    2,
+    1
   ],
   "assignment": {
     "1": "all compartments",
@@ -24,15 +24,15 @@
     "6": "all compartments"
   },
   "cost_breakdown": {
-    "distance": 21.9964,
-    "spoilage": 48.2959,
-    "refrigeration": 0.1358,
-    "total": 70.4281
+    "distance": 31.697,
+    "spoilage": 63.3316,
+    "refrigeration": 0.1792,
+    "total": 95.2079
   },
   "feasible": true,
   "feasible_count": 1,
   "total_bitstrings": 2,
-  "computation_time": 0.08007526397705078,
+  "computation_time": 0.10465478897094727,
   "p_depth": 3,
   "num_qubits": 0,
   "energy": null,
