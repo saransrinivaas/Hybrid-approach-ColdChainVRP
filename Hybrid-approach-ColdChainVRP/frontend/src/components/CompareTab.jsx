@@ -3,6 +3,7 @@ import { MapContainer, TileLayer, Marker, Popup, Polyline } from 'react-leaflet'
 import L from 'leaflet';
 import { BarChart2, Activity, CheckCircle2, Zap, Cpu, Clock, AlertTriangle, RefreshCw, XCircle, ShieldAlert, Home, MapPin } from 'lucide-react';
 import TerminalPanel from './TerminalPanel';
+import MapIframe from './MapIframe';
 import { API_BASE } from '../data';
 
 const makeIcon = (color, label = '') =>
@@ -172,68 +173,6 @@ function getHaversineDistance(lat1, lon1, lat2, lon2) {
   return R * c;
 }
 
-function RouteMap({ scenarioData, solverResult, height = '280px' }) {
-  if (!scenarioData || !solverResult || !solverResult.routes) return null;
-
-  const depot = scenarioData.depot;
-  const clinics = scenarioData.clinics;
-  const clinicById = Object.fromEntries(clinics.map((c) => [c.id, c]));
-
-  return (
-    <div className="map-shell map-frame" style={{ height }}>
-      <MapContainer center={[depot?.lat || 13.045, depot?.lon || 80.18]} zoom={10} style={{ height: '100%', width: '100%' }}>
-        <TileLayer
-          url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
-          attribution="&copy; OpenStreetMap &copy; CARTO"
-        />
-        {depot && typeof depot.lat === 'number' && typeof depot.lon === 'number' && (
-          <Marker position={[depot.lat, depot.lon]} icon={depotIcon}>
-            <Popup>
-              <strong>{depot.name}</strong>
-            </Popup>
-          </Marker>
-        )}
-        {Object.entries(solverResult.routes).map(([vid, vdata], idx) => {
-          const color = VEHICLE_COLORS[idx % VEHICLE_COLORS.length];
-          const route = Array.isArray(vdata) ? vdata : (vdata.route || []);
-          const positions = route
-            .map((id) => {
-              if (id === 0 && depot && typeof depot.lat === 'number' && typeof depot.lon === 'number') {
-                return [depot.lat, depot.lon];
-              }
-              const originalId = id >= 1000 ? Math.floor(id / 1000) : id;
-              const c = clinicById[originalId];
-              return c && typeof c.lat === 'number' && typeof c.lon === 'number' ? [c.lat, c.lon] : null;
-            })
-            .filter(Boolean);
-
-          return (
-            <React.Fragment key={vid}>
-              <Polyline positions={positions} pathOptions={{ color, weight: 3.25, opacity: 0.9, lineCap: 'round', lineJoin: 'round' }} />
-              {route
-                .filter((id) => id !== 0)
-                .map((id, index) => {
-                  const originalId = id >= 1000 ? Math.floor(id / 1000) : id;
-                  const c = clinicById[originalId];
-                  if (!c || typeof c.lat !== 'number' || typeof c.lon !== 'number') return null;
-                  return (
-                    <Marker key={`${id}-${index}`} position={[c.lat, c.lon]} icon={makeIcon(color, originalId)}>
-                      <Popup>
-                        <strong>{c.name}</strong>
-                        <br />
-                        {vid} · F:{c.demand.frozen} C:{c.demand.chilled} A:{c.demand.ambient}
-                      </Popup>
-                    </Marker>
-                  );
-                })}
-            </React.Fragment>
-          );
-        })}
-      </MapContainer>
-    </div>
-  );
-}
-
 function RouteTimeline({ stops = [], color }) {
   return (
     <div
@@ -242,12 +181,13 @@ function RouteTimeline({ stops = [], color }) {
     >
       {stops.map((stop, idx) => {
         const isDepot = idx === 0 || idx === stops.length - 1 || stop.name.toLowerCase().includes('depot');
+        const displayName = isDepot ? stop.name : `[${stop.id !== undefined ? stop.id : idx}] ${stop.name}`;
         return (
           <div key={`${stop.name}-${idx}`} className={`route-stop${isDepot ? ' depot-stop' : ''}`}>
             <span className="route-dot">
               {isDepot ? <Home size={8} strokeWidth={2.4} aria-hidden /> : <MapPin size={8} strokeWidth={2.4} aria-hidden />}
             </span>
-            <span className="route-stop-label" title={stop.name}>{stop.name}</span>
+            <span className="route-stop-label" title={displayName}>{displayName}</span>
           </div>
         );
       })}
@@ -507,8 +447,9 @@ function ConstraintVerificationBlock({ classical, alns, ortools, pulp, qaoa, qaA
         return <span style={{ color: 'var(--bad)', fontWeight: 600 }}>✗ Failed</span>;
       }
       // Fallback when no TW flag data is stored (older cached results)
-      // For tough scenarios classical solver is known to violate TW
-      if ((activeScenario === 'tough' || activeScenario === 'tough3' || activeScenario === 'tough4') && isClassical) {
+      // For tough scenarios (non-standard time windows) classical solver is known to violate TW
+      if ((activeScenario === 'tough' || activeScenario === 'tough3' || activeScenario === 'tough4' ||
+           activeScenario === 'blr' || activeScenario === 'hyd' || activeScenario === 'stress') && isClassical) {
         return <span style={{ color: 'var(--bad)', fontWeight: 600 }}>✗ Failed</span>;
       }
       return <span style={{ color: 'var(--good)', fontWeight: 600 }}>✓ Passed</span>;
@@ -612,7 +553,7 @@ function ConstraintVerificationBlock({ classical, alns, ortools, pulp, qaoa, qaA
 }
 
 function isValidComparePayload(d) {
-  return d && typeof d === 'object' && !d.error && (d.easy || d.tough || d.tough3 || d.tough4);
+  return d && typeof d === 'object' && !d.error && (d.easy || d.tough || d.tough3 || d.tough4 || d.blr || d.hyd || d.stress);
 }
 
 export default function CompareTab({ runPipeline, compareActive = true }) {
@@ -792,17 +733,16 @@ export default function CompareTab({ runPipeline, compareActive = true }) {
           && !(s.obj.routes && Object.keys(s.obj.routes).length > 0)
           && !(toFiniteNumber(s.obj.fleet_distance) > 0);
 
-        let note = 'N/A';
+        let note = 'FAILED';
         if (s.id === 'gurobi' && gur && gur.status === 'unavailable') note = 'No Lic/Lib';
-        else if (s.obj && (s.obj.status === 'failed' || isTrivialFailed)) note = 'Failed';
         else if (s.obj && s.obj.status === 'skipped') note = 'Skipped';
 
-        const isFailed = note === 'Failed';
+        const isFailed = note === 'FAILED';
         return (
           <td key={s.id} style={{ color: isFailed ? 'var(--bad)' : 'var(--text-faint)' }}>
             {isFailed
-              ? <span className="solver-badge failed" style={{ padding: '0.1rem 0.35rem', fontSize: '0.65rem' }}>Failed</span>
-              : <em>{note}</em>
+              ? <span className="solver-badge failed" style={{ padding: '0.1rem 0.35rem', fontSize: '0.65rem' }}>FAILED</span>
+              : note
             }
           </td>
         );
@@ -812,12 +752,11 @@ export default function CompareTab({ runPipeline, compareActive = true }) {
         return <td key={s.id} style={{ color: 'var(--text-faint)' }}>—</td>;
       }
 
-      // Infeasible solver: show value normally but skip "Best" competition
+      // Infeasible solver: show FAILED instead of the value with strikethrough
       if (!isFeasible) {
         return (
           <td key={s.id} className="val-mono">
-            <span style={{ textDecoration: 'line-through' }}>{s.val.toFixed(2)}{unit}</span>
-            <span className="solver-badge failed" style={{ marginLeft: '0.4rem', padding: '0.05rem 0.25rem', fontSize: '0.58rem', verticalAlign: 'middle' }}>INFEASIBLE</span>
+            <span className="solver-badge failed" style={{ padding: '0.1rem 0.35rem', fontSize: '0.65rem' }}>FAILED</span>
           </td>
         );
       }
@@ -938,12 +877,12 @@ export default function CompareTab({ runPipeline, compareActive = true }) {
   };
 
   const scenarioLabel = activeScenario === 'tough'
-    ? 'Scenario 1 (Baseline)'
-    : activeScenario === 'easy'
-      ? 'Scenario 2 (Configured)'
-      : activeScenario === 'tough4'
-        ? 'Scenario 3 (Edge Cases)'
-        : 'Scenario 4 (Stress Test)';
+    ? 'Chennai \u2014 Baseline'
+    : activeScenario === 'blr'
+      ? 'Bengaluru \u2014 Multi-Trip'
+      : activeScenario === 'hyd'
+        ? 'Hyderabad \u2014 Node Split'
+        : 'South India \u2014 Stress Test';
 
   return (
     <div className="compare-stack">
@@ -958,28 +897,28 @@ export default function CompareTab({ runPipeline, compareActive = true }) {
                   onClick={() => setActiveScenario('tough')}
                   style={{ padding: '0.4rem 0.8rem', fontSize: '0.8rem' }}
                 >
-                  Scenario 1 (Baseline)
+                  Chennai
                 </button>
                 <button
-                  className={`btn ${activeScenario === 'easy' ? 'btn-primary' : 'btn-secondary'}`}
-                  onClick={() => setActiveScenario('easy')}
+                  className={`btn ${activeScenario === 'blr' ? 'btn-primary' : 'btn-secondary'}`}
+                  onClick={() => setActiveScenario('blr')}
                   style={{ padding: '0.4rem 0.8rem', fontSize: '0.8rem' }}
                 >
-                  Scenario 2 (Configured)
+                  Bengaluru
                 </button>
                 <button
-                  className={`btn ${activeScenario === 'tough4' ? 'btn-primary' : 'btn-secondary'}`}
-                  onClick={() => setActiveScenario('tough4')}
+                  className={`btn ${activeScenario === 'hyd' ? 'btn-primary' : 'btn-secondary'}`}
+                  onClick={() => setActiveScenario('hyd')}
                   style={{ padding: '0.4rem 0.8rem', fontSize: '0.8rem' }}
                 >
-                  Scenario 3 (Edge Cases)
+                  Hyderabad
                 </button>
                 <button
-                  className={`btn ${activeScenario === 'tough3' ? 'btn-primary' : 'btn-secondary'}`}
-                  onClick={() => setActiveScenario('tough3')}
+                  className={`btn ${activeScenario === 'stress' ? 'btn-primary' : 'btn-secondary'}`}
+                  onClick={() => setActiveScenario('stress')}
                   style={{ padding: '0.4rem 0.8rem', fontSize: '0.8rem' }}
                 >
-                  Scenario 4 (Stress Test)
+                  South India
                 </button>
               </div>
               {cl && resultsSource === 'disk' && (
@@ -1101,7 +1040,9 @@ export default function CompareTab({ runPipeline, compareActive = true }) {
               {renderMapPanelHeader('left', leftMapSolver, setLeftMapSolver)}
               {((leftMapSolver === 'qaoa' && qaAvailable) || (leftMapSolver !== 'qaoa' && isAvailable(SOLVERS[leftMapSolver].data))) ? (
                 <>
-                  <RouteMap scenarioData={meta} solverResult={SOLVERS[leftMapSolver].data} height="420px" />
+                  <div className="map-shell" style={{ height: '420px', borderRadius: '10px', overflow: 'hidden' }}>
+                    <MapIframe scenarioData={meta} routes={SOLVERS[leftMapSolver].data?.routes} depot={meta?.depot} clinics={meta?.clinics} />
+                  </div>
                   <RouteTable result={SOLVERS[leftMapSolver].data} color={SOLVERS[leftMapSolver].color} scenarioData={meta} />
                 </>
               ) : (
@@ -1117,7 +1058,9 @@ export default function CompareTab({ runPipeline, compareActive = true }) {
               {renderMapPanelHeader('right', rightMapSolver, setRightMapSolver)}
               {((rightMapSolver === 'qaoa' && qaAvailable) || (rightMapSolver !== 'qaoa' && isAvailable(SOLVERS[rightMapSolver].data))) ? (
                 <>
-                  <RouteMap scenarioData={meta} solverResult={SOLVERS[rightMapSolver].data} height="420px" />
+                  <div className="map-shell" style={{ height: '420px', borderRadius: '10px', overflow: 'hidden' }}>
+                    <MapIframe scenarioData={meta} routes={SOLVERS[rightMapSolver].data?.routes} depot={meta?.depot} clinics={meta?.clinics} />
+                  </div>
                   <RouteTable result={SOLVERS[rightMapSolver].data} color={SOLVERS[rightMapSolver].color} scenarioData={meta} />
                 </>
               ) : (

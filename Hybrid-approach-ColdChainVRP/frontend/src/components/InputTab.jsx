@@ -267,6 +267,7 @@ export default function InputTab({ onConfigureAndRun, pipelineRunning }) {
       const data = await res.json();
       if (data.status === 'ok') {
         onConfigureAndRun(payload, data);
+        setIsRunning(false);
       } else {
         setValidationError(data.error || 'Configuration failed.');
         setIsRunning(false);

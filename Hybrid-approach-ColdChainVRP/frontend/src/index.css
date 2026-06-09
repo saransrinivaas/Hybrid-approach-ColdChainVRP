@@ -1641,19 +1641,21 @@ input[type=number] { -moz-appearance: textfield; }
 }
 
 .splash-logo {
-  height: 120px;
+  height: 140px;
   width: auto;
   margin-bottom: 2rem;
-  animation: splash-spin 4s linear infinite;
-  filter: drop-shadow(0 0 12px rgba(255, 255, 255, 0.15));
+  border-radius: 24px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.8);
+  animation: splash-glow 2.5s ease-in-out infinite alternate;
 }
 
-@keyframes splash-spin {
-  from {
-    transform: rotate(0deg);
+@keyframes splash-glow {
+  0% {
+    filter: drop-shadow(0 0 20px rgba(56, 189, 248, 0.4)) drop-shadow(0 0 40px rgba(56, 189, 248, 0.2));
   }
-  to {
-    transform: rotate(360deg);
+  100% {
+    filter: drop-shadow(0 0 40px rgba(56, 189, 248, 0.8)) drop-shadow(0 0 80px rgba(56, 189, 248, 0.5));
   }
 }
 

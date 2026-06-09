@@ -916,149 +916,212 @@ export default function HardwareTab({ runPipeline, activeTab }) {
         {activeSubTab === 'scenarios-node3' && renderVrpScenarioComparisons(3)}
 
         {/* SUBTAB 2: QUBIT SCALING & DECOHERENCE LIMITS */}
-        {activeSubTab === 'scaling' && (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
-            <div style={{ display: 'grid', gridTemplateColumns: '1.7fr 1fr', gap: '1.75rem', alignItems: 'start' }}>
+        {activeSubTab === 'scaling' && (() => {
+          const sizes = [2, 3, 4, 5, 6, 8, 10];
+          const directQubits = sizes.map(s => s * s);
+          const subClusterQubits = sizes.map(s => s <= 3 ? s * s : 9);
+          
+          return (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+              
+              <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: '1.75rem', alignItems: 'start' }}>
 
-              {/* Interactive graph & parameters ledger */}
-              <div style={{ padding: '1.5rem', borderRadius: '8px', background: '#111', border: '1px solid rgba(255,255,255,0.05)' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem' }}>
-                  <h3 style={{ margin: 0, fontSize: '1.25rem', color: '#fff', fontWeight: 700 }}>
-                    Physical Phase Noise & Depth Scaling Benchmarks
-                  </h3>
-                </div>
-
-                {isLoadingScaling ? (
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-                    {/* Custom Loading Indicators */}
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#ffffff', fontSize: '0.88rem', fontWeight: 600 }}>
-                      <RefreshCw size={14} className="animate-spin" />
-                      <span>Loading physical QPU benchmarks from cache...</span>
-                    </div>
-                    {/* SVG Skeleton */}
-                    <div className="skeleton-shimmer" style={{ width: '100%', height: '260px', borderRadius: '8px', opacity: 0.15 }}></div>
-                    {/* Table Skeleton */}
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem' }}>
-                      <div className="skeleton-shimmer" style={{ width: '100%', height: '24px', opacity: 0.2 }}></div>
-                      <div className="skeleton-shimmer" style={{ width: '100%', height: '16px', opacity: 0.12 }}></div>
-                      <div className="skeleton-shimmer" style={{ width: '100%', height: '16px', opacity: 0.12 }}></div>
-                      <div className="skeleton-shimmer" style={{ width: '100%', height: '16px', opacity: 0.12 }}></div>
-                      <div className="skeleton-shimmer" style={{ width: '100%', height: '16px', opacity: 0.12 }}></div>
-                    </div>
+                {/* Interactive graph & parameters ledger */}
+                <div style={{ padding: '1.5rem', borderRadius: '8px', background: '#111', border: '1px solid rgba(255,255,255,0.05)' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem' }}>
+                    <h3 style={{ margin: 0, fontSize: '1.25rem', color: '#fff', fontWeight: 700 }}>
+                      Physical Phase Noise & Depth Scaling Benchmarks
+                    </h3>
                   </div>
-                ) : scalingResults ? (
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
 
-                    {/* SVG GRAPH CHART */}
-                    <div style={{
-                      background: '#1a1a1a',
-                      border: '1px solid rgba(255,255,255,0.05)',
-                      borderRadius: '8px',
-                      padding: '1rem',
-                      position: 'relative'
-                    }}>
-                      <div style={{ display: 'flex', justifyContent: 'space-around', fontSize: '0.8rem', color: '#888', marginBottom: '0.5rem' }}>
-                        <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                          <span style={{ width: '8px', height: '8px', background: '#f59e0b', borderRadius: '50%', display: 'inline-block' }}></span>
-                          Fidelity Coherence (Higher is Better)
-                        </span>
-                        <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                          <span style={{ width: '8px', height: '8px', background: '#ffffff', borderRadius: '50%', display: 'inline-block' }}></span>
-                          Transpiled Gate Depth (Shorter is Better)
-                        </span>
+                  {isLoadingScaling ? (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+                      {/* Custom Loading Indicators */}
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#ffffff', fontSize: '0.88rem', fontWeight: 600 }}>
+                        <RefreshCw size={14} className="animate-spin" />
+                        <span>Loading physical QPU benchmarks from cache...</span>
+                      </div>
+                      {/* SVG Skeleton */}
+                      <div className="skeleton-shimmer" style={{ width: '100%', height: '260px', borderRadius: '8px', opacity: 0.15 }}></div>
+                      {/* Table Skeleton */}
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem' }}>
+                        <div className="skeleton-shimmer" style={{ width: '100%', height: '24px', opacity: 0.2 }}></div>
+                        <div className="skeleton-shimmer" style={{ width: '100%', height: '16px', opacity: 0.12 }}></div>
+                        <div className="skeleton-shimmer" style={{ width: '100%', height: '16px', opacity: 0.12 }}></div>
+                        <div className="skeleton-shimmer" style={{ width: '100%', height: '16px', opacity: 0.12 }}></div>
+                        <div className="skeleton-shimmer" style={{ width: '100%', height: '16px', opacity: 0.12 }}></div>
+                      </div>
+                    </div>
+                  ) : scalingResults ? (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+
+                      {/* SVG GRAPH CHART */}
+                      <div style={{
+                        background: '#1a1a1a',
+                        border: '1px solid rgba(255,255,255,0.05)',
+                        borderRadius: '8px',
+                        padding: '1rem',
+                        position: 'relative'
+                      }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-around', fontSize: '0.8rem', color: '#888', marginBottom: '0.5rem' }}>
+                          <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                            <span style={{ width: '8px', height: '8px', background: '#f59e0b', borderRadius: '50%', display: 'inline-block' }}></span>
+                            Fidelity Coherence (Higher is Better)
+                          </span>
+                          <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                            <span style={{ width: '8px', height: '8px', background: '#ffffff', borderRadius: '50%', display: 'inline-block' }}></span>
+                            Transpiled Gate Depth (Shorter is Better)
+                          </span>
+                        </div>
+
+                        {/* Custom SVG Line Chart */}
+                        <svg viewBox="0 0 500 200" style={{ width: '100%', height: '260px', overflow: 'visible' }}>
+                          {/* Grid lines */}
+                          <line x1="50" y1="20" x2="450" y2="20" stroke="rgba(255,255,255,0.05)" strokeWidth="1" />
+                          <line x1="50" y1="70" x2="450" y2="70" stroke="rgba(255,255,255,0.05)" strokeWidth="1" />
+                          <line x1="50" y1="120" x2="450" y2="120" stroke="rgba(255,255,255,0.05)" strokeWidth="1" />
+                          <line x1="50" y1="170" x2="450" y2="170" stroke="rgba(255,255,255,0.05)" strokeWidth="1" />
+
+                          {/* Coherence line: fid 97->91->84->52->18, mapped to y: 170-(fid/100)*150 */}
+                          <path d="M 50 24.5 L 150 33.5 L 250 44 L 350 92 L 450 143" fill="none" stroke="#f59e0b" strokeWidth="3" strokeLinecap="round" />
+                          {/* Depth line: depth 15->32->58->92->145, mapped to y: 170-(depth/145)*134 */}
+                          <path d="M 50 156 L 150 140 L 250 116 L 350 85 L 450 36" fill="none" stroke="#ffffff" strokeWidth="3" strokeLinecap="round" strokeDasharray="4" />
+
+                          {/* Nodes */}
+                          {[
+                            { x: 50, q: 4, depth: 15, fid: 97 },
+                            { x: 150, q: 9, depth: 32, fid: 91 },
+                            { x: 250, q: 16, depth: 58, fid: 84 },
+                            { x: 350, q: 25, depth: 92, fid: 52 },
+                            { x: 450, q: 36, depth: 145, fid: 18 }
+                          ].map((pt, i) => (
+                            <g key={i}>
+                              {/* Depth point */}
+                              <circle cx={pt.x} cy={170 - (pt.depth / 145) * 134} r="5" fill="#ffffff" stroke="#121214" strokeWidth="2" />
+                              {/* Fidelity point */}
+                              <circle cx={pt.x} cy={170 - (pt.fid / 100) * 150} r="5" fill="#f59e0b" stroke="#121214" strokeWidth="2" />
+                              {/* X-axis labels */}
+                              <text x={pt.x} y="195" textAnchor="middle" fill="#64748b" fontSize="11" fontWeight="600">{pt.q} Qubits</text>
+                            </g>
+                          ))}
+
+                          {/* NISQ Horizon line at 9 qubits */}
+                          <line x1="150" y1="10" x2="150" y2="180" stroke="#ef4444" strokeWidth="1.5" strokeDasharray="3" />
+                          <text x="156" y="25" fill="#ef4444" fontSize="10" fontWeight="700">NISQ HORIZON (9 QUBITS)</text>
+                        </svg>
                       </div>
 
-                      {/* Custom SVG Line Chart */}
-                      <svg viewBox="0 0 500 200" style={{ width: '100%', height: '260px', overflow: 'visible' }}>
-                        {/* Grid lines */}
-                        <line x1="50" y1="20" x2="450" y2="20" stroke="rgba(255,255,255,0.05)" strokeWidth="1" />
-                        <line x1="50" y1="70" x2="450" y2="70" stroke="rgba(255,255,255,0.05)" strokeWidth="1" />
-                        <line x1="50" y1="120" x2="450" y2="120" stroke="rgba(255,255,255,0.05)" strokeWidth="1" />
-                        <line x1="50" y1="170" x2="450" y2="170" stroke="rgba(255,255,255,0.05)" strokeWidth="1" />
-
-                        {/* Coherence line: fid 97->91->84->52->18, mapped to y: 170-(fid/100)*150 */}
-                        <path d="M 50 24.5 L 150 33.5 L 250 44 L 350 92 L 450 143" fill="none" stroke="#f59e0b" strokeWidth="3" strokeLinecap="round" />
-                        {/* Depth line: depth 15->32->58->92->145, mapped to y: 170-(depth/145)*134 */}
-                        <path d="M 50 156 L 150 140 L 250 116 L 350 85 L 450 36" fill="none" stroke="#ffffff" strokeWidth="3" strokeLinecap="round" strokeDasharray="4" />
-
-                        {/* Nodes */}
-                        {[
-                          { x: 50, q: 4, depth: 15, fid: 97 },
-                          { x: 150, q: 9, depth: 32, fid: 91 },
-                          { x: 250, q: 16, depth: 58, fid: 84 },
-                          { x: 350, q: 25, depth: 92, fid: 52 },
-                          { x: 450, q: 36, depth: 145, fid: 18 }
-                        ].map((pt, i) => (
-                          <g key={i}>
-                            {/* Depth point */}
-                            <circle cx={pt.x} cy={170 - (pt.depth / 145) * 134} r="5" fill="#ffffff" stroke="#121214" strokeWidth="2" />
-                            {/* Fidelity point */}
-                            <circle cx={pt.x} cy={170 - (pt.fid / 100) * 150} r="5" fill="#f59e0b" stroke="#121214" strokeWidth="2" />
-                            {/* X-axis labels */}
-                            <text x={pt.x} y="195" textAnchor="middle" fill="#64748b" fontSize="11" fontWeight="600">{pt.q} Qubits</text>
-                          </g>
-                        ))}
-
-                        {/* NISQ Horizon line at 9 qubits */}
-                        <line x1="150" y1="10" x2="150" y2="180" stroke="#ef4444" strokeWidth="1.5" strokeDasharray="3" />
-                        <text x="156" y="25" fill="#ef4444" fontSize="10" fontWeight="700">NISQ HORIZON (9 QUBITS)</text>
-                      </svg>
-                    </div>
-
-                    {/* Table overview */}
-                    <div style={{ overflowX: 'auto' }}>
-                      <table style={{ width: '100%', fontSize: '0.88rem', borderCollapse: 'collapse', textAlign: 'left' }}>
-                        <thead>
-                          <tr style={{ background: '#1a1a1a', borderBottom: '1px solid rgba(255,255,255,0.05)', color: '#888' }}>
-                            <th style={{ padding: '0.65rem 0.5rem' }}>Clinics Stop count</th>
-                            <th style={{ padding: '0.65rem 0.5rem' }}>Active Qubits</th>
-                            <th style={{ padding: '0.65rem 0.5rem' }}>Gate Depth</th>
-                            <th style={{ padding: '0.65rem 0.5rem' }}>Routing Coherence</th>
-                            <th style={{ padding: '0.65rem 0.5rem' }}>Convergence Match</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {scalingResults.map(res => (
-                            <tr key={res.num_clinics} style={{ borderBottom: '1px solid #1e1e1e' }}>
-                              <td style={{ padding: '0.65rem 0.5rem', fontWeight: 600 }}>{res.num_clinics} Clinics</td>
-                              <td style={{ padding: '0.65rem 0.5rem', fontFamily: 'monospace' }}>{res.qubits} Qubits</td>
-                              <td style={{ padding: '0.65rem 0.5rem', fontFamily: 'monospace' }}>{res.depth} Depth</td>
-                              <td style={{ padding: '0.65rem 0.5rem', fontWeight: 700, color: res.fidelity > 0.8 ? '#10b981' : res.fidelity > 0.4 ? '#fbbf24' : '#ef4444' }}>
-                                {(res.fidelity * 100).toFixed(0)}%
-                              </td>
-                              <td style={{ padding: '0.65rem 0.5rem' }}>
-                                <span style={{
-                                  fontSize: '0.72rem',
-                                  padding: '0.1rem 0.4rem',
-                                  background: res.converged ? 'rgba(16, 185, 129, 0.12)' : 'rgba(239, 68, 68, 0.12)',
-                                  color: res.converged ? '#10b981' : '#f87171',
-                                  fontWeight: 700,
-                                  borderRadius: '4px'
-                                }}>
-                                  {res.converged ? 'MATCH' : 'SCRAMBLED'}
-                                </span>
-                              </td>
+                      {/* Table overview */}
+                      <div style={{ overflowX: 'auto' }}>
+                        <table style={{ width: '100%', fontSize: '0.88rem', borderCollapse: 'collapse', textAlign: 'left' }}>
+                          <thead>
+                            <tr style={{ background: '#1a1a1a', borderBottom: '1px solid rgba(255,255,255,0.05)', color: '#888' }}>
+                              <th style={{ padding: '0.65rem 0.5rem' }}>Clinics Stop count</th>
+                              <th style={{ padding: '0.65rem 0.5rem' }}>Active Qubits</th>
+                              <th style={{ padding: '0.65rem 0.5rem' }}>Gate Depth</th>
+                              <th style={{ padding: '0.65rem 0.5rem' }}>Routing Coherence</th>
+                              <th style={{ padding: '0.65rem 0.5rem' }}>Convergence Match</th>
                             </tr>
-                          ))}
-                        </tbody>
-                      </table>
-                    </div>
+                          </thead>
+                          <tbody>
+                            {scalingResults.map(res => (
+                              <tr key={res.num_clinics} style={{ borderBottom: '1px solid #1e1e1e' }}>
+                                <td style={{ padding: '0.65rem 0.5rem', fontWeight: 600 }}>{res.num_clinics} Clinics</td>
+                                <td style={{ padding: '0.65rem 0.5rem', fontFamily: 'monospace' }}>{res.qubits} Qubits</td>
+                                <td style={{ padding: '0.65rem 0.5rem', fontFamily: 'monospace' }}>{res.depth} Depth</td>
+                                <td style={{ padding: '0.65rem 0.5rem', fontWeight: 700, color: res.fidelity > 0.8 ? '#10b981' : res.fidelity > 0.4 ? '#fbbf24' : '#ef4444' }}>
+                                  {(res.fidelity * 100).toFixed(0)}%
+                                </td>
+                                <td style={{ padding: '0.65rem 0.5rem' }}>
+                                  <span style={{
+                                    fontSize: '0.72rem',
+                                    padding: '0.1rem 0.4rem',
+                                    background: res.converged ? 'rgba(16, 185, 129, 0.12)' : 'rgba(239, 68, 68, 0.12)',
+                                    color: res.converged ? '#10b981' : '#f87171',
+                                    fontWeight: 700,
+                                    borderRadius: '4px'
+                                  }}>
+                                    {res.converged ? 'MATCH' : 'SCRAMBLED'}
+                                  </span>
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
 
+                    </div>
+                  ) : (
+                    <div style={{ textAlign: 'center', padding: '3rem 0', border: '1px dashed rgba(239, 68, 68, 0.3)', borderRadius: '8px', color: '#fca5a5', fontSize: '0.88rem', background: '#1a1a1a' }}>
+                      Unable to load scaling benchmarks from cache. Please ensure your backend server is running and active.
+                    </div>
+                  )}
+                </div>
+
+                {/* Physical Qubit Scaling Complexity */}
+                <div style={{ padding: '1.5rem', borderRadius: '8px', background: '#111', border: '1px solid rgba(255,255,255,0.05)' }}>
+                  <h3 style={{ margin: '0 0 0.5rem 0', fontSize: '1.25rem', color: '#fff', fontWeight: 700 }}>
+                    Physical Qubit Scaling Complexity
+                  </h3>
+                  <p style={{ color: 'var(--text-secondary)', fontSize: '0.95rem', lineHeight: '1.5', marginBottom: '1.25rem' }}>
+                    VRP Hamiltonians scale quadratically (N² qubits). Our hybrid sub-clustering bounds quantum resource complexity to safe simulator thresholds.
+                  </p>
+
+                  <div style={{ position: 'relative', marginBottom: '1rem' }}>
+                    <svg viewBox="0 0 100 60" style={{ width: '100%', height: 'auto', background: 'rgba(0,0,0,0.2)', borderRadius: '6px', border: '1px solid rgba(255,255,255,0.04)' }}>
+                      <line x1="12" y1="5" x2="12" y2="50" stroke="rgba(255,255,255,0.07)" strokeWidth="0.5" />
+                      <line x1="12" y1="50" x2="95" y2="50" stroke="rgba(255,255,255,0.07)" strokeWidth="0.5" />
+                      <line x1="12" y1="45.95" x2="95" y2="45.95" stroke="#ef4444" strokeWidth="0.5" strokeDasharray="1 1" />
+                      <text x="94" y="44" fill="#ef4444" fontSize="2.2" textAnchor="end">Local Simulator Safe Limit (9 Qubits)</text>
+                      
+                      {sizes.map((s, idx) => {
+                        const x = 18 + (idx * 11);
+                        const directY = 50 - (directQubits[idx] * 0.45);
+                        const subY = 50 - (subClusterQubits[idx] * 0.45);
+
+                        return (
+                          <g key={s}>
+                            <circle cx={x} cy={directY} r="1.2" fill="#ef4444" />
+                            <circle cx={x} cy={subY} r="1.2" fill="#10b981" />
+                            
+                            {idx < sizes.length - 1 && (
+                              <>
+                                <line x1={x} y1={directY} x2={18 + ((idx + 1) * 11)} y2={50 - (directQubits[idx + 1] * 0.45)} stroke="#ef4444" strokeWidth="1.2" />
+                                <line x1={x} y1={subY} x2={18 + ((idx + 1) * 11)} y2={50 - (subClusterQubits[idx + 1] * 0.45)} stroke="#10b981" strokeWidth="1.2" />
+                              </>
+                            )}
+                          </g>
+                        );
+                      })}
+
+                      {sizes.map((s, idx) => (
+                        <text key={s} x={18 + (idx * 11)} y="55" fill="var(--text-faint)" fontSize="2.2" textAnchor="middle">{s}n</text>
+                      ))}
+                      <text x="6" y="8" fill="var(--text-faint)" fontSize="2.2" textAnchor="start" transform="rotate(-90 6 8)">Qubits Required →</text>
+                    </svg>
                   </div>
-                ) : (
-                  <div style={{ textAlign: 'center', padding: '3rem 0', border: '1px dashed rgba(239, 68, 68, 0.3)', borderRadius: '8px', color: '#fca5a5', fontSize: '0.88rem', background: '#1a1a1a' }}>
-                    Unable to load scaling benchmarks from cache. Please ensure your backend server is running and active.
+                  
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem', fontSize: '0.88rem', color: 'var(--text-secondary)' }}>
+                    <div style={{ padding: '0.5rem 0.75rem', borderRadius: '6px', background: 'rgba(255,255,255,0.02)' }}>
+                      <strong style={{ color: '#ef4444', display: 'block', marginBottom: '2px' }}>Direct approach (Red line):</strong>
+                      Running a whole route together scales exponentially. 10 clinics require 100 qubits—unsimulatable on local laptops.
+                    </div>
+                    <div style={{ padding: '0.5rem 0.75rem', borderRadius: '6px', background: 'rgba(255,255,255,0.02)' }}>
+                      <strong style={{ color: '#10b981', display: 'block', marginBottom: '2px' }}>Hybrid approach (Green line):</strong>
+                      Splits routes into small sub-clusters. Qubit cost stays constant at 9 qubits (3 nodes), regardless of global VRP scale.
+                    </div>
                   </div>
-                )}
+                </div>
+
               </div>
 
               {/* Stress explanation console */}
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-                <div style={{ padding: '1.5rem', borderRadius: '8px', background: '#1a1a1a', border: '1px solid rgba(255,255,255,0.05)' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(24rem, 1fr))', gap: '1.5rem', alignItems: 'stretch' }}>
+                <div style={{ padding: '1.5rem', borderRadius: '8px', background: '#1a1a1a', border: '1px solid rgba(255,255,255,0.05)', display: 'flex', flexDirection: 'column', height: '100%' }}>
                   <h4 style={{ margin: '0 0 0.75rem 0', fontSize: '1.1rem', color: '#fff', fontWeight: 700 }}>
                     Decoherence Boundary Breakdown
                   </h4>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', fontSize: '0.88rem', lineHeight: '1.5', color: '#aaa' }}>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', fontSize: '0.88rem', lineHeight: '1.5', color: '#aaa', flexGrow: 1 }}>
                     <div>
                       <strong style={{ color: '#10b981', display: 'block', marginBottom: '2px' }}>Green Zone (2-3 Clinics / 4-9 Qubits)</strong>
                       Near-perfect coherence (91-97%). Physical gate depths are short (15-32 gates). Real circuits execute well within the coherence time limit, resulting in full route convergence.
@@ -1074,20 +1137,19 @@ export default function HardwareTab({ runPipeline, activeTab }) {
                   </div>
                 </div>
 
-                <div style={{ padding: '1.5rem', borderRadius: '8px', border: '1px solid rgba(239, 68, 68, 0.3)', background: '#1a1a1a' }}>
+                <div style={{ padding: '1.5rem', borderRadius: '8px', border: '1px solid rgba(239, 68, 68, 0.3)', background: '#1a1a1a', display: 'flex', flexDirection: 'column', height: '100%' }}>
                   <h4 style={{ margin: '0 0 0.5rem 0', fontSize: '1.1rem', color: '#fca5a5', fontWeight: 700 }}>
                     What This Means for Cold Chain VRP
                   </h4>
-                  <p style={{ margin: 0, fontSize: '0.88rem', color: '#fca5a5', lineHeight: '1.4' }}>
+                  <p style={{ margin: 0, fontSize: '0.88rem', color: '#fca5a5', lineHeight: '1.4', flexGrow: 1 }}>
                     To solve a 30-clinic VRP on current NISQ-era quantum chips, we cannot solve all 30 clinics in a single 900-qubit circuit because gate noise would scramble it. We must use our Hybrid Clustering engine to break them down into 3-node clusters, solve those on qubits in parallel, and stitch them back together.
                   </p>
                 </div>
               </div>
 
             </div>
-
-          </div>
-        )}
+          );
+        })()}
 
         {/* SUBTAB 3: QAOA PARAMETER TUNING OPTIMIZER */}
         {activeSubTab === 'optimizer' && (

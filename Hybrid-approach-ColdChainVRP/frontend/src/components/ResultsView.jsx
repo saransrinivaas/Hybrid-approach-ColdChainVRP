@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { MapContainer, TileLayer, Marker, Popup, Polyline, useMap } from 'react-leaflet';
+import MapIframe from './MapIframe';
 import L from 'leaflet';
 import {
   CheckCircle2, Circle, BarChart2, Cpu, Zap, GitMerge,
@@ -137,7 +138,7 @@ const COMP_STYLE = {
 
 function Step1Input({ config }) {
   if (!config) return <div style={{ color: 'var(--text-muted)', padding: '2rem', textAlign: 'center' }}>No configuration loaded.</div>;
-  const included = (config.clinics || []).filter(c => c.included);
+  const included = (config.clinics || []).filter(c => c.included && ((c.demand?.frozen || 0) > 0 || (c.demand?.chilled || 0) > 0 || (c.demand?.ambient || 0) > 0));
 
   // Compute per-compartment totals
   const totals = { frozen: 0, chilled: 0, ambient: 0 };
@@ -270,12 +271,20 @@ function Step2Clustering({ scenarioMeta, config, pipelineHasRun }) {
     }
     fetch(`${API_BASE}/api/clustering-result`)
       .then(r => r.json())
-      .then(d => { if (!d.error) setClusterData(d); })
+      .then(d => { 
+        if (!d.error) {
+          const clusterArray = d.clustering || (Array.isArray(d) ? d : []);
+          setClusterData(clusterArray);
+        }
+      })
       .catch(() => {});
   }, [pipelineHasRun]);
 
   const depot   = scenarioMeta?.easy?.depot || DEPOT;
-  const clinics = config?.clinics || scenarioMeta?.easy?.clinics || [];
+  const clinics = (config?.clinics || scenarioMeta?.easy?.clinics || []).filter(c => {
+    const dem = c.demand || {};
+    return (dem.frozen || 0) > 0 || (dem.chilled || 0) > 0 || (dem.ambient || 0) > 0;
+  });
 
   return (
     <div className="results-step-body">
@@ -284,36 +293,24 @@ function Step2Clustering({ scenarioMeta, config, pipelineHasRun }) {
       </ExplainCard>
       <div className="results-grid-map-sidebar">
         <div className="map-shell" style={{ height: '420px' }}>
-          <MapContainer center={[depot?.lat || 13.04, depot?.lon || 80.18]} zoom={11} style={{ height: '100%', width: '100%' }}>
-            <TileLayer url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png" attribution="&copy; OpenStreetMap &copy; CARTO" />
-            {depot && typeof depot.lat === 'number' && typeof depot.lon === 'number' && (
-              <Marker position={[depot.lat, depot.lon]} icon={depotIcon}>
-                <Popup><strong>{depot.name}</strong></Popup>
-              </Marker>
-            )}
-            {clusterData ? clusterData.map((vehicle, vIdx) => {
-              const color = VEHICLE_COLORS[vIdx % VEHICLE_COLORS.length];
-              const vClinics = vehicle.trips
-                .flatMap(t => t.clinics)
-                .map(id => clinics.find(c => String(c.id) === String(id)))
-                .filter(c => c && typeof c.lat === 'number' && typeof c.lon === 'number');
-              return vClinics.map(c => (
-                <Marker key={c.id} position={[c.lat, c.lon]} icon={makeIcon(color, c.id)}>
-                  <Popup><strong>{c.name}</strong><br />{vehicle.vehicleId}</Popup>
-                </Marker>
-              ));
-            }) : clinics.filter(c => c && typeof c.lat === 'number' && typeof c.lon === 'number').map(c => (
-              <Marker key={c.id} position={[c.lat, c.lon]} icon={makeIcon('var(--text-faint)', c.id)}>
-                <Popup><strong>{c.name}</strong></Popup>
-              </Marker>
-            ))}
-          </MapContainer>
+          <MapIframe 
+            depot={depot} 
+            clinics={clinics} 
+            hideLines={true}
+            routes={
+              (clusterData && Array.isArray(clusterData)) ? clusterData.reduce((acc, vehicle) => {
+                const vClinics = vehicle.trips.flatMap(t => t.clinics);
+                acc[vehicle.vehicleId] = { route: [0, ...vClinics, 0] };
+                return acc;
+              }, {}) : {}
+            } 
+          />
         </div>
         <div className="results-sidebar">
           {clusterData ? clusterData.map((vehicle, vIdx) => {
             const color = VEHICLE_COLORS[vIdx % VEHICLE_COLORS.length];
             const allClinics = vehicle.trips.flatMap(t => t.clinics);
-            const subclusters = vehicle.trips.flatMap(t => t.subclusters || []);
+            const subclusters = vehicle.trips.reduce((acc, t) => acc.concat(t.subclusters || []), []);
             const qubits = subclusters.reduce((s, sc) => s + sc.length * sc.length, 0);
             return (
               <div key={vehicle.vehicleId} className="glass-panel" style={{ padding: '0.85rem', borderLeft: `3px solid ${color}` }}>
@@ -386,7 +383,10 @@ function Step3Qubo() {
 // ── Step 4: Stitching ─────────────────────────────────────────────────────────
 function Step4Stitching({ results, scenarioMeta, config }) {
   const depot   = scenarioMeta?.easy?.depot || DEPOT;
-  const clinics = config?.clinics || scenarioMeta?.easy?.clinics || [];
+  const clinics = (config?.clinics || scenarioMeta?.easy?.clinics || []).filter(c => {
+    const dem = c.demand || {};
+    return (dem.frozen || 0) > 0 || (dem.chilled || 0) > 0 || (dem.ambient || 0) > 0;
+  });
   const clinicById = Object.fromEntries(clinics.map((c) => [c.id, c]));
 
   return (
@@ -397,44 +397,7 @@ function Step4Stitching({ results, scenarioMeta, config }) {
       {results?.qaoa?.routes ? (
         <>
           <div className="map-shell" style={{ height: '380px' }}>
-            <MapContainer center={[depot?.lat || 13.04, depot?.lon || 80.18]} zoom={11} style={{ height: '100%', width: '100%' }}>
-              <TileLayer url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png" attribution="&copy; OpenStreetMap &copy; CARTO" />
-              {depot && typeof depot.lat === 'number' && typeof depot.lon === 'number' && (
-                <Marker position={[depot.lat, depot.lon]} icon={depotIcon}>
-                  <Popup><strong>{depot.name}</strong></Popup>
-                </Marker>
-              )}
-              {Object.entries(results.qaoa.routes).map(([vid, vdata], idx) => {
-                const color = VEHICLE_COLORS[idx % VEHICLE_COLORS.length];
-                const route = Array.isArray(vdata) ? vdata : (vdata.route || []);
-                const positions = route.map(id => {
-                  if (id === 0 && depot && typeof depot.lat === 'number' && typeof depot.lon === 'number') {
-                    return [depot.lat, depot.lon];
-                  }
-                  const originalId = id >= 1000 ? Math.floor(id / 1000) : id;
-                  const c = clinicById[originalId];
-                  return c && typeof c.lat === 'number' && typeof c.lon === 'number' ? [c.lat, c.lon] : null;
-                }).filter(Boolean);
-                return (
-                  <Polyline key={vid} positions={positions} pathOptions={{ color, weight: 3.5, opacity: 0.9, lineCap: 'round' }} />
-                );
-              })}
-              {Object.entries(results.qaoa.routes).map(([vid, vdata], idx) => {
-                const color = VEHICLE_COLORS[idx % VEHICLE_COLORS.length];
-                const route = Array.isArray(vdata) ? vdata : (vdata.route || []);
-                const stops = vdata.stops || route.map(id => {
-                  if (id === 0 && depot) return depot;
-                  const originalId = id >= 1000 ? Math.floor(id / 1000) : id;
-                  return clinics.find(x => x.id === originalId);
-                }).filter(Boolean);
-                return stops.filter(s => s.name !== 'Depot' && s.id !== 0).map((s, i) => {
-                  const originalId = s.id >= 1000 ? Math.floor(s.id / 1000) : s.id;
-                  const c = clinicById[originalId];
-                  if (!c || typeof c.lat !== 'number' || typeof c.lon !== 'number') return null;
-                  return <Marker key={`${vid}-${s.id}-${i}`} position={[c.lat, c.lon]} icon={makeIcon(color, originalId)}><Popup><strong>{c.name}</strong><br />{vid}</Popup></Marker>;
-                });
-              })}
-            </MapContainer>
+            <MapIframe depot={depot} clinics={clinics} routes={results.qaoa.routes} />
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
             {Object.entries(results.qaoa.routes).map(([vid, vdata], idx) => {
@@ -537,58 +500,7 @@ function SolverRouteMap({ result, depot, clinics = [], label }) {
         {label}
       </div>
       <div className="map-shell" style={{ height: '320px', borderRadius: '10px', overflow: 'hidden' }}>
-        <MapContainer center={center} zoom={11} style={{ height: '100%', width: '100%' }} scrollWheelZoom={false}>
-          <TileLayer url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png" attribution="&copy; OpenStreetMap &copy; CARTO" />
-          {hasRoutes && <FitBounds routes={routes} depot={depot} clinics={clinics} />}
-          {depot && typeof depot.lat === 'number' && (
-            <Marker position={[depot.lat, depot.lon]} icon={depotIcon}>
-              <Popup><strong>{depot.name || 'Depot'}</strong></Popup>
-            </Marker>
-          )}
-          {Object.entries(routes).map(([vid, vdata], idx) => {
-            const color = VEHICLE_COLORS[idx % VEHICLE_COLORS.length];
-            const route = Array.isArray(vdata) ? vdata : (vdata.route || []);
-            const positions = route
-              .map((id) => {
-                if (id === 0 && depot && typeof depot.lat === 'number' && typeof depot.lon === 'number') {
-                  return [depot.lat, depot.lon];
-                }
-                const originalId = id >= 1000 ? Math.floor(id / 1000) : id;
-                const c = clinicById[originalId];
-                return c && typeof c.lat === 'number' && typeof c.lon === 'number' ? [c.lat, c.lon] : null;
-              })
-              .filter(Boolean);
-            return (
-              <Polyline key={vid} positions={positions}
-                pathOptions={{ color, weight: 3.5, opacity: 0.9, lineCap: 'round', lineJoin: 'round' }} />
-            );
-          })}
-          {Object.entries(routes).map(([vid, vdata], idx) => {
-            const color = VEHICLE_COLORS[idx % VEHICLE_COLORS.length];
-            const route = Array.isArray(vdata) ? vdata : (vdata.route || []);
-            const stops = Array.isArray(vdata)
-              ? route.map(id => {
-                  if (id === 0) return { id: 0, name: depot?.name || 'Depot' };
-                  const originalId = id >= 1000 ? Math.floor(id / 1000) : id;
-                  const c = clinicById[originalId];
-                  return c ? { id: c.id, name: c.name, lat: c.lat, lon: c.lon } : { id, name: `Clinic ${originalId}` };
-                })
-              : (vdata.stops || []);
-
-            return stops
-              .filter(s => s.name !== 'Depot' && s.id !== 0)
-              .map((s, i) => {
-                const originalId = s.id >= 1000 ? Math.floor(s.id / 1000) : s.id;
-                const c = clinicById[originalId];
-                if (!c || typeof c.lat !== 'number' || typeof c.lon !== 'number') return null;
-                return (
-                  <Marker key={`${vid}-${s.id}-${i}`} position={[c.lat, c.lon]} icon={makeIcon(color, originalId)}>
-                    <Popup><strong>{c.name}</strong><br />{vid}</Popup>
-                  </Marker>
-                );
-              });
-          })}
-        </MapContainer>
+        <MapIframe depot={depot} clinics={clinics} routes={routes} />
       </div>
       {/* Route legend */}
       {hasRoutes ? (
@@ -706,7 +618,9 @@ function Step5Comparison({ results, compareResults, config, scenarioMeta, onRefr
   };
 
   const limits = getLimits();
-  const totalClinics = config?.clinics ? config.clinics.filter(c => c.included).length : (scenarioMeta?.easy?.num_clinics ?? 10);
+  const totalClinics = config?.clinics 
+    ? config.clinics.filter(c => c.included && ((c.demand?.frozen || 0) > 0 || (c.demand?.chilled || 0) > 0 || (c.demand?.ambient || 0) > 0)).length 
+    : (scenarioMeta?.easy?.num_clinics ?? 10);
 
   const getConstraintStats = (result) => {
     if (!result || result.status !== 'ok' || !result.routes) return null;
@@ -1253,18 +1167,45 @@ export default function ResultsView({ config, runPipeline, pipelineLogs, pipelin
     const newCompleted = ['input'];
     let newStep = 'input';
     
-    if (logsStr.includes('vehicular clustering') || logsStr.includes('clustering')) {
+    // Step 1 – Clustering
+    if (
+      logsStr.includes('vehicular clustering') ||
+      logsStr.includes('step 1 - vehicular') ||
+      logsStr.includes('clustering')
+    ) {
       newStep = 'clustering';
     }
-    if (logsStr.includes('step 2 — qaoa solver') || logsStr.includes('qaoa solver')) {
+
+    // Step 2 – QUBO / QAOA  (backend prints: STEP 2 - QAOA SOLVER  [PARALLEL EXECUTION])
+    if (
+      logsStr.includes('step 2 - qaoa solver') ||
+      logsStr.includes('step 2 — qaoa solver') ||
+      logsStr.includes('qaoa solver') ||
+      logsStr.includes('parallel execution') ||
+      logsStr.includes('sub-clusters solving simultaneously')
+    ) {
       newCompleted.push('clustering');
       newStep = 'qubo';
     }
-    if (logsStr.includes('step 3 — stitching + repair') || logsStr.includes('stitching + repair')) {
+
+    // Step 3 – Stitching  (backend prints: STEP 3 - STITCHING + REPAIR)
+    if (
+      logsStr.includes('step 3 - stitching') ||
+      logsStr.includes('step 3 — stitching') ||
+      logsStr.includes('stitching + repair') ||
+      logsStr.includes('stitching_repair')
+    ) {
       newCompleted.push('clustering', 'qubo');
       newStep = 'stitching';
     }
-    if (logsStr.includes('pipeline complete') || logsStr.includes('saved -> results.json') || logsStr.includes('saved -> results_tough.json')) {
+
+    // Step 4 – Pipeline complete
+    if (
+      logsStr.includes('pipeline complete') ||
+      logsStr.includes('saved -> results.json') ||
+      logsStr.includes('saved -> results_tough.json') ||
+      logsStr.includes('final combined results submitted')
+    ) {
       newCompleted.push('clustering', 'qubo', 'stitching', 'comparison');
       newStep = 'comparison';
     }

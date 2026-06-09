@@ -732,7 +732,7 @@ export default function FutureResultsTab({ activeTab }) {
           Future Quantum Advantage — As Hardware Matures
         </h2>
         <p style={{ color: '#e2e8f0', fontSize: '1.05rem', lineHeight: '1.6', marginBottom: '2.5rem', maxWidth: '85ch' }}>
-          The <strong>Cryo Hybrid Optimiser</strong> is <strong>architected to scale</strong> with quantum hardware. No redesign needed — only the sub-solver stub needs to be swapped for a real QAOA call. Each hardware generation below unlocks a new performance tier automatically.
+          The <strong>Snow Rabbit: Hybrid Solver for MCVRP w TW</strong> is <strong>architected to scale</strong> with quantum hardware. No redesign needed — only the sub-solver stub needs to be swapped for a real QAOA call. Each hardware generation below unlocks a new performance tier automatically.
         </p>
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem', marginBottom: '1.5rem' }}>
@@ -797,7 +797,7 @@ export default function FutureResultsTab({ activeTab }) {
             <strong style={{ color: '#ffffff' }}>The Fundamental Limit of Classical Solvers:</strong> Classical algorithms (MILP, Branch-and-Cut, local search heuristics) are mathematically bound by exponential scaling limits. To run in reasonable time, they must separate routing from physics—first finding a spatial route, then post-evaluating spoilage constraints. This disconnected approach is structurally blind to thermo-spatial trade-offs, often missing massive cost reductions.
           </div>
           <div>
-            <strong style={{ color: '#ffffff' }}>The Quantum Advantage Crossover:</strong> By compiling continuous thermodynamic product decay and active cooling draw directly into the Hamiltonian via <code style={{ color: '#38bdf8' }}>H<sub>spoilage</sub></code> and <code style={{ color: '#38bdf8' }}>H<sub>refrigeration</sub></code>, the <strong>Cryo Hybrid Optimiser</strong> optimizes the physical and spatial metrics simultaneously. As processors mature to 400 fault-tolerant logical qubits, the <strong>Cryo Hybrid Optimiser</strong> becomes the <strong style={{ color: '#38bdf8', textShadow: '0 0 8px rgba(56,189,248,0.3)', fontWeight: 'bold' }}>new industry standard</strong>, delivering routing solutions that classical computers can neither compute nor compete with.
+            <strong style={{ color: '#ffffff' }}>The Quantum Advantage Crossover:</strong> By compiling continuous thermodynamic product decay and active cooling draw directly into the Hamiltonian via <code style={{ color: '#38bdf8' }}>H<sub>spoilage</sub></code> and <code style={{ color: '#38bdf8' }}>H<sub>refrigeration</sub></code>, the <strong>Snow Rabbit: Hybrid Solver for MCVRP w TW</strong> optimizes the physical and spatial metrics simultaneously. As processors mature to 400 fault-tolerant logical qubits, the <strong>Snow Rabbit: Hybrid Solver for MCVRP w TW</strong> becomes the <strong style={{ color: '#38bdf8', textShadow: '0 0 8px rgba(56,189,248,0.3)', fontWeight: 'bold' }}>new industry standard</strong>, delivering routing solutions that classical computers can neither compute nor compete with.
           </div>
         </div>
       </div>

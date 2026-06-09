@@ -145,7 +145,7 @@ export default function BenchmarkingTab() {
     
     return {
       class: cls,
-      'CHO (Quantum Hybrid)': getAvgTotalCost('cho'),
+      'Snow Rabbit (Hybrid Solver)': getAvgTotalCost('cho'),
       'OR-Tools': getAvgTotalCost('ortools'),
       'ALNS': getAvgTotalCost('alns'),
       'Classical Local Search': getAvgTotalCost('classical'),
@@ -155,7 +155,7 @@ export default function BenchmarkingTab() {
 
   // 2. Stacked Bar Chart for Cost Breakdown by Solver
   const solverKeys = [
-    { key: 'cho', label: 'CHO (Quantum Hybrid)' },
+    { key: 'cho', label: 'Snow Rabbit (Hybrid Solver)' },
     { key: 'ortools', label: 'OR-Tools' },
     { key: 'alns', label: 'ALNS' },
     { key: 'classical', label: 'Classical Local Search' },
@@ -236,7 +236,7 @@ export default function BenchmarkingTab() {
   };
 
   const solverColors = {
-    'CHO (Quantum Hybrid)': 'var(--solver-hybrid)',
+    'Snow Rabbit (Hybrid Solver)': 'var(--solver-hybrid)',
     'OR-Tools': 'var(--solver-ortools)',
     'ALNS': 'var(--solver-alns)',
     'Classical Local Search': 'var(--solver-classical)',
@@ -258,7 +258,7 @@ export default function BenchmarkingTab() {
           Solomon Benchmarks Validation Dashboard
         </h2>
         <p style={{ color: 'var(--text-secondary)', fontSize: '0.98rem', lineHeight: '1.6', maxWidth: '100ch', margin: 0 }}>
-          This interface presents the head-to-head comparison of our <strong>Cryo Hybrid Optimiser (CHO)</strong> against industry-standard solvers on the complete suite of <strong>56 Solomon VRPTW instances</strong> (100 customers each). The results scientifically validate that co-optimizing thermal decay and spatial routes inside the quantum Hamiltonian yields the lowest overall cold-chain cost.
+          This interface presents the head-to-head comparison of our <strong>Snow Rabbit: Hybrid Solver (SR)</strong> against industry-standard solvers on the complete suite of <strong>56 Solomon VRPTW instances</strong> (100 customers each). The results scientifically validate that co-optimizing thermal decay and spatial routes inside the quantum Hamiltonian yields the lowest overall cold-chain cost.
         </p>
       </div>
 
@@ -276,7 +276,7 @@ export default function BenchmarkingTab() {
             gradient: 'rgba(255,255,255,0.02)'
           },
           {
-            title: 'CHO Win Rate',
+            title: 'Snow Rabbit Win Rate',
             value: data.summary.cho_total_cost_win_rate_pct,
             decimals: 1,
             suffix: '%',
@@ -345,13 +345,13 @@ export default function BenchmarkingTab() {
           <div style={{ background: 'rgba(0,0,0,0.15)', padding: '1rem', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.03)' }}>
             <strong style={{ color: 'var(--solver-hybrid)', display: 'block', marginBottom: '0.35rem' }}>2. Co-Optimization Hamiltonian</strong>
             <span style={{ color: 'var(--text-secondary)' }}>
-              CHO encodes biological spoilage physics directly into the cost Hamiltonian (H_spoilage term). The quantum optimizer uses global superposition to explore schedules, balancing transit times of perishable cargo with distance constraints directly within the mathematical search space.
+              SR encodes biological spoilage physics directly into the cost Hamiltonian (H_spoilage term). The quantum optimizer uses global superposition to explore schedules, balancing transit times of perishable cargo with distance constraints directly within the mathematical search space.
             </span>
           </div>
           <div style={{ background: 'rgba(0,0,0,0.15)', padding: '1rem', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.03)' }}>
             <strong style={{ color: 'var(--solver-ortools)', display: 'block', marginBottom: '0.35rem' }}>3. The Spoilage-Distance Trade-off</strong>
             <span style={{ color: 'var(--text-secondary)' }}>
-              To save product value, CHO intentionally accepts a minor detour distance (~5.4% gap vs the mathematical BKS distance). By trading this negligible distance increase, it reduces spoilage by 56.1% and active refrigeration energy by 18%, delivering the lowest net economic cost.
+              To save product value, SR intentionally accepts a minor detour distance (~5.4% gap vs the mathematical BKS distance). By trading this negligible distance increase, it reduces spoilage by 56.1% and active refrigeration energy by 18%, delivering the lowest net economic cost.
             </span>
           </div>
         </div>
@@ -372,7 +372,7 @@ export default function BenchmarkingTab() {
                 <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
                 <XAxis dataKey="class" stroke="var(--text-faint)" fontSize={11} />
                 <YAxis stroke="var(--text-faint)" fontSize={11} label={{ value: 'Total Cost (Rs)', angle: -90, position: 'insideLeft', offset: -10, fill: 'var(--text-faint)', fontSize: 10 }} />
-                <Bar key="bar-cho" dataKey="CHO (Quantum Hybrid)" fill="var(--solver-hybrid)" radius={[3, 3, 0, 0]} />
+                <Bar key="bar-cho" dataKey="Snow Rabbit (Hybrid Solver)" fill="var(--solver-hybrid)" radius={[3, 3, 0, 0]} />
                 <Bar key="bar-ortools" dataKey="OR-Tools" fill="var(--solver-ortools)" radius={[3, 3, 0, 0]} opacity={0.7} />
                 <Bar key="bar-alns" dataKey="ALNS" fill="var(--solver-alns)" radius={[3, 3, 0, 0]} opacity={0.7} />
                 <Bar key="bar-classical" dataKey="Classical Local Search" fill="var(--solver-classical)" radius={[3, 3, 0, 0]} opacity={0.6} />
@@ -434,7 +434,7 @@ export default function BenchmarkingTab() {
                 <YAxis type="number" dataKey="spoilageReduction" name="Spoilage Reduction" unit="%" stroke="var(--text-faint)" fontSize={11} domain={[20, 80]} />
                 <ZAxis type="number" range={[50, 50]} />
                 <Tooltip content={<CustomScatterTooltip />} />
-                <Scatter name="CHO Performance" data={scatterPlotData}>
+                <Scatter name="Snow Rabbit Performance" data={scatterPlotData}>
                   {scatterPlotData.map((entry, index) => {
                     const colors = {
                       C1: '#38bdf8', C2: '#0ea5e9',
@@ -486,21 +486,19 @@ export default function BenchmarkingTab() {
               <div style={{ padding: '0.75rem', background: 'rgba(255,255,255,0.02)', borderRadius: '6px', border: '1px solid rgba(255,255,255,0.04)' }}>
                 <strong style={{ color: 'var(--solver-ortools)' }}>Class-Specific Densities:</strong>
                 <p style={{ margin: '2px 0 0 0', color: 'var(--text-muted)' }}>
-                  <strong>C-class</strong> instances (blue dots) cluster tightly to the left. Since clinics are clustered, travel times are short, allowing CHO to achieve massive spoilage savings with minimal detour gaps.
+                  <strong>C-class</strong> instances (blue dots) cluster tightly to the left. Since clinics are clustered, travel times are short, allowing SR to achieve massive spoilage savings with minimal detour gaps.
                   <strong>R-class</strong> instances (pink/gold dots) disperse slightly to the right, showing that random geographies require a larger distance trade-off to protect product value.
                 </p>
               </div>
               <div style={{ padding: '0.75rem', background: 'rgba(255,255,255,0.02)', borderRadius: '6px', border: '1px solid rgba(255,255,255,0.04)' }}>
                 <strong style={{ color: 'var(--warn)' }}>Infeasibility Mitigation:</strong>
                 <p style={{ margin: '2px 0 0 0', color: 'var(--text-muted)' }}>
-                  Traditional integer programming solvers (PuLP/CBC) hit infeasibility timeouts on <strong>14.8%</strong> of these 100-node networks. CHO achieves <strong>100% feasibility</strong> by employing dynamic capacity repair and overlapping sub-cluster stitching.
+                  Traditional integer programming solvers (PuLP/CBC) hit infeasibility timeouts on <strong>14.8%</strong> of these 100-node networks. SR achieves <strong>100% feasibility</strong> by employing dynamic capacity repair and overlapping sub-cluster stitching.
                 </p>
               </div>
             </div>
           </div>
-          <div style={{ padding: '0.75rem', background: 'rgba(143,214,194,0.05)', borderRadius: '6px', border: '1px solid rgba(143,214,194,0.15)', fontSize: '0.8rem', color: '#fff', marginTop: '1rem' }}>
-            💡 *Note: Distance Gap is computed relative to the SINTEF Best Known Solution (BKS) distance.*
-          </div>
+
         </div>
 
       </div>
@@ -695,7 +693,7 @@ export default function BenchmarkingTab() {
                   </button>
                 </th>
                 <th style={{ padding: '0.75rem 1rem', color: 'var(--text-faint)', fontWeight: 600 }}>Solomon BKS Dist</th>
-                <th style={{ padding: '0.75rem 1rem', color: 'var(--text-faint)', fontWeight: 600 }}>CHO Total Cost</th>
+                <th style={{ padding: '0.75rem 1rem', color: 'var(--text-faint)', fontWeight: 600 }}>SR Total Cost</th>
                 <th style={{ padding: '0.75rem 1rem', color: 'var(--text-faint)', fontWeight: 600 }}>Best Classical Total</th>
                 <th style={{ padding: '0.75rem 1rem', color: 'var(--text-faint)', fontWeight: 600 }}>
                   <button
@@ -705,10 +703,10 @@ export default function BenchmarkingTab() {
                       fontSize: 'inherit', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.25rem', outline: 'none'
                     }}
                   >
-                    CHO Savings {sortBy === 'savings' && (sortOrder === 'asc' ? <ChevronUp size={12} /> : <ChevronDown size={12} />)}
+                    SR Savings {sortBy === 'savings' && (sortOrder === 'asc' ? <ChevronUp size={12} /> : <ChevronDown size={12} />)}
                   </button>
                 </th>
-                <th style={{ padding: '0.75rem 1rem', color: 'var(--text-faint)', fontWeight: 600 }}>CHO Feasibility</th>
+                <th style={{ padding: '0.75rem 1rem', color: 'var(--text-faint)', fontWeight: 600 }}>SR Feasibility</th>
                 <th style={{ padding: '0.75rem 1rem', color: 'var(--text-faint)', fontWeight: 600 }}>
                   <button
                     onClick={() => handleSort('time')}
@@ -717,7 +715,7 @@ export default function BenchmarkingTab() {
                       fontSize: 'inherit', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.25rem', outline: 'none'
                     }}
                   >
-                    CHO Runtime {sortBy === 'time' && (sortOrder === 'asc' ? <ChevronUp size={12} /> : <ChevronDown size={12} />)}
+                    SR Runtime {sortBy === 'time' && (sortOrder === 'asc' ? <ChevronUp size={12} /> : <ChevronDown size={12} />)}
                   </button>
                 </th>
               </tr>

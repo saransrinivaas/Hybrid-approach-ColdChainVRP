@@ -43,12 +43,18 @@ except Exception:
 
 import scenario3 as SC3
 import scenario4 as SC4
+import scenario_blr as SC_BLR
+import scenario_hyd as SC_HYD
+import scenario_stress as SC_STRESS
 
 SCENARIO_MODULES = {
     "easy":  SC1,
     "tough": SC2,
     "tough3": SC3,
     "tough4": SC4,
+    "blr": SC_BLR,
+    "hyd": SC_HYD,
+    "stress": SC_STRESS,
 }
 
 SCENARIO_LABELS = {
@@ -56,6 +62,9 @@ SCENARIO_LABELS = {
     "tough": f"Scenario 2 - {len(SC2.CLINICS)} Clinics / {len(SC2.VEHICLES)} Vehicles",
     "tough3": f"Scenario 3 - {len(SC3.CLINICS)} Clinics / {len(SC3.VEHICLES)} Vehicles (Stress Test)",
     "tough4": f"Scenario 4 - {len(SC4.CLINICS)} Clinics / {len(SC4.VEHICLES)} Vehicles (Edge Cases)",
+    "blr": f"Bengaluru - {len(SC_BLR.CLINICS)} Clinics / {len(SC_BLR.VEHICLES)} Vehicles (Multi-Trip)",
+    "hyd": f"Hyderabad - {len(SC_HYD.CLINICS)} Clinics / {len(SC_HYD.VEHICLES)} Vehicles (Node Split)",
+    "stress": f"South India - {len(SC_STRESS.CLINICS)} Clinics / {len(SC_STRESS.VEHICLES)} Vehicles (Regional)",
 }
 
 
@@ -461,7 +470,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Compare Classical vs QAOA solvers")
     parser.add_argument("--with-qaoa", action="store_true",
                         help="Also run QAOA solver (slow, 10-20 min)")
-    parser.add_argument("--scenario", type=str, choices=["easy", "tough", "tough3", "tough4"], default=None,
+    parser.add_argument("--scenario", type=str, choices=["easy", "tough", "tough3", "tough4", "blr", "hyd", "stress"], default=None,
                         help="Run comparison for a specific scenario only")
     args = parser.parse_args()
     run_comparison(with_qaoa=args.with_qaoa, target_scenario=args.scenario)

@@ -47,7 +47,12 @@ export default function ClusteringTab({ depot, runPipeline }) {
   };
 
   const allSubclusters = vehicleRoutes
-    ? vehicleRoutes.flatMap((v) => v.trips.flatMap((t) => t.subclusters))
+    ? vehicleRoutes.reduce((acc, v) => {
+        v.trips.forEach((t) => {
+          if (t.subclusters) acc.push(...t.subclusters);
+        });
+        return acc;
+      }, [])
     : [];
   const totalQubits = allSubclusters.reduce((s, sc) => s + computeQubits(sc.length), 0);
   const maxQubits = allSubclusters.length * computeQubits(4);
@@ -104,19 +109,7 @@ export default function ClusteringTab({ depot, runPipeline }) {
                       </Marker>
                     );
                   })}
-                  {(() => {
-                    const polyPositions = getVehicleClinics(vr)
-                      .map((id) => getClinic(id))
-                      .filter((c) => c && typeof c.lat === 'number' && typeof c.lon === 'number')
-                      .map((c) => [c.lat, c.lon]);
-                    if (polyPositions.length < 2) return null;
-                    return (
-                      <Polyline
-                        positions={[...polyPositions, polyPositions[0]]}
-                        pathOptions={{ color: vr.color, weight: 2, dashArray: '5, 5', opacity: 0.8 }}
-                      />
-                    );
-                  })()}
+
                 </React.Fragment>
               ))}
           </MapContainer>

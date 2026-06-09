@@ -1,11 +1,11 @@
 <p align="center">
-  <img src="frontend/src/assets/cryo_logo.png" alt="Cryo Hybrid Optimiser Logo" width="120" />
+  <img src="frontend/src/assets/snow_rabbit_md.png" alt="Snow Rabbit Logo" width="120" />
 </p>
 
-# Cryo Hybrid Optimiser: Project Technical Notes
+# Snow Rabbit: Hybrid Solver: Project Technical Notes
 ## Hybrid Quantum-Classical Cold-Chain VRP
 
-This document provides a comprehensive academic and physical deep dive into the **Cryo Hybrid Optimiser** (a Hybrid Quantum-Classical Vehicle Routing Problem solver with Spoilage-Aware Logistics). It outlines the mathematical formulations, physical equations, clustering mechanics, and stitching-repair details of the system.
+This document provides a comprehensive academic and physical deep dive into the **Snow Rabbit: Hybrid Solver** (a Hybrid Quantum-Classical Vehicle Routing Problem solver with Spoilage-Aware Logistics). It outlines the mathematical formulations, physical equations, clustering mechanics, and stitching-repair details of the system.
 
 ---
 

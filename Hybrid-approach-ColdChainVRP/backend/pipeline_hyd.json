@@ -1,0 +1,443 @@
+{
+  "classical": {
+    "solver": "Classical (NN+2opt+ORopt)",
+    "routes": {
+      "V1": {
+        "route": [
+          0,
+          10,
+          11,
+          1,
+          2,
+          4,
+          3,
+          5,
+          0
+        ],
+        "stops": [
+          {
+            "id": 0,
+            "name": "Depot",
+            "lat": 17.385,
+            "lon": 78.4867
+          },
+          {
+            "id": 10,
+            "name": "Mehdipatnam Clinic",
+            "lat": 17.3936,
+            "lon": 78.4382
+          },
+          {
+            "id": 11,
+            "name": "Tolichowki PHC",
+            "lat": 17.3987,
+            "lon": 78.4162
+          },
+          {
+            "id": 1,
+            "name": "Banjara Hills PHC",
+            "lat": 17.4156,
+            "lon": 78.4347
+          },
+          {
+            "id": 2,
+            "name": "Jubilee Hills Clinic",
+            "lat": 17.4313,
+            "lon": 78.4077
+          },
+          {
+            "id": 4,
+            "name": "Madhapur PHC",
+            "lat": 17.4504,
+            "lon": 78.3916
+          },
+          {
+            "id": 3,
+            "name": "Gachibowli Hospital",
+            "lat": 17.4401,
+            "lon": 78.3489
+          },
+          {
+            "id": 5,
+            "name": "Kukatpally Clinic",
+            "lat": 17.485,
+            "lon": 78.3996
+          },
+          {
+            "id": 0,
+            "name": "Depot",
+            "lat": 17.385,
+            "lon": 78.4867
+          }
+        ],
+        "distance_km": 42.9021,
+        "spoilage_rs": 34.7288,
+        "refrigeration_rs": 0.0914,
+        "total_cost_rs": 77.7223,
+        "feasible": false,
+        "capacity": {
+          "frozen": {
+            "used": 22,
+            "cap": 15
+          },
+          "chilled": {
+            "used": 8,
+            "cap": 15
+          },
+          "ambient": {
+            "used": 14,
+            "cap": 15
+          }
+        },
+        "computation_time": 0.0051,
+        "solver": "Classical (NN+2opt+ORopt)"
+      },
+      "V2": {
+        "route": [
+          0,
+          9,
+          8,
+          7,
+          6,
+          12,
+          0
+        ],
+        "stops": [
+          {
+            "id": 0,
+            "name": "Depot",
+            "lat": 17.385,
+            "lon": 78.4867
+          },
+          {
+            "id": 9,
+            "name": "Dilsukhnagar Hospital",
+            "lat": 17.3692,
+            "lon": 78.5261
+          },
+          {
+            "id": 8,
+            "name": "LB Nagar PHC",
+            "lat": 17.3469,
+            "lon": 78.5534
+          },
+          {
+            "id": 7,
+            "name": "Uppal Clinic",
+            "lat": 17.4064,
+            "lon": 78.5598
+          },
+          {
+            "id": 6,
+            "name": "Malkajgiri PHC",
+            "lat": 17.4554,
+            "lon": 78.5329
+          },
+          {
+            "id": 12,
+            "name": "Chandrayangutta Clinic",
+            "lat": 17.3291,
+            "lon": 78.4743
+          },
+          {
+            "id": 0,
+            "name": "Depot",
+            "lat": 17.385,
+            "lon": 78.4867
+          }
+        ],
+        "distance_km": 42.8629,
+        "spoilage_rs": 31.8586,
+        "refrigeration_rs": 0.1174,
+        "total_cost_rs": 74.8388,
+        "feasible": false,
+        "capacity": {
+          "frozen": {
+            "used": 5,
+            "cap": 15
+          },
+          "chilled": {
+            "used": 20,
+            "cap": 15
+          },
+          "ambient": {
+            "used": 10,
+            "cap": 15
+          }
+        },
+        "computation_time": 0.002,
+        "solver": "Classical (NN+2opt+ORopt)"
+      }
+    },
+    "fleet_distance": 85.765,
+    "fleet_spoilage": 66.5874,
+    "fleet_refrigeration": 0.2088,
+    "fleet_total_cost": 152.5612,
+    "total_time": 0.0081,
+    "status": "ok"
+  },
+  "qaoa": {
+    "routes": {
+      "V1_1": {
+        "route": [
+          0,
+          3001,
+          0
+        ],
+        "stops": [
+          {
+            "id": 0,
+            "name": "Depot",
+            "lat": 17.385,
+            "lon": 78.4867
+          },
+          {
+            "id": 3,
+            "name": "Gachibowli Hospital (Part 1)",
+            "lat": 17.4401,
+            "lon": 78.3489
+          },
+          {
+            "id": 0,
+            "name": "Depot",
+            "lat": 17.385,
+            "lon": 78.4867
+          }
+        ],
+        "distance_km": 31.7,
+        "spoilage_rs": 9.3416,
+        "refrigeration_rs": 0.051,
+        "total_cost_rs": 41.0972,
+        "feasible": true,
+        "capacity": {
+          "frozen": {
+            "used": 15,
+            "cap": 15
+          },
+          "chilled": {
+            "used": 2,
+            "cap": 15
+          },
+          "ambient": {
+            "used": 2,
+            "cap": 15
+          }
+        }
+      },
+      "V1_2": {
+        "route": [
+          0,
+          10,
+          11,
+          1,
+          2,
+          4,
+          5,
+          3002,
+          0
+        ],
+        "stops": [
+          {
+            "id": 0,
+            "name": "Depot",
+            "lat": 17.385,
+            "lon": 78.4867
+          },
+          {
+            "id": 10,
+            "name": "Mehdipatnam Clinic",
+            "lat": 17.3936,
+            "lon": 78.4382
+          },
+          {
+            "id": 11,
+            "name": "Tolichowki PHC",
+            "lat": 17.3987,
+            "lon": 78.4162
+          },
+          {
+            "id": 1,
+            "name": "Banjara Hills PHC",
+            "lat": 17.4156,
+            "lon": 78.4347
+          },
+          {
+            "id": 2,
+            "name": "Jubilee Hills Clinic",
+            "lat": 17.4313,
+            "lon": 78.4077
+          },
+          {
+            "id": 4,
+            "name": "Madhapur PHC",
+            "lat": 17.4504,
+            "lon": 78.3916
+          },
+          {
+            "id": 5,
+            "name": "Kukatpally Clinic",
+            "lat": 17.485,
+            "lon": 78.3996
+          },
+          {
+            "id": 3,
+            "name": "Gachibowli Hospital (Part 2)",
+            "lat": 17.4401,
+            "lon": 78.3489
+          },
+          {
+            "id": 0,
+            "name": "Depot",
+            "lat": 17.385,
+            "lon": 78.4867
+          }
+        ],
+        "distance_km": 43.56,
+        "spoilage_rs": 20.2474,
+        "refrigeration_rs": 0.0891,
+        "total_cost_rs": 63.9009,
+        "feasible": true,
+        "capacity": {
+          "frozen": {
+            "used": 7,
+            "cap": 15
+          },
+          "chilled": {
+            "used": 6,
+            "cap": 15
+          },
+          "ambient": {
+            "used": 12,
+            "cap": 15
+          }
+        }
+      },
+      "V2_1": {
+        "route": [
+          0,
+          8001,
+          0
+        ],
+        "stops": [
+          {
+            "id": 0,
+            "name": "Depot",
+            "lat": 17.385,
+            "lon": 78.4867
+          },
+          {
+            "id": 8,
+            "name": "LB Nagar PHC (Part 1)",
+            "lat": 17.3469,
+            "lon": 78.5534
+          },
+          {
+            "id": 0,
+            "name": "Depot",
+            "lat": 17.385,
+            "lon": 78.4867
+          }
+        ],
+        "distance_km": 16.5,
+        "spoilage_rs": 10.4593,
+        "refrigeration_rs": 0.0265,
+        "total_cost_rs": 26.9849,
+        "feasible": true,
+        "capacity": {
+          "frozen": {
+            "used": 1,
+            "cap": 15
+          },
+          "chilled": {
+            "used": 15,
+            "cap": 15
+          },
+          "ambient": {
+            "used": 2,
+            "cap": 15
+          }
+        }
+      },
+      "V2_2": {
+        "route": [
+          0,
+          12,
+          9,
+          8002,
+          7,
+          6,
+          0
+        ],
+        "stops": [
+          {
+            "id": 0,
+            "name": "Depot",
+            "lat": 17.385,
+            "lon": 78.4867
+          },
+          {
+            "id": 12,
+            "name": "Chandrayangutta Clinic",
+            "lat": 17.3291,
+            "lon": 78.4743
+          },
+          {
+            "id": 9,
+            "name": "Dilsukhnagar Hospital",
+            "lat": 17.3692,
+            "lon": 78.5261
+          },
+          {
+            "id": 8,
+            "name": "LB Nagar PHC (Part 2)",
+            "lat": 17.3469,
+            "lon": 78.5534
+          },
+          {
+            "id": 7,
+            "name": "Uppal Clinic",
+            "lat": 17.4064,
+            "lon": 78.5598
+          },
+          {
+            "id": 6,
+            "name": "Malkajgiri PHC",
+            "lat": 17.4554,
+            "lon": 78.5329
+          },
+          {
+            "id": 0,
+            "name": "Depot",
+            "lat": 17.385,
+            "lon": 78.4867
+          }
+        ],
+        "distance_km": 39.28,
+        "spoilage_rs": 20.981,
+        "refrigeration_rs": 0.0966,
+        "total_cost_rs": 60.3611,
+        "feasible": true,
+        "capacity": {
+          "frozen": {
+            "used": 4,
+            "cap": 15
+          },
+          "chilled": {
+            "used": 5,
+            "cap": 15
+          },
+          "ambient": {
+            "used": 8,
+            "cap": 15
+          }
+        }
+      }
+    },
+    "fleet_distance": 131.05,
+    "fleet_spoilage": 61.0292,
+    "fleet_refrigeration": 0.2632,
+    "fleet_total_cost": 192.3441,
+    "status": "ok",
+    "total_time": 1.5811
+  }
+}

@@ -1,0 +1,429 @@
+{
+  "classical": {
+    "solver": "Classical (NN+2opt+ORopt)",
+    "routes": {
+      "V1": {
+        "route": [
+          0,
+          6,
+          7,
+          11,
+          10,
+          12,
+          1,
+          2,
+          4,
+          3,
+          0
+        ],
+        "stops": [
+          {
+            "id": 0,
+            "name": "Depot",
+            "lat": 12.9716,
+            "lon": 77.5946
+          },
+          {
+            "id": 6,
+            "name": "Koramangala Clinic",
+            "lat": 12.9352,
+            "lon": 77.6245
+          },
+          {
+            "id": 7,
+            "name": "BTM Layout PHC",
+            "lat": 12.9165,
+            "lon": 77.6101
+          },
+          {
+            "id": 11,
+            "name": "JP Nagar Clinic",
+            "lat": 12.9061,
+            "lon": 77.5856
+          },
+          {
+            "id": 10,
+            "name": "Jayanagar Hospital",
+            "lat": 12.9248,
+            "lon": 77.5838
+          },
+          {
+            "id": 12,
+            "name": "Banashankari PHC",
+            "lat": 12.9258,
+            "lon": 77.5462
+          },
+          {
+            "id": 1,
+            "name": "Rajajinagar PHC",
+            "lat": 12.989,
+            "lon": 77.553
+          },
+          {
+            "id": 2,
+            "name": "Malleshwaram Clinic",
+            "lat": 13.004,
+            "lon": 77.571
+          },
+          {
+            "id": 4,
+            "name": "Yeshwanthpur Clinic",
+            "lat": 13.0214,
+            "lon": 77.5542
+          },
+          {
+            "id": 3,
+            "name": "Hebbal PHC",
+            "lat": 13.0358,
+            "lon": 77.597
+          },
+          {
+            "id": 0,
+            "name": "Depot",
+            "lat": 12.9716,
+            "lon": 77.5946
+          }
+        ],
+        "distance_km": 41.1832,
+        "spoilage_rs": 83.1346,
+        "refrigeration_rs": 0.1225,
+        "total_cost_rs": 124.4403,
+        "feasible": false,
+        "capacity": {
+          "frozen": {
+            "used": 22,
+            "cap": 12
+          },
+          "chilled": {
+            "used": 23,
+            "cap": 12
+          },
+          "ambient": {
+            "used": 22,
+            "cap": 12
+          }
+        },
+        "computation_time": 0.006,
+        "solver": "Classical (NN+2opt+ORopt)"
+      },
+      "V2": {
+        "route": [
+          0,
+          9,
+          8,
+          5,
+          0
+        ],
+        "stops": [
+          {
+            "id": 0,
+            "name": "Depot",
+            "lat": 12.9716,
+            "lon": 77.5946
+          },
+          {
+            "id": 9,
+            "name": "Marathahalli PHC",
+            "lat": 12.9591,
+            "lon": 77.6974
+          },
+          {
+            "id": 8,
+            "name": "Whitefield Clinic",
+            "lat": 12.9698,
+            "lon": 77.75
+          },
+          {
+            "id": 5,
+            "name": "Electronic City PHC",
+            "lat": 12.8399,
+            "lon": 77.677
+          },
+          {
+            "id": 0,
+            "name": "Depot",
+            "lat": 12.9716,
+            "lon": 77.5946
+          }
+        ],
+        "distance_km": 50.6706,
+        "spoilage_rs": 31.4499,
+        "refrigeration_rs": 0.1207,
+        "total_cost_rs": 82.2411,
+        "feasible": true,
+        "capacity": {
+          "frozen": {
+            "used": 8,
+            "cap": 12
+          },
+          "chilled": {
+            "used": 7,
+            "cap": 12
+          },
+          "ambient": {
+            "used": 8,
+            "cap": 12
+          }
+        },
+        "computation_time": 0.001,
+        "solver": "Classical (NN+2opt+ORopt)"
+      }
+    },
+    "fleet_distance": 91.8538,
+    "fleet_spoilage": 114.5845,
+    "fleet_refrigeration": 0.2432,
+    "fleet_total_cost": 206.6815,
+    "total_time": 0.007,
+    "status": "ok"
+  },
+  "qaoa": {
+    "routes": {
+      "V1_1": {
+        "route": [
+          0,
+          10,
+          11,
+          7,
+          6,
+          0
+        ],
+        "stops": [
+          {
+            "id": 0,
+            "name": "Depot",
+            "lat": 12.9716,
+            "lon": 77.5946
+          },
+          {
+            "id": 10,
+            "name": "Jayanagar Hospital",
+            "lat": 12.9248,
+            "lon": 77.5838
+          },
+          {
+            "id": 11,
+            "name": "JP Nagar Clinic",
+            "lat": 12.9061,
+            "lon": 77.5856
+          },
+          {
+            "id": 7,
+            "name": "BTM Layout PHC",
+            "lat": 12.9165,
+            "lon": 77.6101
+          },
+          {
+            "id": 6,
+            "name": "Koramangala Clinic",
+            "lat": 12.9352,
+            "lon": 77.6245
+          },
+          {
+            "id": 0,
+            "name": "Depot",
+            "lat": 12.9716,
+            "lon": 77.5946
+          }
+        ],
+        "distance_km": 18.1,
+        "spoilage_rs": 17.9865,
+        "refrigeration_rs": 0.0465,
+        "total_cost_rs": 36.1362,
+        "feasible": true,
+        "capacity": {
+          "frozen": {
+            "used": 10,
+            "cap": 12
+          },
+          "chilled": {
+            "used": 10,
+            "cap": 12
+          },
+          "ambient": {
+            "used": 10,
+            "cap": 12
+          }
+        }
+      },
+      "V1_2": {
+        "route": [
+          0,
+          2,
+          4,
+          3,
+          0
+        ],
+        "stops": [
+          {
+            "id": 0,
+            "name": "Depot",
+            "lat": 12.9716,
+            "lon": 77.5946
+          },
+          {
+            "id": 2,
+            "name": "Malleshwaram Clinic",
+            "lat": 13.004,
+            "lon": 77.571
+          },
+          {
+            "id": 4,
+            "name": "Yeshwanthpur Clinic",
+            "lat": 13.0214,
+            "lon": 77.5542
+          },
+          {
+            "id": 3,
+            "name": "Hebbal PHC",
+            "lat": 13.0358,
+            "lon": 77.597
+          },
+          {
+            "id": 0,
+            "name": "Depot",
+            "lat": 12.9716,
+            "lon": 77.5946
+          }
+        ],
+        "distance_km": 19.12,
+        "spoilage_rs": 11.7457,
+        "refrigeration_rs": 0.0431,
+        "total_cost_rs": 30.9118,
+        "feasible": true,
+        "capacity": {
+          "frozen": {
+            "used": 7,
+            "cap": 12
+          },
+          "chilled": {
+            "used": 8,
+            "cap": 12
+          },
+          "ambient": {
+            "used": 7,
+            "cap": 12
+          }
+        }
+      },
+      "V1_3": {
+        "route": [
+          0,
+          1,
+          12,
+          0
+        ],
+        "stops": [
+          {
+            "id": 0,
+            "name": "Depot",
+            "lat": 12.9716,
+            "lon": 77.5946
+          },
+          {
+            "id": 1,
+            "name": "Rajajinagar PHC",
+            "lat": 12.989,
+            "lon": 77.553
+          },
+          {
+            "id": 12,
+            "name": "Banashankari PHC",
+            "lat": 12.9258,
+            "lon": 77.5462
+          },
+          {
+            "id": 0,
+            "name": "Depot",
+            "lat": 12.9716,
+            "lon": 77.5946
+          }
+        ],
+        "distance_km": 19.28,
+        "spoilage_rs": 8.2969,
+        "refrigeration_rs": 0.0431,
+        "total_cost_rs": 27.6219,
+        "feasible": true,
+        "capacity": {
+          "frozen": {
+            "used": 5,
+            "cap": 12
+          },
+          "chilled": {
+            "used": 5,
+            "cap": 12
+          },
+          "ambient": {
+            "used": 5,
+            "cap": 12
+          }
+        }
+      },
+      "V2": {
+        "route": [
+          0,
+          9,
+          8,
+          5,
+          0
+        ],
+        "stops": [
+          {
+            "id": 0,
+            "name": "Depot",
+            "lat": 12.9716,
+            "lon": 77.5946
+          },
+          {
+            "id": 9,
+            "name": "Marathahalli PHC",
+            "lat": 12.9591,
+            "lon": 77.6974
+          },
+          {
+            "id": 8,
+            "name": "Whitefield Clinic",
+            "lat": 12.9698,
+            "lon": 77.75
+          },
+          {
+            "id": 5,
+            "name": "Electronic City PHC",
+            "lat": 12.8399,
+            "lon": 77.677
+          },
+          {
+            "id": 0,
+            "name": "Depot",
+            "lat": 12.9716,
+            "lon": 77.5946
+          }
+        ],
+        "distance_km": 50.67,
+        "spoilage_rs": 31.4499,
+        "refrigeration_rs": 0.1207,
+        "total_cost_rs": 82.2411,
+        "feasible": true,
+        "capacity": {
+          "frozen": {
+            "used": 8,
+            "cap": 12
+          },
+          "chilled": {
+            "used": 7,
+            "cap": 12
+          },
+          "ambient": {
+            "used": 8,
+            "cap": 12
+          }
+        }
+      }
+    },
+    "fleet_distance": 107.18,
+    "fleet_spoilage": 69.479,
+    "fleet_refrigeration": 0.2534,
+    "fleet_total_cost": 176.9111,
+    "status": "ok",
+    "total_time": 0.5054
+  }
+}

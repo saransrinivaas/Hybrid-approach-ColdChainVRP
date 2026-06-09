@@ -1,0 +1,1162 @@
+{
+  "classical": {
+    "solver": "Classical (NN+2opt+ORopt)",
+    "routes": {
+      "V1": {
+        "route": [
+          0,
+          7,
+          8,
+          6,
+          5,
+          2,
+          3,
+          4,
+          9,
+          1,
+          10,
+          0
+        ],
+        "stops": [
+          {
+            "id": 0,
+            "name": "Depot",
+            "lat": 13.0827,
+            "lon": 80.2707
+          },
+          {
+            "id": 7,
+            "name": "Egmore PHC",
+            "lat": 13.0782,
+            "lon": 80.257
+          },
+          {
+            "id": 8,
+            "name": "Perambur PHC",
+            "lat": 13.1148,
+            "lon": 80.2345
+          },
+          {
+            "id": 6,
+            "name": "Anna Nagar Clinic",
+            "lat": 13.085,
+            "lon": 80.2101
+          },
+          {
+            "id": 5,
+            "name": "Koyambedu PHC",
+            "lat": 13.0694,
+            "lon": 80.1948
+          },
+          {
+            "id": 2,
+            "name": "Guindy Hospital",
+            "lat": 13.0067,
+            "lon": 80.2206
+          },
+          {
+            "id": 3,
+            "name": "Adyar Clinic",
+            "lat": 13.0012,
+            "lon": 80.2565
+          },
+          {
+            "id": 4,
+            "name": "Velachery PHC",
+            "lat": 12.9815,
+            "lon": 80.218
+          },
+          {
+            "id": 9,
+            "name": "Sholinganallur PHC",
+            "lat": 12.901,
+            "lon": 80.227
+          },
+          {
+            "id": 1,
+            "name": "Tambaram PHC",
+            "lat": 12.9249,
+            "lon": 80.1
+          },
+          {
+            "id": 10,
+            "name": "Avadi Clinic",
+            "lat": 13.1067,
+            "lon": 80.095
+          },
+          {
+            "id": 0,
+            "name": "Depot",
+            "lat": 13.0827,
+            "lon": 80.2707
+          }
+        ],
+        "distance_km": 91.5675,
+        "spoilage_rs": 39.7413,
+        "refrigeration_rs": 0.1085,
+        "total_cost_rs": 131.4174,
+        "feasible": true,
+        "capacity": {
+          "frozen": {
+            "used": 20,
+            "cap": 20
+          },
+          "chilled": {
+            "used": 18,
+            "cap": 20
+          },
+          "ambient": {
+            "used": 18,
+            "cap": 20
+          }
+        },
+        "computation_time": 0.0133,
+        "solver": "Classical (NN+2opt+ORopt)"
+      },
+      "V2": {
+        "route": [
+          0,
+          15,
+          18,
+          11,
+          17,
+          22,
+          16,
+          20,
+          19,
+          12,
+          21,
+          14,
+          13,
+          0
+        ],
+        "stops": [
+          {
+            "id": 0,
+            "name": "Depot",
+            "lat": 13.0827,
+            "lon": 80.2707
+          },
+          {
+            "id": 15,
+            "name": "Whitefield PHC BLR",
+            "lat": 12.9698,
+            "lon": 77.75
+          },
+          {
+            "id": 18,
+            "name": "Marathahalli Clinic BLR",
+            "lat": 12.9591,
+            "lon": 77.6974
+          },
+          {
+            "id": 11,
+            "name": "Koramangala Clinic BLR",
+            "lat": 12.9352,
+            "lon": 77.6245
+          },
+          {
+            "id": 17,
+            "name": "BTM Layout PHC BLR",
+            "lat": 12.9165,
+            "lon": 77.6101
+          },
+          {
+            "id": 22,
+            "name": "JP Nagar Clinic BLR",
+            "lat": 12.9061,
+            "lon": 77.5856
+          },
+          {
+            "id": 16,
+            "name": "Jayanagar Hospital BLR",
+            "lat": 12.9248,
+            "lon": 77.5838
+          },
+          {
+            "id": 20,
+            "name": "Banashankari PHC BLR",
+            "lat": 12.9258,
+            "lon": 77.5462
+          },
+          {
+            "id": 19,
+            "name": "Rajajinagar PHC BLR",
+            "lat": 12.989,
+            "lon": 77.553
+          },
+          {
+            "id": 12,
+            "name": "Malleshwaram PHC BLR",
+            "lat": 13.004,
+            "lon": 77.571
+          },
+          {
+            "id": 21,
+            "name": "Yeshwanthpur Clinic BLR",
+            "lat": 13.0214,
+            "lon": 77.5542
+          },
+          {
+            "id": 14,
+            "name": "Hebbal Clinic BLR",
+            "lat": 13.0358,
+            "lon": 77.597
+          },
+          {
+            "id": 13,
+            "name": "Electronic City PHC BLR",
+            "lat": 12.8399,
+            "lon": 77.677
+          },
+          {
+            "id": 0,
+            "name": "Depot",
+            "lat": 13.0827,
+            "lon": 80.2707
+          }
+        ],
+        "distance_km": 622.1718,
+        "spoilage_rs": 545.1965,
+        "refrigeration_rs": 0.5097,
+        "total_cost_rs": 1167.878,
+        "feasible": false,
+        "capacity": {
+          "frozen": {
+            "used": 24,
+            "cap": 20
+          },
+          "chilled": {
+            "used": 21,
+            "cap": 20
+          },
+          "ambient": {
+            "used": 22,
+            "cap": 20
+          }
+        },
+        "computation_time": 0.0196,
+        "solver": "Classical (NN+2opt+ORopt)"
+      },
+      "V3": {
+        "route": [
+          0,
+          31,
+          28,
+          27,
+          26,
+          23,
+          29,
+          32,
+          30,
+          25,
+          24,
+          0
+        ],
+        "stops": [
+          {
+            "id": 0,
+            "name": "Depot",
+            "lat": 13.0827,
+            "lon": 80.2707
+          },
+          {
+            "id": 31,
+            "name": "LB Nagar PHC HYD",
+            "lat": 17.3469,
+            "lon": 78.5534
+          },
+          {
+            "id": 28,
+            "name": "Dilsukhnagar PHC HYD",
+            "lat": 17.3692,
+            "lon": 78.5261
+          },
+          {
+            "id": 27,
+            "name": "Uppal Clinic HYD",
+            "lat": 17.4064,
+            "lon": 78.5598
+          },
+          {
+            "id": 26,
+            "name": "Malkajgiri PHC HYD",
+            "lat": 17.4554,
+            "lon": 78.5329
+          },
+          {
+            "id": 23,
+            "name": "Banjara Hills PHC HYD",
+            "lat": 17.4156,
+            "lon": 78.4347
+          },
+          {
+            "id": 29,
+            "name": "Mehdipatnam Clinic HYD",
+            "lat": 17.3936,
+            "lon": 78.4382
+          },
+          {
+            "id": 32,
+            "name": "Tolichowki Clinic HYD",
+            "lat": 17.3987,
+            "lon": 78.4162
+          },
+          {
+            "id": 30,
+            "name": "Madhapur PHC HYD",
+            "lat": 17.4504,
+            "lon": 78.3916
+          },
+          {
+            "id": 25,
+            "name": "Kukatpally Clinic HYD",
+            "lat": 17.485,
+            "lon": 78.3996
+          },
+          {
+            "id": 24,
+            "name": "Gachibowli Hospital HYD",
+            "lat": 17.4401,
+            "lon": 78.3489
+          },
+          {
+            "id": 0,
+            "name": "Depot",
+            "lat": 13.0827,
+            "lon": 80.2707
+          }
+        ],
+        "distance_km": 1084.4342,
+        "spoilage_rs": 831.3412,
+        "refrigeration_rs": 0.8369,
+        "total_cost_rs": 1916.6122,
+        "feasible": true,
+        "capacity": {
+          "frozen": {
+            "used": 20,
+            "cap": 20
+          },
+          "chilled": {
+            "used": 18,
+            "cap": 20
+          },
+          "ambient": {
+            "used": 19,
+            "cap": 20
+          }
+        },
+        "computation_time": 0.0091,
+        "solver": "Classical (NN+2opt+ORopt)"
+      },
+      "V4": {
+        "route": [
+          0,
+          40,
+          34,
+          37,
+          35,
+          33,
+          39,
+          38,
+          36,
+          0
+        ],
+        "stops": [
+          {
+            "id": 0,
+            "name": "Depot",
+            "lat": 13.0827,
+            "lon": 80.2707
+          },
+          {
+            "id": 40,
+            "name": "Sulur Clinic CBE",
+            "lat": 11.033,
+            "lon": 77.12
+          },
+          {
+            "id": 34,
+            "name": "Peelamedu Clinic CBE",
+            "lat": 11.0263,
+            "lon": 77.02
+          },
+          {
+            "id": 37,
+            "name": "Saibaba Colony PHC CBE",
+            "lat": 11.03,
+            "lon": 76.97
+          },
+          {
+            "id": 35,
+            "name": "Gandhipuram PHC CBE",
+            "lat": 11.0176,
+            "lon": 76.9674
+          },
+          {
+            "id": 33,
+            "name": "RS Puram PHC CBE",
+            "lat": 11.0143,
+            "lon": 76.9525
+          },
+          {
+            "id": 39,
+            "name": "Kuniyamuthur PHC CBE",
+            "lat": 10.9741,
+            "lon": 76.9508
+          },
+          {
+            "id": 38,
+            "name": "Ukkadam Clinic CBE",
+            "lat": 10.9956,
+            "lon": 76.9803
+          },
+          {
+            "id": 36,
+            "name": "Singanallur Hospital CBE",
+            "lat": 10.9929,
+            "lon": 77.0153
+          },
+          {
+            "id": 0,
+            "name": "Depot",
+            "lat": 13.0827,
+            "lon": 80.2707
+          }
+        ],
+        "distance_km": 866.7356,
+        "spoilage_rs": 540.675,
+        "refrigeration_rs": 0.6649,
+        "total_cost_rs": 1408.0755,
+        "feasible": true,
+        "capacity": {
+          "frozen": {
+            "used": 16,
+            "cap": 20
+          },
+          "chilled": {
+            "used": 15,
+            "cap": 20
+          },
+          "ambient": {
+            "used": 15,
+            "cap": 20
+          }
+        },
+        "computation_time": 0.008,
+        "solver": "Classical (NN+2opt+ORopt)"
+      },
+      "V5": {
+        "route": [
+          0,
+          50,
+          44,
+          46,
+          48,
+          42,
+          45,
+          49,
+          47,
+          41,
+          43,
+          0
+        ],
+        "stops": [
+          {
+            "id": 0,
+            "name": "Depot",
+            "lat": 13.0827,
+            "lon": 80.2707
+          },
+          {
+            "id": 50,
+            "name": "Thirunagar PHC MDU",
+            "lat": 9.9517,
+            "lon": 78.1435
+          },
+          {
+            "id": 44,
+            "name": "Arappalayam Hospital MDU",
+            "lat": 9.945,
+            "lon": 78.1278
+          },
+          {
+            "id": 46,
+            "name": "Arapalayam PHC MDU",
+            "lat": 9.9634,
+            "lon": 78.1103
+          },
+          {
+            "id": 48,
+            "name": "Surveyor Colony PHC MDU",
+            "lat": 9.9396,
+            "lon": 78.0987
+          },
+          {
+            "id": 42,
+            "name": "KK Nagar Clinic MDU",
+            "lat": 9.9179,
+            "lon": 78.1048
+          },
+          {
+            "id": 45,
+            "name": "Villapuram Clinic MDU",
+            "lat": 9.8971,
+            "lon": 78.1143
+          },
+          {
+            "id": 49,
+            "name": "Palanganatham Clinic MDU",
+            "lat": 9.8855,
+            "lon": 78.138
+          },
+          {
+            "id": 47,
+            "name": "Ellis Nagar Clinic MDU",
+            "lat": 9.9088,
+            "lon": 78.1295
+          },
+          {
+            "id": 41,
+            "name": "Tallakulam PHC MDU",
+            "lat": 9.9252,
+            "lon": 78.1198
+          },
+          {
+            "id": 43,
+            "name": "Anna Nagar PHC MDU",
+            "lat": 9.9312,
+            "lon": 78.135
+          },
+          {
+            "id": 0,
+            "name": "Depot",
+            "lat": 13.0827,
+            "lon": 80.2707
+          }
+        ],
+        "distance_km": 861.0739,
+        "spoilage_rs": 669.5418,
+        "refrigeration_rs": 0.6607,
+        "total_cost_rs": 1531.2764,
+        "feasible": true,
+        "capacity": {
+          "frozen": {
+            "used": 20,
+            "cap": 20
+          },
+          "chilled": {
+            "used": 18,
+            "cap": 20
+          },
+          "ambient": {
+            "used": 19,
+            "cap": 20
+          }
+        },
+        "computation_time": 0.0207,
+        "solver": "Classical (NN+2opt+ORopt)"
+      }
+    },
+    "fleet_distance": 3525.983,
+    "fleet_spoilage": 2626.4958,
+    "fleet_refrigeration": 2.7807,
+    "fleet_total_cost": 6155.2595,
+    "total_time": 6.8911,
+    "status": "ok"
+  },
+  "qaoa": {
+    "routes": {
+      "V1": {
+        "route": [
+          0,
+          7,
+          2,
+          4,
+          9,
+          3,
+          0
+        ],
+        "stops": [
+          {
+            "id": 0,
+            "name": "Depot",
+            "lat": 13.0827,
+            "lon": 80.2707
+          },
+          {
+            "id": 7,
+            "name": "Egmore PHC",
+            "lat": 13.0782,
+            "lon": 80.257
+          },
+          {
+            "id": 2,
+            "name": "Guindy Hospital",
+            "lat": 13.0067,
+            "lon": 80.2206
+          },
+          {
+            "id": 4,
+            "name": "Velachery PHC",
+            "lat": 12.9815,
+            "lon": 80.218
+          },
+          {
+            "id": 9,
+            "name": "Sholinganallur PHC",
+            "lat": 12.901,
+            "lon": 80.227
+          },
+          {
+            "id": 3,
+            "name": "Adyar Clinic",
+            "lat": 13.0012,
+            "lon": 80.2565
+          },
+          {
+            "id": 0,
+            "name": "Depot",
+            "lat": 13.0827,
+            "lon": 80.2707
+          }
+        ],
+        "distance_km": 43.04,
+        "spoilage_rs": 12.7402,
+        "refrigeration_rs": 0.0508,
+        "total_cost_rs": 55.8351,
+        "feasible": true,
+        "capacity": {
+          "frozen": {
+            "used": 9,
+            "cap": 20
+          },
+          "chilled": {
+            "used": 9,
+            "cap": 20
+          },
+          "ambient": {
+            "used": 10,
+            "cap": 20
+          }
+        }
+      },
+      "V2_1": {
+        "route": [
+          0,
+          1,
+          18,
+          14,
+          12,
+          19,
+          20,
+          22,
+          13,
+          0
+        ],
+        "stops": [
+          {
+            "id": 0,
+            "name": "Depot",
+            "lat": 13.0827,
+            "lon": 80.2707
+          },
+          {
+            "id": 1,
+            "name": "Tambaram PHC",
+            "lat": 12.9249,
+            "lon": 80.1
+          },
+          {
+            "id": 18,
+            "name": "Marathahalli Clinic BLR",
+            "lat": 12.9591,
+            "lon": 77.6974
+          },
+          {
+            "id": 14,
+            "name": "Hebbal Clinic BLR",
+            "lat": 13.0358,
+            "lon": 77.597
+          },
+          {
+            "id": 12,
+            "name": "Malleshwaram PHC BLR",
+            "lat": 13.004,
+            "lon": 77.571
+          },
+          {
+            "id": 19,
+            "name": "Rajajinagar PHC BLR",
+            "lat": 12.989,
+            "lon": 77.553
+          },
+          {
+            "id": 20,
+            "name": "Banashankari PHC BLR",
+            "lat": 12.9258,
+            "lon": 77.5462
+          },
+          {
+            "id": 22,
+            "name": "JP Nagar Clinic BLR",
+            "lat": 12.9061,
+            "lon": 77.5856
+          },
+          {
+            "id": 13,
+            "name": "Electronic City PHC BLR",
+            "lat": 12.8399,
+            "lon": 77.677
+          },
+          {
+            "id": 0,
+            "name": "Depot",
+            "lat": 13.0827,
+            "lon": 80.2707
+          }
+        ],
+        "distance_km": 613.36,
+        "spoilage_rs": 339.2857,
+        "refrigeration_rs": 0.4965,
+        "total_cost_rs": 953.1415,
+        "feasible": true,
+        "capacity": {
+          "frozen": {
+            "used": 14,
+            "cap": 20
+          },
+          "chilled": {
+            "used": 14,
+            "cap": 20
+          },
+          "ambient": {
+            "used": 16,
+            "cap": 20
+          }
+        }
+      },
+      "V2_2": {
+        "route": [
+          0,
+          8,
+          6,
+          10,
+          15,
+          11,
+          17,
+          16,
+          21,
+          0
+        ],
+        "stops": [
+          {
+            "id": 0,
+            "name": "Depot",
+            "lat": 13.0827,
+            "lon": 80.2707
+          },
+          {
+            "id": 8,
+            "name": "Perambur PHC",
+            "lat": 13.1148,
+            "lon": 80.2345
+          },
+          {
+            "id": 6,
+            "name": "Anna Nagar Clinic",
+            "lat": 13.085,
+            "lon": 80.2101
+          },
+          {
+            "id": 10,
+            "name": "Avadi Clinic",
+            "lat": 13.1067,
+            "lon": 80.095
+          },
+          {
+            "id": 15,
+            "name": "Whitefield PHC BLR",
+            "lat": 12.9698,
+            "lon": 77.75
+          },
+          {
+            "id": 11,
+            "name": "Koramangala Clinic BLR",
+            "lat": 12.9352,
+            "lon": 77.6245
+          },
+          {
+            "id": 17,
+            "name": "BTM Layout PHC BLR",
+            "lat": 12.9165,
+            "lon": 77.6101
+          },
+          {
+            "id": 16,
+            "name": "Jayanagar Hospital BLR",
+            "lat": 12.9248,
+            "lon": 77.5838
+          },
+          {
+            "id": 21,
+            "name": "Yeshwanthpur Clinic BLR",
+            "lat": 13.0214,
+            "lon": 77.5542
+          },
+          {
+            "id": 0,
+            "name": "Depot",
+            "lat": 13.0827,
+            "lon": 80.2707
+          }
+        ],
+        "distance_km": 602.0,
+        "spoilage_rs": 219.1927,
+        "refrigeration_rs": 0.4615,
+        "total_cost_rs": 821.6506,
+        "feasible": true,
+        "capacity": {
+          "frozen": {
+            "used": 18,
+            "cap": 20
+          },
+          "chilled": {
+            "used": 14,
+            "cap": 20
+          },
+          "ambient": {
+            "used": 12,
+            "cap": 20
+          }
+        }
+      },
+      "V3": {
+        "route": [
+          0,
+          31,
+          28,
+          29,
+          23,
+          32,
+          24,
+          30,
+          25,
+          26,
+          27,
+          0
+        ],
+        "stops": [
+          {
+            "id": 0,
+            "name": "Depot",
+            "lat": 13.0827,
+            "lon": 80.2707
+          },
+          {
+            "id": 31,
+            "name": "LB Nagar PHC HYD",
+            "lat": 17.3469,
+            "lon": 78.5534
+          },
+          {
+            "id": 28,
+            "name": "Dilsukhnagar PHC HYD",
+            "lat": 17.3692,
+            "lon": 78.5261
+          },
+          {
+            "id": 29,
+            "name": "Mehdipatnam Clinic HYD",
+            "lat": 17.3936,
+            "lon": 78.4382
+          },
+          {
+            "id": 23,
+            "name": "Banjara Hills PHC HYD",
+            "lat": 17.4156,
+            "lon": 78.4347
+          },
+          {
+            "id": 32,
+            "name": "Tolichowki Clinic HYD",
+            "lat": 17.3987,
+            "lon": 78.4162
+          },
+          {
+            "id": 24,
+            "name": "Gachibowli Hospital HYD",
+            "lat": 17.4401,
+            "lon": 78.3489
+          },
+          {
+            "id": 30,
+            "name": "Madhapur PHC HYD",
+            "lat": 17.4504,
+            "lon": 78.3916
+          },
+          {
+            "id": 25,
+            "name": "Kukatpally Clinic HYD",
+            "lat": 17.485,
+            "lon": 78.3996
+          },
+          {
+            "id": 26,
+            "name": "Malkajgiri PHC HYD",
+            "lat": 17.4554,
+            "lon": 78.5329
+          },
+          {
+            "id": 27,
+            "name": "Uppal Clinic HYD",
+            "lat": 17.4064,
+            "lon": 78.5598
+          },
+          {
+            "id": 0,
+            "name": "Depot",
+            "lat": 13.0827,
+            "lon": 80.2707
+          }
+        ],
+        "distance_km": 1079.78,
+        "spoilage_rs": 830.3039,
+        "refrigeration_rs": 0.8478,
+        "total_cost_rs": 1910.9296,
+        "feasible": true,
+        "capacity": {
+          "frozen": {
+            "used": 20,
+            "cap": 20
+          },
+          "chilled": {
+            "used": 18,
+            "cap": 20
+          },
+          "ambient": {
+            "used": 19,
+            "cap": 20
+          }
+        }
+      },
+      "V4": {
+        "route": [
+          0,
+          5,
+          40,
+          34,
+          37,
+          35,
+          33,
+          39,
+          38,
+          36,
+          0
+        ],
+        "stops": [
+          {
+            "id": 0,
+            "name": "Depot",
+            "lat": 13.0827,
+            "lon": 80.2707
+          },
+          {
+            "id": 5,
+            "name": "Koyambedu PHC",
+            "lat": 13.0694,
+            "lon": 80.1948
+          },
+          {
+            "id": 40,
+            "name": "Sulur Clinic CBE",
+            "lat": 11.033,
+            "lon": 77.12
+          },
+          {
+            "id": 34,
+            "name": "Peelamedu Clinic CBE",
+            "lat": 11.0263,
+            "lon": 77.02
+          },
+          {
+            "id": 37,
+            "name": "Saibaba Colony PHC CBE",
+            "lat": 11.03,
+            "lon": 76.97
+          },
+          {
+            "id": 35,
+            "name": "Gandhipuram PHC CBE",
+            "lat": 11.0176,
+            "lon": 76.9674
+          },
+          {
+            "id": 33,
+            "name": "RS Puram PHC CBE",
+            "lat": 11.0143,
+            "lon": 76.9525
+          },
+          {
+            "id": 39,
+            "name": "Kuniyamuthur PHC CBE",
+            "lat": 10.9741,
+            "lon": 76.9508
+          },
+          {
+            "id": 38,
+            "name": "Ukkadam Clinic CBE",
+            "lat": 10.9956,
+            "lon": 76.9803
+          },
+          {
+            "id": 36,
+            "name": "Singanallur Hospital CBE",
+            "lat": 10.9929,
+            "lon": 77.0153
+          },
+          {
+            "id": 0,
+            "name": "Depot",
+            "lat": 13.0827,
+            "lon": 80.2707
+          }
+        ],
+        "distance_km": 867.42,
+        "spoilage_rs": 542.9967,
+        "refrigeration_rs": 0.6659,
+        "total_cost_rs": 1411.0816,
+        "feasible": true,
+        "capacity": {
+          "frozen": {
+            "used": 19,
+            "cap": 20
+          },
+          "chilled": {
+            "used": 17,
+            "cap": 20
+          },
+          "ambient": {
+            "used": 17,
+            "cap": 20
+          }
+        }
+      },
+      "V5": {
+        "route": [
+          0,
+          50,
+          44,
+          43,
+          41,
+          47,
+          49,
+          45,
+          42,
+          48,
+          46,
+          0
+        ],
+        "stops": [
+          {
+            "id": 0,
+            "name": "Depot",
+            "lat": 13.0827,
+            "lon": 80.2707
+          },
+          {
+            "id": 50,
+            "name": "Thirunagar PHC MDU",
+            "lat": 9.9517,
+            "lon": 78.1435
+          },
+          {
+            "id": 44,
+            "name": "Arappalayam Hospital MDU",
+            "lat": 9.945,
+            "lon": 78.1278
+          },
+          {
+            "id": 43,
+            "name": "Anna Nagar PHC MDU",
+            "lat": 9.9312,
+            "lon": 78.135
+          },
+          {
+            "id": 41,
+            "name": "Tallakulam PHC MDU",
+            "lat": 9.9252,
+            "lon": 78.1198
+          },
+          {
+            "id": 47,
+            "name": "Ellis Nagar Clinic MDU",
+            "lat": 9.9088,
+            "lon": 78.1295
+          },
+          {
+            "id": 49,
+            "name": "Palanganatham Clinic MDU",
+            "lat": 9.8855,
+            "lon": 78.138
+          },
+          {
+            "id": 45,
+            "name": "Villapuram Clinic MDU",
+            "lat": 9.8971,
+            "lon": 78.1143
+          },
+          {
+            "id": 42,
+            "name": "KK Nagar Clinic MDU",
+            "lat": 9.9179,
+            "lon": 78.1048
+          },
+          {
+            "id": 48,
+            "name": "Surveyor Colony PHC MDU",
+            "lat": 9.9396,
+            "lon": 78.0987
+          },
+          {
+            "id": 46,
+            "name": "Arapalayam PHC MDU",
+            "lat": 9.9634,
+            "lon": 78.1103
+          },
+          {
+            "id": 0,
+            "name": "Depot",
+            "lat": 13.0827,
+            "lon": 80.2707
+          }
+        ],
+        "distance_km": 858.52,
+        "spoilage_rs": 666.7166,
+        "refrigeration_rs": 0.659,
+        "total_cost_rs": 1525.891,
+        "feasible": true,
+        "capacity": {
+          "frozen": {
+            "used": 20,
+            "cap": 20
+          },
+          "chilled": {
+            "used": 18,
+            "cap": 20
+          },
+          "ambient": {
+            "used": 19,
+            "cap": 20
+          }
+        }
+      }
+    },
+    "fleet_distance": 4064.11,
+    "fleet_spoilage": 2611.2357,
+    "fleet_refrigeration": 3.1815,
+    "fleet_total_cost": 6678.5293,
+    "status": "ok",
+    "total_time": 8.4403
+  }
+}

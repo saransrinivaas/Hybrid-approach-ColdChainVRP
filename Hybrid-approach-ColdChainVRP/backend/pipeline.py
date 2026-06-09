@@ -37,6 +37,24 @@ elif "--tough4" in sys.argv or "--scenario4" in sys.argv:
     sys.modules['scenario'] = _sc4
     scenario = _sc4
     print("  [LOAD] Forcing Scenario 4 (scenario4.py)")
+elif "--blr" in sys.argv:
+    import scenario_blr as _sc_blr
+    sys.modules['scenario_dynamic'] = _sc_blr
+    sys.modules['scenario'] = _sc_blr
+    scenario = _sc_blr
+    print("  [LOAD] Forcing Bengaluru scenario (scenario_blr.py)")
+elif "--hyd" in sys.argv:
+    import scenario_hyd as _sc_hyd
+    sys.modules['scenario_dynamic'] = _sc_hyd
+    sys.modules['scenario'] = _sc_hyd
+    scenario = _sc_hyd
+    print("  [LOAD] Forcing Hyderabad scenario (scenario_hyd.py)")
+elif "--stress" in sys.argv:
+    import scenario_stress as _sc_stress
+    sys.modules['scenario_dynamic'] = _sc_stress
+    sys.modules['scenario'] = _sc_stress
+    scenario = _sc_stress
+    print("  [LOAD] Forcing South India Stress Test (scenario_stress.py)")
 else:
     try:
         import scenario_dynamic as scenario
@@ -354,6 +372,12 @@ if __name__ == "__main__":
             submit_type = "pipeline_tough3"
         elif "--tough4" in sys.argv or "--scenario4" in sys.argv:
             submit_type = "pipeline_tough4"
+        elif "--blr" in sys.argv:
+            submit_type = "pipeline_blr"
+        elif "--hyd" in sys.argv:
+            submit_type = "pipeline_hyd"
+        elif "--stress" in sys.argv:
+            submit_type = "pipeline_stress"
         else:
             submit_type = "pipeline_easy"
 

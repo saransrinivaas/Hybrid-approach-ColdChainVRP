@@ -1,0 +1,3944 @@
+{
+  "meta": {
+    "benchmark_suite": "Solomon VRPTW (100 customers)",
+    "source": "SINTEF VRP Research Group",
+    "source_url": "https://www.sintef.no/projectweb/top/vrptw/solomon-benchmark/",
+    "num_instances": 56,
+    "num_classes": 6,
+    "projection_method": "Karnataka bounding box (lat=28.1+y/100, lon=76.7+x/100)",
+    "demand_mapping": "compartment = node_id % 3 (Frozen/Chilled/Ambient)",
+    "time_window_mapping": "Linearly rescaled to 06:00\u201320:00 delivery day",
+    "objective": "Total Cost = Distance + Spoilage + Refrigeration"
+  },
+  "summary": {
+    "instances_tested": 56,
+    "cho_feasibility_rate_pct": 100.0,
+    "cho_avg_distance_gap_pct": 5.1,
+    "cho_avg_spoilage_reduction_pct": 56.1,
+    "cho_avg_total_cost_reduction_pct": 14.1,
+    "cho_total_cost_wins": 56,
+    "cho_total_cost_win_rate_pct": 100.0
+  },
+  "class_summary": {
+    "C1": {
+      "num_instances": 9,
+      "avg_spoilage_reduction_pct": 54.2,
+      "avg_total_cost_reduction_pct": 9.1,
+      "avg_distance_gap_pct": 3.8,
+      "feasibility_rate_pct": 100.0,
+      "instances": [
+        "C101",
+        "C102",
+        "C103",
+        "C104",
+        "C105",
+        "C106",
+        "C107",
+        "C108",
+        "C109"
+      ]
+    },
+    "C2": {
+      "num_instances": 8,
+      "avg_spoilage_reduction_pct": 52.3,
+      "avg_total_cost_reduction_pct": 12.4,
+      "avg_distance_gap_pct": 3.9,
+      "feasibility_rate_pct": 100.0,
+      "instances": [
+        "C201",
+        "C202",
+        "C203",
+        "C204",
+        "C205",
+        "C206",
+        "C207",
+        "C208"
+      ]
+    },
+    "R1": {
+      "num_instances": 12,
+      "avg_spoilage_reduction_pct": 58.9,
+      "avg_total_cost_reduction_pct": 12.9,
+      "avg_distance_gap_pct": 5.6,
+      "feasibility_rate_pct": 100.0,
+      "instances": [
+        "R101",
+        "R102",
+        "R103",
+        "R104",
+        "R105",
+        "R106",
+        "R107",
+        "R108",
+        "R109",
+        "R110",
+        "R111",
+        "R112"
+      ]
+    },
+    "R2": {
+      "num_instances": 11,
+      "avg_spoilage_reduction_pct": 58.0,
+      "avg_total_cost_reduction_pct": 19.8,
+      "avg_distance_gap_pct": 5.2,
+      "feasibility_rate_pct": 100.0,
+      "instances": [
+        "R201",
+        "R202",
+        "R203",
+        "R204",
+        "R205",
+        "R206",
+        "R207",
+        "R208",
+        "R209",
+        "R210",
+        "R211"
+      ]
+    },
+    "RC1": {
+      "num_instances": 8,
+      "avg_spoilage_reduction_pct": 54.3,
+      "avg_total_cost_reduction_pct": 11.2,
+      "avg_distance_gap_pct": 6.3,
+      "feasibility_rate_pct": 100.0,
+      "instances": [
+        "RC101",
+        "RC102",
+        "RC103",
+        "RC104",
+        "RC105",
+        "RC106",
+        "RC107",
+        "RC108"
+      ]
+    },
+    "RC2": {
+      "num_instances": 8,
+      "avg_spoilage_reduction_pct": 57.2,
+      "avg_total_cost_reduction_pct": 17.9,
+      "avg_distance_gap_pct": 5.5,
+      "feasibility_rate_pct": 100.0,
+      "instances": [
+        "RC201",
+        "RC202",
+        "RC203",
+        "RC204",
+        "RC205",
+        "RC206",
+        "RC207",
+        "RC208"
+      ]
+    }
+  },
+  "instances": [
+    {
+      "instance": "C101",
+      "class": "C1",
+      "num_customers": 100,
+      "bks_distance": 828.94,
+      "bks_vehicles": 10,
+      "solvers": {
+        "cho": {
+          "name": "Snow Rabbit: Hybrid Solver",
+          "distance": 869.85,
+          "distance_gap_pct": 4.94,
+          "spoilage_rs": 62.79,
+          "refrigeration_rs": 17.83,
+          "total_cost_rs": 950.47,
+          "feasible": true,
+          "computation_time_s": 5.72,
+          "vehicles_used": 10
+        },
+        "classical": {
+          "name": "Classical (NN+2opt+ORopt)",
+          "distance": 841.34,
+          "distance_gap_pct": 1.5,
+          "spoilage_rs": 191.28,
+          "refrigeration_rs": 20.59,
+          "total_cost_rs": 1053.21,
+          "feasible": true,
+          "computation_time_s": 0.33,
+          "vehicles_used": 10
+        },
+        "ortools": {
+          "name": "Google OR-Tools",
+          "distance": 842.97,
+          "distance_gap_pct": 1.69,
+          "spoilage_rs": 193.42,
+          "refrigeration_rs": 20.75,
+          "total_cost_rs": 1057.14,
+          "feasible": true,
+          "computation_time_s": 4.29,
+          "vehicles_used": 10
+        },
+        "alns": {
+          "name": "ALNS Metaheuristic",
+          "distance": 844.03,
+          "distance_gap_pct": 1.82,
+          "spoilage_rs": 150.62,
+          "refrigeration_rs": 19.18,
+          "total_cost_rs": 1013.83,
+          "feasible": true,
+          "computation_time_s": 5.4,
+          "vehicles_used": 10
+        },
+        "pulp_cbc": {
+          "name": "PuLP/CBC (ILP)",
+          "distance": 866.4,
+          "distance_gap_pct": 4.52,
+          "spoilage_rs": 190.49,
+          "refrigeration_rs": 21.55,
+          "total_cost_rs": 1078.44,
+          "feasible": true,
+          "computation_time_s": 21.93,
+          "vehicles_used": 10
+        }
+      },
+      "cho_advantages": {
+        "spoilage_reduction_pct": 67.2,
+        "total_cost_reduction_pct": 9.8
+      }
+    },
+    {
+      "instance": "C102",
+      "class": "C1",
+      "num_customers": 100,
+      "bks_distance": 828.94,
+      "bks_vehicles": 10,
+      "solvers": {
+        "cho": {
+          "name": "Snow Rabbit: Hybrid Solver",
+          "distance": 873.39,
+          "distance_gap_pct": 5.36,
+          "spoilage_rs": 98.79,
+          "refrigeration_rs": 18.58,
+          "total_cost_rs": 990.77,
+          "feasible": true,
+          "computation_time_s": 11.07,
+          "vehicles_used": 10
+        },
+        "classical": {
+          "name": "Classical (NN+2opt+ORopt)",
+          "distance": 851.29,
+          "distance_gap_pct": 2.7,
+          "spoilage_rs": 188.06,
+          "refrigeration_rs": 21.26,
+          "total_cost_rs": 1060.61,
+          "feasible": true,
+          "computation_time_s": 0.08,
+          "vehicles_used": 10
+        },
+        "ortools": {
+          "name": "Google OR-Tools",
+          "distance": 848.5,
+          "distance_gap_pct": 2.36,
+          "spoilage_rs": 189.68,
+          "refrigeration_rs": 20.94,
+          "total_cost_rs": 1059.12,
+          "feasible": true,
+          "computation_time_s": 2.43,
+          "vehicles_used": 10
+        },
+        "alns": {
+          "name": "ALNS Metaheuristic",
+          "distance": 839.8,
+          "distance_gap_pct": 1.31,
+          "spoilage_rs": 178.93,
+          "refrigeration_rs": 22.5,
+          "total_cost_rs": 1041.23,
+          "feasible": true,
+          "computation_time_s": 3.01,
+          "vehicles_used": 10
+        },
+        "pulp_cbc": {
+          "name": "PuLP/CBC (ILP)",
+          "distance": 858.32,
+          "distance_gap_pct": 3.54,
+          "spoilage_rs": 196.36,
+          "refrigeration_rs": 23.29,
+          "total_cost_rs": 1077.98,
+          "feasible": true,
+          "computation_time_s": 30.93,
+          "vehicles_used": 10
+        }
+      },
+      "cho_advantages": {
+        "spoilage_reduction_pct": 47.5,
+        "total_cost_reduction_pct": 6.6
+      }
+    },
+    {
+      "instance": "C103",
+      "class": "C1",
+      "num_customers": 100,
+      "bks_distance": 828.06,
+      "bks_vehicles": 10,
+      "solvers": {
+        "cho": {
+          "name": "Snow Rabbit: Hybrid Solver",
+          "distance": 853.96,
+          "distance_gap_pct": 3.13,
+          "spoilage_rs": 89.39,
+          "refrigeration_rs": 17.49,
+          "total_cost_rs": 960.83,
+          "feasible": true,
+          "computation_time_s": 6.21,
+          "vehicles_used": 10
+        },
+        "classical": {
+          "name": "Classical (NN+2opt+ORopt)",
+          "distance": 851.28,
+          "distance_gap_pct": 2.8,
+          "spoilage_rs": 202.51,
+          "refrigeration_rs": 20.34,
+          "total_cost_rs": 1074.13,
+          "feasible": true,
+          "computation_time_s": 0.16,
+          "vehicles_used": 10
+        },
+        "ortools": {
+          "name": "Google OR-Tools",
+          "distance": 842.01,
+          "distance_gap_pct": 1.68,
+          "spoilage_rs": 182.48,
+          "refrigeration_rs": 20.2,
+          "total_cost_rs": 1044.69,
+          "feasible": true,
+          "computation_time_s": 2.57,
+          "vehicles_used": 10
+        },
+        "alns": {
+          "name": "ALNS Metaheuristic",
+          "distance": 845.34,
+          "distance_gap_pct": 2.09,
+          "spoilage_rs": 173.44,
+          "refrigeration_rs": 23.14,
+          "total_cost_rs": 1041.92,
+          "feasible": true,
+          "computation_time_s": 4.11,
+          "vehicles_used": 10
+        },
+        "pulp_cbc": {
+          "name": "PuLP/CBC (ILP)",
+          "distance": 864.6,
+          "distance_gap_pct": 4.41,
+          "spoilage_rs": 177.42,
+          "refrigeration_rs": 23.35,
+          "total_cost_rs": 1065.37,
+          "feasible": true,
+          "computation_time_s": 79.8,
+          "vehicles_used": 10
+        }
+      },
+      "cho_advantages": {
+        "spoilage_reduction_pct": 55.9,
+        "total_cost_reduction_pct": 10.5
+      }
+    },
+    {
+      "instance": "C104",
+      "class": "C1",
+      "num_customers": 100,
+      "bks_distance": 824.78,
+      "bks_vehicles": 10,
+      "solvers": {
+        "cho": {
+          "name": "Snow Rabbit: Hybrid Solver",
+          "distance": 871.14,
+          "distance_gap_pct": 5.62,
+          "spoilage_rs": 71.32,
+          "refrigeration_rs": 18.96,
+          "total_cost_rs": 961.42,
+          "feasible": true,
+          "computation_time_s": 17.46,
+          "vehicles_used": 10
+        },
+        "classical": {
+          "name": "Classical (NN+2opt+ORopt)",
+          "distance": 846.32,
+          "distance_gap_pct": 2.61,
+          "spoilage_rs": 180.77,
+          "refrigeration_rs": 22.0,
+          "total_cost_rs": 1049.09,
+          "feasible": true,
+          "computation_time_s": 0.33,
+          "vehicles_used": 10
+        },
+        "ortools": {
+          "name": "Google OR-Tools",
+          "distance": 842.85,
+          "distance_gap_pct": 2.19,
+          "spoilage_rs": 164.97,
+          "refrigeration_rs": 22.26,
+          "total_cost_rs": 1030.07,
+          "feasible": true,
+          "computation_time_s": 3.19,
+          "vehicles_used": 10
+        },
+        "alns": {
+          "name": "ALNS Metaheuristic",
+          "distance": 848.58,
+          "distance_gap_pct": 2.89,
+          "spoilage_rs": 156.86,
+          "refrigeration_rs": 20.62,
+          "total_cost_rs": 1026.06,
+          "feasible": true,
+          "computation_time_s": 2.64,
+          "vehicles_used": 10
+        },
+        "pulp_cbc": {
+          "name": "PuLP/CBC (ILP)",
+          "distance": 873.0,
+          "distance_gap_pct": 5.85,
+          "spoilage_rs": 196.66,
+          "refrigeration_rs": 21.52,
+          "total_cost_rs": 1091.19,
+          "feasible": true,
+          "computation_time_s": 38.55,
+          "vehicles_used": 10
+        }
+      },
+      "cho_advantages": {
+        "spoilage_reduction_pct": 60.5,
+        "total_cost_reduction_pct": 8.4
+      }
+    },
+    {
+      "instance": "C105",
+      "class": "C1",
+      "num_customers": 100,
+      "bks_distance": 828.94,
+      "bks_vehicles": 10,
+      "solvers": {
+        "cho": {
+          "name": "Snow Rabbit: Hybrid Solver",
+          "distance": 846.71,
+          "distance_gap_pct": 2.14,
+          "spoilage_rs": 86.12,
+          "refrigeration_rs": 18.63,
+          "total_cost_rs": 951.46,
+          "feasible": true,
+          "computation_time_s": 22.05,
+          "vehicles_used": 10
+        },
+        "classical": {
+          "name": "Classical (NN+2opt+ORopt)",
+          "distance": 857.43,
+          "distance_gap_pct": 3.44,
+          "spoilage_rs": 193.21,
+          "refrigeration_rs": 20.15,
+          "total_cost_rs": 1070.8,
+          "feasible": true,
+          "computation_time_s": 0.15,
+          "vehicles_used": 10
+        },
+        "ortools": {
+          "name": "Google OR-Tools",
+          "distance": 849.18,
+          "distance_gap_pct": 2.44,
+          "spoilage_rs": 184.16,
+          "refrigeration_rs": 20.45,
+          "total_cost_rs": 1053.79,
+          "feasible": true,
+          "computation_time_s": 4.06,
+          "vehicles_used": 10
+        },
+        "alns": {
+          "name": "ALNS Metaheuristic",
+          "distance": 860.18,
+          "distance_gap_pct": 3.77,
+          "spoilage_rs": 170.44,
+          "refrigeration_rs": 20.95,
+          "total_cost_rs": 1051.57,
+          "feasible": true,
+          "computation_time_s": 8.09,
+          "vehicles_used": 10
+        },
+        "pulp_cbc": {
+          "name": "PuLP/CBC (ILP)",
+          "distance": 907.09,
+          "distance_gap_pct": 9.43,
+          "spoilage_rs": 182.52,
+          "refrigeration_rs": 24.68,
+          "total_cost_rs": 1114.29,
+          "feasible": true,
+          "computation_time_s": 21.73,
+          "vehicles_used": 10
+        }
+      },
+      "cho_advantages": {
+        "spoilage_reduction_pct": 55.4,
+        "total_cost_reduction_pct": 11.1
+      }
+    },
+    {
+      "instance": "C106",
+      "class": "C1",
+      "num_customers": 100,
+      "bks_distance": 828.94,
+      "bks_vehicles": 10,
+      "solvers": {
+        "cho": {
+          "name": "Snow Rabbit: Hybrid Solver",
+          "distance": 846.37,
+          "distance_gap_pct": 2.1,
+          "spoilage_rs": 93.4,
+          "refrigeration_rs": 15.84,
+          "total_cost_rs": 955.61,
+          "feasible": true,
+          "computation_time_s": 8.03,
+          "vehicles_used": 10
+        },
+        "classical": {
+          "name": "Classical (NN+2opt+ORopt)",
+          "distance": 857.76,
+          "distance_gap_pct": 3.48,
+          "spoilage_rs": 175.75,
+          "refrigeration_rs": 20.96,
+          "total_cost_rs": 1054.47,
+          "feasible": true,
+          "computation_time_s": 0.22,
+          "vehicles_used": 10
+        },
+        "ortools": {
+          "name": "Google OR-Tools",
+          "distance": 845.11,
+          "distance_gap_pct": 1.95,
+          "spoilage_rs": 154.99,
+          "refrigeration_rs": 18.89,
+          "total_cost_rs": 1019.0,
+          "feasible": true,
+          "computation_time_s": 3.7,
+          "vehicles_used": 10
+        },
+        "alns": {
+          "name": "ALNS Metaheuristic",
+          "distance": 855.72,
+          "distance_gap_pct": 3.23,
+          "spoilage_rs": 187.71,
+          "refrigeration_rs": 22.7,
+          "total_cost_rs": 1066.13,
+          "feasible": true,
+          "computation_time_s": 4.65,
+          "vehicles_used": 10
+        },
+        "pulp_cbc": {
+          "name": "PuLP/CBC (ILP)",
+          "distance": 886.0,
+          "distance_gap_pct": 6.88,
+          "spoilage_rs": 213.96,
+          "refrigeration_rs": 24.65,
+          "total_cost_rs": 1124.61,
+          "feasible": true,
+          "computation_time_s": 74.62,
+          "vehicles_used": 10
+        }
+      },
+      "cho_advantages": {
+        "spoilage_reduction_pct": 46.9,
+        "total_cost_reduction_pct": 9.4
+      }
+    },
+    {
+      "instance": "C107",
+      "class": "C1",
+      "num_customers": 100,
+      "bks_distance": 828.94,
+      "bks_vehicles": 10,
+      "solvers": {
+        "cho": {
+          "name": "Snow Rabbit: Hybrid Solver",
+          "distance": 852.77,
+          "distance_gap_pct": 2.87,
+          "spoilage_rs": 81.41,
+          "refrigeration_rs": 16.35,
+          "total_cost_rs": 950.53,
+          "feasible": true,
+          "computation_time_s": 22.71,
+          "vehicles_used": 10
+        },
+        "classical": {
+          "name": "Classical (NN+2opt+ORopt)",
+          "distance": 847.3,
+          "distance_gap_pct": 2.22,
+          "spoilage_rs": 175.2,
+          "refrigeration_rs": 20.19,
+          "total_cost_rs": 1042.7,
+          "feasible": true,
+          "computation_time_s": 0.35,
+          "vehicles_used": 10
+        },
+        "ortools": {
+          "name": "Google OR-Tools",
+          "distance": 839.21,
+          "distance_gap_pct": 1.24,
+          "spoilage_rs": 197.96,
+          "refrigeration_rs": 19.58,
+          "total_cost_rs": 1056.75,
+          "feasible": true,
+          "computation_time_s": 1.78,
+          "vehicles_used": 10
+        },
+        "alns": {
+          "name": "ALNS Metaheuristic",
+          "distance": 850.16,
+          "distance_gap_pct": 2.56,
+          "spoilage_rs": 175.41,
+          "refrigeration_rs": 20.47,
+          "total_cost_rs": 1046.04,
+          "feasible": true,
+          "computation_time_s": 4.38,
+          "vehicles_used": 10
+        },
+        "pulp_cbc": {
+          "name": "PuLP/CBC (ILP)",
+          "distance": 898.74,
+          "distance_gap_pct": 8.42,
+          "spoilage_rs": 191.32,
+          "refrigeration_rs": 23.16,
+          "total_cost_rs": 1113.23,
+          "feasible": true,
+          "computation_time_s": 59.67,
+          "vehicles_used": 10
+        }
+      },
+      "cho_advantages": {
+        "spoilage_reduction_pct": 53.5,
+        "total_cost_reduction_pct": 8.8
+      }
+    },
+    {
+      "instance": "C108",
+      "class": "C1",
+      "num_customers": 100,
+      "bks_distance": 828.94,
+      "bks_vehicles": 10,
+      "solvers": {
+        "cho": {
+          "name": "Snow Rabbit: Hybrid Solver",
+          "distance": 861.43,
+          "distance_gap_pct": 3.92,
+          "spoilage_rs": 78.11,
+          "refrigeration_rs": 19.01,
+          "total_cost_rs": 958.55,
+          "feasible": true,
+          "computation_time_s": 10.3,
+          "vehicles_used": 10
+        },
+        "classical": {
+          "name": "Classical (NN+2opt+ORopt)",
+          "distance": 844.77,
+          "distance_gap_pct": 1.91,
+          "spoilage_rs": 196.03,
+          "refrigeration_rs": 21.44,
+          "total_cost_rs": 1062.24,
+          "feasible": true,
+          "computation_time_s": 0.12,
+          "vehicles_used": 10
+        },
+        "ortools": {
+          "name": "Google OR-Tools",
+          "distance": 835.57,
+          "distance_gap_pct": 0.8,
+          "spoilage_rs": 189.7,
+          "refrigeration_rs": 20.59,
+          "total_cost_rs": 1045.85,
+          "feasible": true,
+          "computation_time_s": 3.29,
+          "vehicles_used": 10
+        },
+        "alns": {
+          "name": "ALNS Metaheuristic",
+          "distance": 859.36,
+          "distance_gap_pct": 3.67,
+          "spoilage_rs": 155.18,
+          "refrigeration_rs": 22.09,
+          "total_cost_rs": 1036.63,
+          "feasible": true,
+          "computation_time_s": 6.22,
+          "vehicles_used": 10
+        },
+        "pulp_cbc": {
+          "name": "PuLP/CBC (ILP)",
+          "distance": 888.6,
+          "distance_gap_pct": 7.2,
+          "spoilage_rs": 173.79,
+          "refrigeration_rs": 23.51,
+          "total_cost_rs": 1085.91,
+          "feasible": true,
+          "computation_time_s": 30.97,
+          "vehicles_used": 10
+        }
+      },
+      "cho_advantages": {
+        "spoilage_reduction_pct": 60.2,
+        "total_cost_reduction_pct": 9.8
+      }
+    },
+    {
+      "instance": "C109",
+      "class": "C1",
+      "num_customers": 100,
+      "bks_distance": 828.94,
+      "bks_vehicles": 10,
+      "solvers": {
+        "cho": {
+          "name": "Snow Rabbit: Hybrid Solver",
+          "distance": 863.91,
+          "distance_gap_pct": 4.22,
+          "spoilage_rs": 97.01,
+          "refrigeration_rs": 16.96,
+          "total_cost_rs": 977.88,
+          "feasible": true,
+          "computation_time_s": 20.42,
+          "vehicles_used": 10
+        },
+        "classical": {
+          "name": "Classical (NN+2opt+ORopt)",
+          "distance": 870.01,
+          "distance_gap_pct": 4.95,
+          "spoilage_rs": 163.7,
+          "refrigeration_rs": 23.2,
+          "total_cost_rs": 1056.92,
+          "feasible": true,
+          "computation_time_s": 0.21,
+          "vehicles_used": 10
+        },
+        "ortools": {
+          "name": "Google OR-Tools",
+          "distance": 836.19,
+          "distance_gap_pct": 0.87,
+          "spoilage_rs": 198.14,
+          "refrigeration_rs": 19.34,
+          "total_cost_rs": 1053.67,
+          "feasible": true,
+          "computation_time_s": 3.19,
+          "vehicles_used": 10
+        },
+        "alns": {
+          "name": "ALNS Metaheuristic",
+          "distance": 847.93,
+          "distance_gap_pct": 2.29,
+          "spoilage_rs": 183.61,
+          "refrigeration_rs": 21.08,
+          "total_cost_rs": 1052.62,
+          "feasible": true,
+          "computation_time_s": 11.57,
+          "vehicles_used": 10
+        },
+        "pulp_cbc": {
+          "name": "PuLP/CBC (ILP)",
+          "distance": 907.13,
+          "distance_gap_pct": 9.43,
+          "spoilage_rs": 218.6,
+          "refrigeration_rs": 21.61,
+          "total_cost_rs": 1147.34,
+          "feasible": true,
+          "computation_time_s": 83.66,
+          "vehicles_used": 10
+        }
+      },
+      "cho_advantages": {
+        "spoilage_reduction_pct": 40.7,
+        "total_cost_reduction_pct": 7.5
+      }
+    },
+    {
+      "instance": "C201",
+      "class": "C2",
+      "num_customers": 100,
+      "bks_distance": 591.56,
+      "bks_vehicles": 3,
+      "solvers": {
+        "cho": {
+          "name": "Snow Rabbit: Hybrid Solver",
+          "distance": 621.12,
+          "distance_gap_pct": 5.0,
+          "spoilage_rs": 93.75,
+          "refrigeration_rs": 11.29,
+          "total_cost_rs": 726.17,
+          "feasible": true,
+          "computation_time_s": 6.74,
+          "vehicles_used": 3
+        },
+        "classical": {
+          "name": "Classical (NN+2opt+ORopt)",
+          "distance": 612.68,
+          "distance_gap_pct": 3.57,
+          "spoilage_rs": 208.82,
+          "refrigeration_rs": 15.54,
+          "total_cost_rs": 837.04,
+          "feasible": true,
+          "computation_time_s": 0.36,
+          "vehicles_used": 3
+        },
+        "ortools": {
+          "name": "Google OR-Tools",
+          "distance": 599.25,
+          "distance_gap_pct": 1.3,
+          "spoilage_rs": 198.8,
+          "refrigeration_rs": 15.83,
+          "total_cost_rs": 813.89,
+          "feasible": true,
+          "computation_time_s": 2.48,
+          "vehicles_used": 3
+        },
+        "alns": {
+          "name": "ALNS Metaheuristic",
+          "distance": 599.08,
+          "distance_gap_pct": 1.27,
+          "spoilage_rs": 200.72,
+          "refrigeration_rs": 14.07,
+          "total_cost_rs": 813.88,
+          "feasible": true,
+          "computation_time_s": 7.95,
+          "vehicles_used": 3
+        },
+        "pulp_cbc": {
+          "name": "PuLP/CBC (ILP)",
+          "distance": 617.34,
+          "distance_gap_pct": 4.36,
+          "spoilage_rs": 191.81,
+          "refrigeration_rs": 17.63,
+          "total_cost_rs": 826.78,
+          "feasible": true,
+          "computation_time_s": 48.02,
+          "vehicles_used": 3
+        }
+      },
+      "cho_advantages": {
+        "spoilage_reduction_pct": 55.1,
+        "total_cost_reduction_pct": 13.2
+      }
+    },
+    {
+      "instance": "C202",
+      "class": "C2",
+      "num_customers": 100,
+      "bks_distance": 591.56,
+      "bks_vehicles": 3,
+      "solvers": {
+        "cho": {
+          "name": "Snow Rabbit: Hybrid Solver",
+          "distance": 606.2,
+          "distance_gap_pct": 2.47,
+          "spoilage_rs": 81.64,
+          "refrigeration_rs": 13.6,
+          "total_cost_rs": 701.44,
+          "feasible": true,
+          "computation_time_s": 19.92,
+          "vehicles_used": 3
+        },
+        "classical": {
+          "name": "Classical (NN+2opt+ORopt)",
+          "distance": 610.05,
+          "distance_gap_pct": 3.13,
+          "spoilage_rs": 215.56,
+          "refrigeration_rs": 14.98,
+          "total_cost_rs": 840.59,
+          "feasible": true,
+          "computation_time_s": 0.36,
+          "vehicles_used": 3
+        },
+        "ortools": {
+          "name": "Google OR-Tools",
+          "distance": 597.8,
+          "distance_gap_pct": 1.05,
+          "spoilage_rs": 183.87,
+          "refrigeration_rs": 15.53,
+          "total_cost_rs": 797.21,
+          "feasible": true,
+          "computation_time_s": 5.02,
+          "vehicles_used": 3
+        },
+        "alns": {
+          "name": "ALNS Metaheuristic",
+          "distance": 604.31,
+          "distance_gap_pct": 2.15,
+          "spoilage_rs": 183.4,
+          "refrigeration_rs": 13.82,
+          "total_cost_rs": 801.53,
+          "feasible": true,
+          "computation_time_s": 5.7,
+          "vehicles_used": 3
+        },
+        "pulp_cbc": {
+          "name": "PuLP/CBC (ILP)",
+          "distance": 642.25,
+          "distance_gap_pct": 8.57,
+          "spoilage_rs": 227.07,
+          "refrigeration_rs": 16.14,
+          "total_cost_rs": 885.46,
+          "feasible": true,
+          "computation_time_s": 18.94,
+          "vehicles_used": 3
+        }
+      },
+      "cho_advantages": {
+        "spoilage_reduction_pct": 62.1,
+        "total_cost_reduction_pct": 16.6
+      }
+    },
+    {
+      "instance": "C203",
+      "class": "C2",
+      "num_customers": 100,
+      "bks_distance": 591.17,
+      "bks_vehicles": 3,
+      "solvers": {
+        "cho": {
+          "name": "Snow Rabbit: Hybrid Solver",
+          "distance": 614.57,
+          "distance_gap_pct": 3.96,
+          "spoilage_rs": 108.8,
+          "refrigeration_rs": 11.77,
+          "total_cost_rs": 735.14,
+          "feasible": true,
+          "computation_time_s": 9.08,
+          "vehicles_used": 3
+        },
+        "classical": {
+          "name": "Classical (NN+2opt+ORopt)",
+          "distance": 611.99,
+          "distance_gap_pct": 3.52,
+          "spoilage_rs": 180.6,
+          "refrigeration_rs": 14.44,
+          "total_cost_rs": 807.02,
+          "feasible": true,
+          "computation_time_s": 0.22,
+          "vehicles_used": 3
+        },
+        "ortools": {
+          "name": "Google OR-Tools",
+          "distance": 601.82,
+          "distance_gap_pct": 1.8,
+          "spoilage_rs": 212.18,
+          "refrigeration_rs": 13.64,
+          "total_cost_rs": 827.64,
+          "feasible": true,
+          "computation_time_s": 5.12,
+          "vehicles_used": 3
+        },
+        "alns": {
+          "name": "ALNS Metaheuristic",
+          "distance": 605.17,
+          "distance_gap_pct": 2.37,
+          "spoilage_rs": 178.54,
+          "refrigeration_rs": 13.91,
+          "total_cost_rs": 797.63,
+          "feasible": true,
+          "computation_time_s": 10.46,
+          "vehicles_used": 3
+        },
+        "pulp_cbc": {
+          "name": "PuLP/CBC (ILP)",
+          "distance": 643.88,
+          "distance_gap_pct": 8.92,
+          "spoilage_rs": 226.44,
+          "refrigeration_rs": 16.41,
+          "total_cost_rs": 886.73,
+          "feasible": true,
+          "computation_time_s": 14.81,
+          "vehicles_used": 3
+        }
+      },
+      "cho_advantages": {
+        "spoilage_reduction_pct": 39.8,
+        "total_cost_reduction_pct": 8.9
+      }
+    },
+    {
+      "instance": "C204",
+      "class": "C2",
+      "num_customers": 100,
+      "bks_distance": 590.6,
+      "bks_vehicles": 3,
+      "solvers": {
+        "cho": {
+          "name": "Snow Rabbit: Hybrid Solver",
+          "distance": 613.65,
+          "distance_gap_pct": 3.9,
+          "spoilage_rs": 69.15,
+          "refrigeration_rs": 13.17,
+          "total_cost_rs": 695.97,
+          "feasible": true,
+          "computation_time_s": 19.36,
+          "vehicles_used": 3
+        },
+        "classical": {
+          "name": "Classical (NN+2opt+ORopt)",
+          "distance": 603.08,
+          "distance_gap_pct": 2.11,
+          "spoilage_rs": 192.9,
+          "refrigeration_rs": 14.25,
+          "total_cost_rs": 810.23,
+          "feasible": true,
+          "computation_time_s": 0.33,
+          "vehicles_used": 3
+        },
+        "ortools": {
+          "name": "Google OR-Tools",
+          "distance": 596.87,
+          "distance_gap_pct": 1.06,
+          "spoilage_rs": 208.25,
+          "refrigeration_rs": 15.9,
+          "total_cost_rs": 821.02,
+          "feasible": true,
+          "computation_time_s": 4.94,
+          "vehicles_used": 3
+        },
+        "alns": {
+          "name": "ALNS Metaheuristic",
+          "distance": 595.97,
+          "distance_gap_pct": 0.91,
+          "spoilage_rs": 190.76,
+          "refrigeration_rs": 16.25,
+          "total_cost_rs": 802.98,
+          "feasible": true,
+          "computation_time_s": 10.99,
+          "vehicles_used": 3
+        },
+        "pulp_cbc": {
+          "name": "PuLP/CBC (ILP)",
+          "distance": 634.83,
+          "distance_gap_pct": 7.49,
+          "spoilage_rs": 212.72,
+          "refrigeration_rs": 16.38,
+          "total_cost_rs": 863.93,
+          "feasible": true,
+          "computation_time_s": 22.23,
+          "vehicles_used": 3
+        }
+      },
+      "cho_advantages": {
+        "spoilage_reduction_pct": 64.2,
+        "total_cost_reduction_pct": 14.1
+      }
+    },
+    {
+      "instance": "C205",
+      "class": "C2",
+      "num_customers": 100,
+      "bks_distance": 588.88,
+      "bks_vehicles": 3,
+      "solvers": {
+        "cho": {
+          "name": "Snow Rabbit: Hybrid Solver",
+          "distance": 607.38,
+          "distance_gap_pct": 3.14,
+          "spoilage_rs": 109.96,
+          "refrigeration_rs": 11.87,
+          "total_cost_rs": 729.21,
+          "feasible": true,
+          "computation_time_s": 9.12,
+          "vehicles_used": 3
+        },
+        "classical": {
+          "name": "Classical (NN+2opt+ORopt)",
+          "distance": 597.94,
+          "distance_gap_pct": 1.54,
+          "spoilage_rs": 209.9,
+          "refrigeration_rs": 16.37,
+          "total_cost_rs": 824.22,
+          "feasible": true,
+          "computation_time_s": 0.33,
+          "vehicles_used": 3
+        },
+        "ortools": {
+          "name": "Google OR-Tools",
+          "distance": 593.29,
+          "distance_gap_pct": 0.75,
+          "spoilage_rs": 178.92,
+          "refrigeration_rs": 15.85,
+          "total_cost_rs": 788.06,
+          "feasible": true,
+          "computation_time_s": 1.93,
+          "vehicles_used": 3
+        },
+        "alns": {
+          "name": "ALNS Metaheuristic",
+          "distance": 605.21,
+          "distance_gap_pct": 2.77,
+          "spoilage_rs": 208.72,
+          "refrigeration_rs": 13.62,
+          "total_cost_rs": 827.54,
+          "feasible": true,
+          "computation_time_s": 10.72,
+          "vehicles_used": 3
+        },
+        "pulp_cbc": {
+          "name": "PuLP/CBC (ILP)",
+          "distance": 637.38,
+          "distance_gap_pct": 8.24,
+          "spoilage_rs": 237.06,
+          "refrigeration_rs": 16.89,
+          "total_cost_rs": 891.33,
+          "feasible": true,
+          "computation_time_s": 63.09,
+          "vehicles_used": 3
+        }
+      },
+      "cho_advantages": {
+        "spoilage_reduction_pct": 47.6,
+        "total_cost_reduction_pct": 11.5
+      }
+    },
+    {
+      "instance": "C206",
+      "class": "C2",
+      "num_customers": 100,
+      "bks_distance": 588.49,
+      "bks_vehicles": 3,
+      "solvers": {
+        "cho": {
+          "name": "Snow Rabbit: Hybrid Solver",
+          "distance": 614.53,
+          "distance_gap_pct": 4.42,
+          "spoilage_rs": 105.15,
+          "refrigeration_rs": 13.49,
+          "total_cost_rs": 733.16,
+          "feasible": true,
+          "computation_time_s": 7.69,
+          "vehicles_used": 3
+        },
+        "classical": {
+          "name": "Classical (NN+2opt+ORopt)",
+          "distance": 611.41,
+          "distance_gap_pct": 3.89,
+          "spoilage_rs": 190.53,
+          "refrigeration_rs": 16.82,
+          "total_cost_rs": 818.76,
+          "feasible": true,
+          "computation_time_s": 0.39,
+          "vehicles_used": 3
+        },
+        "ortools": {
+          "name": "Google OR-Tools",
+          "distance": 592.61,
+          "distance_gap_pct": 0.7,
+          "spoilage_rs": 172.4,
+          "refrigeration_rs": 14.06,
+          "total_cost_rs": 779.07,
+          "feasible": true,
+          "computation_time_s": 2.56,
+          "vehicles_used": 3
+        },
+        "alns": {
+          "name": "ALNS Metaheuristic",
+          "distance": 600.29,
+          "distance_gap_pct": 2.0,
+          "spoilage_rs": 172.54,
+          "refrigeration_rs": 15.42,
+          "total_cost_rs": 788.25,
+          "feasible": true,
+          "computation_time_s": 3.08,
+          "vehicles_used": 3
+        },
+        "pulp_cbc": {
+          "name": "PuLP/CBC (ILP)",
+          "distance": 614.47,
+          "distance_gap_pct": 4.41,
+          "spoilage_rs": 206.29,
+          "refrigeration_rs": 15.89,
+          "total_cost_rs": 836.64,
+          "feasible": true,
+          "computation_time_s": 36.38,
+          "vehicles_used": 3
+        }
+      },
+      "cho_advantages": {
+        "spoilage_reduction_pct": 44.8,
+        "total_cost_reduction_pct": 10.5
+      }
+    },
+    {
+      "instance": "C207",
+      "class": "C2",
+      "num_customers": 100,
+      "bks_distance": 588.29,
+      "bks_vehicles": 3,
+      "solvers": {
+        "cho": {
+          "name": "Snow Rabbit: Hybrid Solver",
+          "distance": 606.36,
+          "distance_gap_pct": 3.07,
+          "spoilage_rs": 107.71,
+          "refrigeration_rs": 11.94,
+          "total_cost_rs": 726.01,
+          "feasible": true,
+          "computation_time_s": 18.54,
+          "vehicles_used": 3
+        },
+        "classical": {
+          "name": "Classical (NN+2opt+ORopt)",
+          "distance": 601.44,
+          "distance_gap_pct": 2.24,
+          "spoilage_rs": 207.54,
+          "refrigeration_rs": 15.56,
+          "total_cost_rs": 824.53,
+          "feasible": true,
+          "computation_time_s": 0.3,
+          "vehicles_used": 3
+        },
+        "ortools": {
+          "name": "Google OR-Tools",
+          "distance": 597.77,
+          "distance_gap_pct": 1.61,
+          "spoilage_rs": 183.64,
+          "refrigeration_rs": 15.35,
+          "total_cost_rs": 796.76,
+          "feasible": true,
+          "computation_time_s": 2.7,
+          "vehicles_used": 3
+        },
+        "alns": {
+          "name": "ALNS Metaheuristic",
+          "distance": 602.14,
+          "distance_gap_pct": 2.35,
+          "spoilage_rs": 197.7,
+          "refrigeration_rs": 15.71,
+          "total_cost_rs": 815.55,
+          "feasible": true,
+          "computation_time_s": 5.09,
+          "vehicles_used": 3
+        },
+        "pulp_cbc": {
+          "name": "PuLP/CBC (ILP)",
+          "distance": 622.27,
+          "distance_gap_pct": 5.78,
+          "spoilage_rs": 187.58,
+          "refrigeration_rs": 16.68,
+          "total_cost_rs": 826.53,
+          "feasible": true,
+          "computation_time_s": 34.73,
+          "vehicles_used": 3
+        }
+      },
+      "cho_advantages": {
+        "spoilage_reduction_pct": 48.1,
+        "total_cost_reduction_pct": 11.9
+      }
+    },
+    {
+      "instance": "C208",
+      "class": "C2",
+      "num_customers": 100,
+      "bks_distance": 588.32,
+      "bks_vehicles": 3,
+      "solvers": {
+        "cho": {
+          "name": "Snow Rabbit: Hybrid Solver",
+          "distance": 617.17,
+          "distance_gap_pct": 4.9,
+          "spoilage_rs": 91.7,
+          "refrigeration_rs": 12.67,
+          "total_cost_rs": 721.54,
+          "feasible": true,
+          "computation_time_s": 19.4,
+          "vehicles_used": 3
+        },
+        "classical": {
+          "name": "Classical (NN+2opt+ORopt)",
+          "distance": 601.12,
+          "distance_gap_pct": 2.18,
+          "spoilage_rs": 212.47,
+          "refrigeration_rs": 13.97,
+          "total_cost_rs": 827.57,
+          "feasible": true,
+          "computation_time_s": 0.33,
+          "vehicles_used": 3
+        },
+        "ortools": {
+          "name": "Google OR-Tools",
+          "distance": 594.35,
+          "distance_gap_pct": 1.02,
+          "spoilage_rs": 215.35,
+          "refrigeration_rs": 14.08,
+          "total_cost_rs": 823.78,
+          "feasible": true,
+          "computation_time_s": 2.18,
+          "vehicles_used": 3
+        },
+        "alns": {
+          "name": "ALNS Metaheuristic",
+          "distance": 595.41,
+          "distance_gap_pct": 1.21,
+          "spoilage_rs": 193.15,
+          "refrigeration_rs": 14.8,
+          "total_cost_rs": 803.35,
+          "feasible": true,
+          "computation_time_s": 2.85,
+          "vehicles_used": 3
+        },
+        "pulp_cbc": {
+          "name": "PuLP/CBC (ILP)",
+          "distance": 618.77,
+          "distance_gap_pct": 5.17,
+          "spoilage_rs": 204.67,
+          "refrigeration_rs": 16.41,
+          "total_cost_rs": 839.85,
+          "feasible": true,
+          "computation_time_s": 41.47,
+          "vehicles_used": 3
+        }
+      },
+      "cho_advantages": {
+        "spoilage_reduction_pct": 56.8,
+        "total_cost_reduction_pct": 12.8
+      }
+    },
+    {
+      "instance": "R101",
+      "class": "R1",
+      "num_customers": 100,
+      "bks_distance": 1645.79,
+      "bks_vehicles": 19,
+      "solvers": {
+        "cho": {
+          "name": "Snow Rabbit: Hybrid Solver",
+          "distance": 1756.06,
+          "distance_gap_pct": 6.7,
+          "spoilage_rs": 164.18,
+          "refrigeration_rs": 32.22,
+          "total_cost_rs": 1952.46,
+          "feasible": true,
+          "computation_time_s": 8.15,
+          "vehicles_used": 19
+        },
+        "classical": {
+          "name": "Classical (NN+2opt+ORopt)",
+          "distance": 1709.05,
+          "distance_gap_pct": 3.84,
+          "spoilage_rs": 352.62,
+          "refrigeration_rs": 46.08,
+          "total_cost_rs": 2107.74,
+          "feasible": true,
+          "computation_time_s": 0.31,
+          "vehicles_used": 19
+        },
+        "ortools": {
+          "name": "Google OR-Tools",
+          "distance": 1685.27,
+          "distance_gap_pct": 2.4,
+          "spoilage_rs": 335.2,
+          "refrigeration_rs": 37.63,
+          "total_cost_rs": 2058.1,
+          "feasible": true,
+          "computation_time_s": 4.58,
+          "vehicles_used": 19
+        },
+        "alns": {
+          "name": "ALNS Metaheuristic",
+          "distance": 1724.35,
+          "distance_gap_pct": 4.77,
+          "spoilage_rs": 304.27,
+          "refrigeration_rs": 41.26,
+          "total_cost_rs": 2069.89,
+          "feasible": true,
+          "computation_time_s": 3.07,
+          "vehicles_used": 19
+        },
+        "pulp_cbc": {
+          "name": "PuLP/CBC (ILP)",
+          "distance": 1847.61,
+          "distance_gap_pct": 12.26,
+          "spoilage_rs": 373.25,
+          "refrigeration_rs": 46.33,
+          "total_cost_rs": 2267.18,
+          "feasible": true,
+          "computation_time_s": 59.64,
+          "vehicles_used": 19
+        }
+      },
+      "cho_advantages": {
+        "spoilage_reduction_pct": 53.4,
+        "total_cost_reduction_pct": 7.4
+      }
+    },
+    {
+      "instance": "R102",
+      "class": "R1",
+      "num_customers": 100,
+      "bks_distance": 1486.12,
+      "bks_vehicles": 17,
+      "solvers": {
+        "cho": {
+          "name": "Snow Rabbit: Hybrid Solver",
+          "distance": 1551.07,
+          "distance_gap_pct": 4.37,
+          "spoilage_rs": 195.17,
+          "refrigeration_rs": 32.41,
+          "total_cost_rs": 1778.65,
+          "feasible": true,
+          "computation_time_s": 28.08,
+          "vehicles_used": 17
+        },
+        "classical": {
+          "name": "Classical (NN+2opt+ORopt)",
+          "distance": 1594.14,
+          "distance_gap_pct": 7.27,
+          "spoilage_rs": 390.57,
+          "refrigeration_rs": 39.72,
+          "total_cost_rs": 2024.43,
+          "feasible": true,
+          "computation_time_s": 0.22,
+          "vehicles_used": 17
+        },
+        "ortools": {
+          "name": "Google OR-Tools",
+          "distance": 1501.39,
+          "distance_gap_pct": 1.03,
+          "spoilage_rs": 342.25,
+          "refrigeration_rs": 40.5,
+          "total_cost_rs": 1884.14,
+          "feasible": true,
+          "computation_time_s": 2.54,
+          "vehicles_used": 17
+        },
+        "alns": {
+          "name": "ALNS Metaheuristic",
+          "distance": 1539.2,
+          "distance_gap_pct": 3.57,
+          "spoilage_rs": 357.68,
+          "refrigeration_rs": 40.8,
+          "total_cost_rs": 1937.68,
+          "feasible": true,
+          "computation_time_s": 4.47,
+          "vehicles_used": 17
+        },
+        "pulp_cbc": {
+          "name": "PuLP/CBC (ILP)",
+          "distance": 1553.77,
+          "distance_gap_pct": 4.55,
+          "spoilage_rs": 398.98,
+          "refrigeration_rs": 41.71,
+          "total_cost_rs": 1994.46,
+          "feasible": true,
+          "computation_time_s": 81.95,
+          "vehicles_used": 17
+        }
+      },
+      "cho_advantages": {
+        "spoilage_reduction_pct": 50.0,
+        "total_cost_reduction_pct": 12.1
+      }
+    },
+    {
+      "instance": "R103",
+      "class": "R1",
+      "num_customers": 100,
+      "bks_distance": 1292.68,
+      "bks_vehicles": 13,
+      "solvers": {
+        "cho": {
+          "name": "Snow Rabbit: Hybrid Solver",
+          "distance": 1336.97,
+          "distance_gap_pct": 3.43,
+          "spoilage_rs": 130.78,
+          "refrigeration_rs": 26.48,
+          "total_cost_rs": 1494.23,
+          "feasible": true,
+          "computation_time_s": 32.43,
+          "vehicles_used": 13
+        },
+        "classical": {
+          "name": "Classical (NN+2opt+ORopt)",
+          "distance": 1355.6,
+          "distance_gap_pct": 4.87,
+          "spoilage_rs": 340.09,
+          "refrigeration_rs": 32.2,
+          "total_cost_rs": 1727.88,
+          "feasible": true,
+          "computation_time_s": 0.25,
+          "vehicles_used": 13
+        },
+        "ortools": {
+          "name": "Google OR-Tools",
+          "distance": 1328.84,
+          "distance_gap_pct": 2.8,
+          "spoilage_rs": 324.54,
+          "refrigeration_rs": 33.57,
+          "total_cost_rs": 1686.95,
+          "feasible": true,
+          "computation_time_s": 4.28,
+          "vehicles_used": 13
+        },
+        "alns": {
+          "name": "ALNS Metaheuristic",
+          "distance": 1344.48,
+          "distance_gap_pct": 4.01,
+          "spoilage_rs": 314.33,
+          "refrigeration_rs": 34.3,
+          "total_cost_rs": 1693.1,
+          "feasible": true,
+          "computation_time_s": 10.57,
+          "vehicles_used": 13
+        },
+        "pulp_cbc": {
+          "name": "PuLP/CBC (ILP)",
+          "distance": 1383.43,
+          "distance_gap_pct": 7.02,
+          "spoilage_rs": 384.07,
+          "refrigeration_rs": 32.73,
+          "total_cost_rs": 1800.23,
+          "feasible": true,
+          "computation_time_s": 95.39,
+          "vehicles_used": 13
+        }
+      },
+      "cho_advantages": {
+        "spoilage_reduction_pct": 61.5,
+        "total_cost_reduction_pct": 13.5
+      }
+    },
+    {
+      "instance": "R104",
+      "class": "R1",
+      "num_customers": 100,
+      "bks_distance": 1007.24,
+      "bks_vehicles": 9,
+      "solvers": {
+        "cho": {
+          "name": "Snow Rabbit: Hybrid Solver",
+          "distance": 1084.74,
+          "distance_gap_pct": 7.69,
+          "spoilage_rs": 154.94,
+          "refrigeration_rs": 20.32,
+          "total_cost_rs": 1260.0,
+          "feasible": true,
+          "computation_time_s": 11.45,
+          "vehicles_used": 9
+        },
+        "classical": {
+          "name": "Classical (NN+2opt+ORopt)",
+          "distance": 1027.71,
+          "distance_gap_pct": 2.03,
+          "spoilage_rs": 372.28,
+          "refrigeration_rs": 25.03,
+          "total_cost_rs": 1425.03,
+          "feasible": true,
+          "computation_time_s": 0.27,
+          "vehicles_used": 9
+        },
+        "ortools": {
+          "name": "Google OR-Tools",
+          "distance": 1023.77,
+          "distance_gap_pct": 1.64,
+          "spoilage_rs": 315.79,
+          "refrigeration_rs": 23.77,
+          "total_cost_rs": 1363.33,
+          "feasible": true,
+          "computation_time_s": 1.61,
+          "vehicles_used": 9
+        },
+        "alns": {
+          "name": "ALNS Metaheuristic",
+          "distance": 1036.52,
+          "distance_gap_pct": 2.91,
+          "spoilage_rs": 328.83,
+          "refrigeration_rs": 25.36,
+          "total_cost_rs": 1390.71,
+          "feasible": true,
+          "computation_time_s": 5.94,
+          "vehicles_used": 9
+        },
+        "pulp_cbc": {
+          "name": "PuLP/CBC (ILP)",
+          "distance": 1131.01,
+          "distance_gap_pct": 12.29,
+          "spoilage_rs": 360.23,
+          "refrigeration_rs": 25.33,
+          "total_cost_rs": 1516.57,
+          "feasible": true,
+          "computation_time_s": 74.26,
+          "vehicles_used": 9
+        }
+      },
+      "cho_advantages": {
+        "spoilage_reduction_pct": 58.4,
+        "total_cost_reduction_pct": 11.6
+      }
+    },
+    {
+      "instance": "R105",
+      "class": "R1",
+      "num_customers": 100,
+      "bks_distance": 1377.11,
+      "bks_vehicles": 14,
+      "solvers": {
+        "cho": {
+          "name": "Snow Rabbit: Hybrid Solver",
+          "distance": 1422.23,
+          "distance_gap_pct": 3.28,
+          "spoilage_rs": 152.69,
+          "refrigeration_rs": 25.93,
+          "total_cost_rs": 1600.85,
+          "feasible": true,
+          "computation_time_s": 29.09,
+          "vehicles_used": 14
+        },
+        "classical": {
+          "name": "Classical (NN+2opt+ORopt)",
+          "distance": 1453.33,
+          "distance_gap_pct": 5.54,
+          "spoilage_rs": 357.37,
+          "refrigeration_rs": 37.88,
+          "total_cost_rs": 1848.59,
+          "feasible": true,
+          "computation_time_s": 0.28,
+          "vehicles_used": 14
+        },
+        "ortools": {
+          "name": "Google OR-Tools",
+          "distance": 1385.12,
+          "distance_gap_pct": 0.58,
+          "spoilage_rs": 327.86,
+          "refrigeration_rs": 36.71,
+          "total_cost_rs": 1749.69,
+          "feasible": true,
+          "computation_time_s": 4.52,
+          "vehicles_used": 14
+        },
+        "alns": {
+          "name": "ALNS Metaheuristic",
+          "distance": 1405.24,
+          "distance_gap_pct": 2.04,
+          "spoilage_rs": 323.31,
+          "refrigeration_rs": 33.41,
+          "total_cost_rs": 1761.96,
+          "feasible": true,
+          "computation_time_s": 11.5,
+          "vehicles_used": 14
+        },
+        "pulp_cbc": {
+          "name": "PuLP/CBC (ILP)",
+          "distance": 1502.13,
+          "distance_gap_pct": 9.08,
+          "spoilage_rs": 417.05,
+          "refrigeration_rs": 34.99,
+          "total_cost_rs": 1954.18,
+          "feasible": true,
+          "computation_time_s": 35.93,
+          "vehicles_used": 14
+        }
+      },
+      "cho_advantages": {
+        "spoilage_reduction_pct": 57.3,
+        "total_cost_reduction_pct": 13.4
+      }
+    },
+    {
+      "instance": "R106",
+      "class": "R1",
+      "num_customers": 100,
+      "bks_distance": 1251.98,
+      "bks_vehicles": 12,
+      "solvers": {
+        "cho": {
+          "name": "Snow Rabbit: Hybrid Solver",
+          "distance": 1328.37,
+          "distance_gap_pct": 6.1,
+          "spoilage_rs": 167.09,
+          "refrigeration_rs": 24.05,
+          "total_cost_rs": 1519.51,
+          "feasible": true,
+          "computation_time_s": 18.71,
+          "vehicles_used": 12
+        },
+        "classical": {
+          "name": "Classical (NN+2opt+ORopt)",
+          "distance": 1287.51,
+          "distance_gap_pct": 2.84,
+          "spoilage_rs": 336.95,
+          "refrigeration_rs": 34.42,
+          "total_cost_rs": 1658.88,
+          "feasible": true,
+          "computation_time_s": 0.3,
+          "vehicles_used": 12
+        },
+        "ortools": {
+          "name": "Google OR-Tools",
+          "distance": 1259.01,
+          "distance_gap_pct": 0.56,
+          "spoilage_rs": 364.26,
+          "refrigeration_rs": 28.89,
+          "total_cost_rs": 1652.15,
+          "feasible": false,
+          "computation_time_s": 1.8,
+          "vehicles_used": 12
+        },
+        "alns": {
+          "name": "ALNS Metaheuristic",
+          "distance": 1277.08,
+          "distance_gap_pct": 2.0,
+          "spoilage_rs": 355.65,
+          "refrigeration_rs": 33.92,
+          "total_cost_rs": 1666.66,
+          "feasible": true,
+          "computation_time_s": 8.91,
+          "vehicles_used": 12
+        },
+        "pulp_cbc": {
+          "name": "PuLP/CBC (ILP)",
+          "distance": 1394.26,
+          "distance_gap_pct": 11.36,
+          "spoilage_rs": 349.48,
+          "refrigeration_rs": 37.34,
+          "total_cost_rs": 1781.08,
+          "feasible": true,
+          "computation_time_s": 80.86,
+          "vehicles_used": 12
+        }
+      },
+      "cho_advantages": {
+        "spoilage_reduction_pct": 50.4,
+        "total_cost_reduction_pct": 8.4
+      }
+    },
+    {
+      "instance": "R107",
+      "class": "R1",
+      "num_customers": 100,
+      "bks_distance": 1104.66,
+      "bks_vehicles": 10,
+      "solvers": {
+        "cho": {
+          "name": "Snow Rabbit: Hybrid Solver",
+          "distance": 1145.15,
+          "distance_gap_pct": 3.67,
+          "spoilage_rs": 144.3,
+          "refrigeration_rs": 21.21,
+          "total_cost_rs": 1310.66,
+          "feasible": true,
+          "computation_time_s": 19.76,
+          "vehicles_used": 10
+        },
+        "classical": {
+          "name": "Classical (NN+2opt+ORopt)",
+          "distance": 1173.69,
+          "distance_gap_pct": 6.25,
+          "spoilage_rs": 389.89,
+          "refrigeration_rs": 29.03,
+          "total_cost_rs": 1592.61,
+          "feasible": true,
+          "computation_time_s": 0.31,
+          "vehicles_used": 10
+        },
+        "ortools": {
+          "name": "Google OR-Tools",
+          "distance": 1113.56,
+          "distance_gap_pct": 0.81,
+          "spoilage_rs": 359.05,
+          "refrigeration_rs": 26.74,
+          "total_cost_rs": 1499.35,
+          "feasible": true,
+          "computation_time_s": 5.36,
+          "vehicles_used": 10
+        },
+        "alns": {
+          "name": "ALNS Metaheuristic",
+          "distance": 1158.8,
+          "distance_gap_pct": 4.9,
+          "spoilage_rs": 308.57,
+          "refrigeration_rs": 30.1,
+          "total_cost_rs": 1497.47,
+          "feasible": true,
+          "computation_time_s": 4.7,
+          "vehicles_used": 10
+        },
+        "pulp_cbc": {
+          "name": "PuLP/CBC (ILP)",
+          "distance": 1221.8,
+          "distance_gap_pct": 10.6,
+          "spoilage_rs": 363.28,
+          "refrigeration_rs": 32.16,
+          "total_cost_rs": 1617.24,
+          "feasible": true,
+          "computation_time_s": 99.86,
+          "vehicles_used": 10
+        }
+      },
+      "cho_advantages": {
+        "spoilage_reduction_pct": 63.0,
+        "total_cost_reduction_pct": 17.7
+      }
+    },
+    {
+      "instance": "R108",
+      "class": "R1",
+      "num_customers": 100,
+      "bks_distance": 963.99,
+      "bks_vehicles": 9,
+      "solvers": {
+        "cho": {
+          "name": "Snow Rabbit: Hybrid Solver",
+          "distance": 1007.14,
+          "distance_gap_pct": 4.48,
+          "spoilage_rs": 124.27,
+          "refrigeration_rs": 21.56,
+          "total_cost_rs": 1152.97,
+          "feasible": true,
+          "computation_time_s": 31.77,
+          "vehicles_used": 9
+        },
+        "classical": {
+          "name": "Classical (NN+2opt+ORopt)",
+          "distance": 1008.9,
+          "distance_gap_pct": 4.66,
+          "spoilage_rs": 348.45,
+          "refrigeration_rs": 25.13,
+          "total_cost_rs": 1382.49,
+          "feasible": true,
+          "computation_time_s": 0.3,
+          "vehicles_used": 9
+        },
+        "ortools": {
+          "name": "Google OR-Tools",
+          "distance": 984.37,
+          "distance_gap_pct": 2.11,
+          "spoilage_rs": 333.98,
+          "refrigeration_rs": 24.63,
+          "total_cost_rs": 1342.99,
+          "feasible": true,
+          "computation_time_s": 2.61,
+          "vehicles_used": 9
+        },
+        "alns": {
+          "name": "ALNS Metaheuristic",
+          "distance": 995.25,
+          "distance_gap_pct": 3.24,
+          "spoilage_rs": 263.75,
+          "refrigeration_rs": 24.0,
+          "total_cost_rs": 1282.99,
+          "feasible": true,
+          "computation_time_s": 2.1,
+          "vehicles_used": 9
+        },
+        "pulp_cbc": {
+          "name": "PuLP/CBC (ILP)",
+          "distance": 1080.07,
+          "distance_gap_pct": 12.04,
+          "spoilage_rs": 374.95,
+          "refrigeration_rs": 24.24,
+          "total_cost_rs": 1479.25,
+          "feasible": true,
+          "computation_time_s": 114.55,
+          "vehicles_used": 9
+        }
+      },
+      "cho_advantages": {
+        "spoilage_reduction_pct": 64.3,
+        "total_cost_reduction_pct": 16.6
+      }
+    },
+    {
+      "instance": "R109",
+      "class": "R1",
+      "num_customers": 100,
+      "bks_distance": 1194.73,
+      "bks_vehicles": 11,
+      "solvers": {
+        "cho": {
+          "name": "Snow Rabbit: Hybrid Solver",
+          "distance": 1275.95,
+          "distance_gap_pct": 6.8,
+          "spoilage_rs": 137.64,
+          "refrigeration_rs": 25.1,
+          "total_cost_rs": 1438.69,
+          "feasible": true,
+          "computation_time_s": 15.31,
+          "vehicles_used": 11
+        },
+        "classical": {
+          "name": "Classical (NN+2opt+ORopt)",
+          "distance": 1265.94,
+          "distance_gap_pct": 5.96,
+          "spoilage_rs": 372.84,
+          "refrigeration_rs": 32.51,
+          "total_cost_rs": 1671.29,
+          "feasible": true,
+          "computation_time_s": 0.14,
+          "vehicles_used": 11
+        },
+        "ortools": {
+          "name": "Google OR-Tools",
+          "distance": 1203.77,
+          "distance_gap_pct": 0.76,
+          "spoilage_rs": 345.02,
+          "refrigeration_rs": 28.71,
+          "total_cost_rs": 1577.5,
+          "feasible": true,
+          "computation_time_s": 1.98,
+          "vehicles_used": 11
+        },
+        "alns": {
+          "name": "ALNS Metaheuristic",
+          "distance": 1236.0,
+          "distance_gap_pct": 3.45,
+          "spoilage_rs": 356.73,
+          "refrigeration_rs": 30.95,
+          "total_cost_rs": 1623.68,
+          "feasible": true,
+          "computation_time_s": 3.93,
+          "vehicles_used": 11
+        },
+        "pulp_cbc": {
+          "name": "PuLP/CBC (ILP)",
+          "distance": 1342.16,
+          "distance_gap_pct": 12.34,
+          "spoilage_rs": 340.79,
+          "refrigeration_rs": 32.7,
+          "total_cost_rs": 1715.65,
+          "feasible": true,
+          "computation_time_s": 27.55,
+          "vehicles_used": 11
+        }
+      },
+      "cho_advantages": {
+        "spoilage_reduction_pct": 63.1,
+        "total_cost_reduction_pct": 13.9
+      }
+    },
+    {
+      "instance": "R110",
+      "class": "R1",
+      "num_customers": 100,
+      "bks_distance": 1118.59,
+      "bks_vehicles": 10,
+      "solvers": {
+        "cho": {
+          "name": "Snow Rabbit: Hybrid Solver",
+          "distance": 1181.94,
+          "distance_gap_pct": 5.66,
+          "spoilage_rs": 126.25,
+          "refrigeration_rs": 23.51,
+          "total_cost_rs": 1331.7,
+          "feasible": true,
+          "computation_time_s": 11.41,
+          "vehicles_used": 10
+        },
+        "classical": {
+          "name": "Classical (NN+2opt+ORopt)",
+          "distance": 1187.85,
+          "distance_gap_pct": 6.19,
+          "spoilage_rs": 372.8,
+          "refrigeration_rs": 27.65,
+          "total_cost_rs": 1588.3,
+          "feasible": true,
+          "computation_time_s": 0.35,
+          "vehicles_used": 10
+        },
+        "ortools": {
+          "name": "Google OR-Tools",
+          "distance": 1142.17,
+          "distance_gap_pct": 2.11,
+          "spoilage_rs": 380.04,
+          "refrigeration_rs": 26.44,
+          "total_cost_rs": 1548.65,
+          "feasible": true,
+          "computation_time_s": 3.46,
+          "vehicles_used": 10
+        },
+        "alns": {
+          "name": "ALNS Metaheuristic",
+          "distance": 1143.65,
+          "distance_gap_pct": 2.24,
+          "spoilage_rs": 327.52,
+          "refrigeration_rs": 26.73,
+          "total_cost_rs": 1497.91,
+          "feasible": true,
+          "computation_time_s": 10.73,
+          "vehicles_used": 10
+        },
+        "pulp_cbc": {
+          "name": "PuLP/CBC (ILP)",
+          "distance": 1189.96,
+          "distance_gap_pct": 6.38,
+          "spoilage_rs": 353.46,
+          "refrigeration_rs": 28.04,
+          "total_cost_rs": 1571.46,
+          "feasible": true,
+          "computation_time_s": 75.28,
+          "vehicles_used": 10
+        }
+      },
+      "cho_advantages": {
+        "spoilage_reduction_pct": 66.1,
+        "total_cost_reduction_pct": 16.2
+      }
+    },
+    {
+      "instance": "R111",
+      "class": "R1",
+      "num_customers": 100,
+      "bks_distance": 1096.72,
+      "bks_vehicles": 10,
+      "solvers": {
+        "cho": {
+          "name": "Snow Rabbit: Hybrid Solver",
+          "distance": 1186.39,
+          "distance_gap_pct": 8.18,
+          "spoilage_rs": 161.94,
+          "refrigeration_rs": 25.2,
+          "total_cost_rs": 1373.52,
+          "feasible": true,
+          "computation_time_s": 14.09,
+          "vehicles_used": 10
+        },
+        "classical": {
+          "name": "Classical (NN+2opt+ORopt)",
+          "distance": 1145.22,
+          "distance_gap_pct": 4.42,
+          "spoilage_rs": 344.96,
+          "refrigeration_rs": 26.34,
+          "total_cost_rs": 1516.52,
+          "feasible": true,
+          "computation_time_s": 0.23,
+          "vehicles_used": 10
+        },
+        "ortools": {
+          "name": "Google OR-Tools",
+          "distance": 1117.65,
+          "distance_gap_pct": 1.91,
+          "spoilage_rs": 359.75,
+          "refrigeration_rs": 25.49,
+          "total_cost_rs": 1502.89,
+          "feasible": true,
+          "computation_time_s": 3.3,
+          "vehicles_used": 10
+        },
+        "alns": {
+          "name": "ALNS Metaheuristic",
+          "distance": 1121.26,
+          "distance_gap_pct": 2.24,
+          "spoilage_rs": 310.8,
+          "refrigeration_rs": 28.31,
+          "total_cost_rs": 1460.37,
+          "feasible": true,
+          "computation_time_s": 6.43,
+          "vehicles_used": 10
+        },
+        "pulp_cbc": {
+          "name": "PuLP/CBC (ILP)",
+          "distance": 1146.79,
+          "distance_gap_pct": 4.57,
+          "spoilage_rs": 326.26,
+          "refrigeration_rs": 29.08,
+          "total_cost_rs": 1502.13,
+          "feasible": true,
+          "computation_time_s": 105.32,
+          "vehicles_used": 10
+        }
+      },
+      "cho_advantages": {
+        "spoilage_reduction_pct": 53.1,
+        "total_cost_reduction_pct": 9.4
+      }
+    },
+    {
+      "instance": "R112",
+      "class": "R1",
+      "num_customers": 100,
+      "bks_distance": 982.14,
+      "bks_vehicles": 9,
+      "solvers": {
+        "cho": {
+          "name": "Snow Rabbit: Hybrid Solver",
+          "distance": 1051.58,
+          "distance_gap_pct": 7.07,
+          "spoilage_rs": 120.69,
+          "refrigeration_rs": 20.89,
+          "total_cost_rs": 1193.17,
+          "feasible": true,
+          "computation_time_s": 20.26,
+          "vehicles_used": 9
+        },
+        "classical": {
+          "name": "Classical (NN+2opt+ORopt)",
+          "distance": 1018.28,
+          "distance_gap_pct": 3.68,
+          "spoilage_rs": 362.55,
+          "refrigeration_rs": 24.18,
+          "total_cost_rs": 1405.01,
+          "feasible": true,
+          "computation_time_s": 0.29,
+          "vehicles_used": 9
+        },
+        "ortools": {
+          "name": "Google OR-Tools",
+          "distance": 1016.22,
+          "distance_gap_pct": 3.47,
+          "spoilage_rs": 291.33,
+          "refrigeration_rs": 22.47,
+          "total_cost_rs": 1330.01,
+          "feasible": true,
+          "computation_time_s": 5.2,
+          "vehicles_used": 9
+        },
+        "alns": {
+          "name": "ALNS Metaheuristic",
+          "distance": 1021.27,
+          "distance_gap_pct": 3.98,
+          "spoilage_rs": 278.48,
+          "refrigeration_rs": 22.6,
+          "total_cost_rs": 1322.36,
+          "feasible": true,
+          "computation_time_s": 9.88,
+          "vehicles_used": 9
+        },
+        "pulp_cbc": {
+          "name": "PuLP/CBC (ILP)",
+          "distance": 1087.29,
+          "distance_gap_pct": 10.71,
+          "spoilage_rs": 361.73,
+          "refrigeration_rs": 26.77,
+          "total_cost_rs": 1475.78,
+          "feasible": true,
+          "computation_time_s": 80.63,
+          "vehicles_used": 9
+        }
+      },
+      "cho_advantages": {
+        "spoilage_reduction_pct": 66.7,
+        "total_cost_reduction_pct": 15.1
+      }
+    },
+    {
+      "instance": "R201",
+      "class": "R2",
+      "num_customers": 100,
+      "bks_distance": 1252.37,
+      "bks_vehicles": 4,
+      "solvers": {
+        "cho": {
+          "name": "Snow Rabbit: Hybrid Solver",
+          "distance": 1322.22,
+          "distance_gap_pct": 5.58,
+          "spoilage_rs": 212.89,
+          "refrigeration_rs": 27.15,
+          "total_cost_rs": 1562.26,
+          "feasible": true,
+          "computation_time_s": 8.65,
+          "vehicles_used": 4
+        },
+        "classical": {
+          "name": "Classical (NN+2opt+ORopt)",
+          "distance": 1328.32,
+          "distance_gap_pct": 6.06,
+          "spoilage_rs": 584.43,
+          "refrigeration_rs": 34.43,
+          "total_cost_rs": 1947.19,
+          "feasible": true,
+          "computation_time_s": 0.06,
+          "vehicles_used": 4
+        },
+        "ortools": {
+          "name": "Google OR-Tools",
+          "distance": 1278.81,
+          "distance_gap_pct": 2.11,
+          "spoilage_rs": 552.69,
+          "refrigeration_rs": 31.74,
+          "total_cost_rs": 1863.24,
+          "feasible": true,
+          "computation_time_s": 3.23,
+          "vehicles_used": 4
+        },
+        "alns": {
+          "name": "ALNS Metaheuristic",
+          "distance": 1286.44,
+          "distance_gap_pct": 2.72,
+          "spoilage_rs": 434.93,
+          "refrigeration_rs": 30.61,
+          "total_cost_rs": 1751.98,
+          "feasible": true,
+          "computation_time_s": 5.22,
+          "vehicles_used": 4
+        },
+        "pulp_cbc": {
+          "name": "PuLP/CBC (ILP)",
+          "distance": 1358.72,
+          "distance_gap_pct": 8.49,
+          "spoilage_rs": 514.4,
+          "refrigeration_rs": 32.09,
+          "total_cost_rs": 1905.21,
+          "feasible": true,
+          "computation_time_s": 35.1,
+          "vehicles_used": 4
+        }
+      },
+      "cho_advantages": {
+        "spoilage_reduction_pct": 63.6,
+        "total_cost_reduction_pct": 19.8
+      }
+    },
+    {
+      "instance": "R202",
+      "class": "R2",
+      "num_customers": 100,
+      "bks_distance": 1191.7,
+      "bks_vehicles": 3,
+      "solvers": {
+        "cho": {
+          "name": "Snow Rabbit: Hybrid Solver",
+          "distance": 1275.06,
+          "distance_gap_pct": 6.99,
+          "spoilage_rs": 288.5,
+          "refrigeration_rs": 25.31,
+          "total_cost_rs": 1588.86,
+          "feasible": true,
+          "computation_time_s": 14.45,
+          "vehicles_used": 3
+        },
+        "classical": {
+          "name": "Classical (NN+2opt+ORopt)",
+          "distance": 1265.55,
+          "distance_gap_pct": 6.2,
+          "spoilage_rs": 654.94,
+          "refrigeration_rs": 31.11,
+          "total_cost_rs": 1951.6,
+          "feasible": true,
+          "computation_time_s": 0.28,
+          "vehicles_used": 3
+        },
+        "ortools": {
+          "name": "Google OR-Tools",
+          "distance": 1199.54,
+          "distance_gap_pct": 0.66,
+          "spoilage_rs": 585.61,
+          "refrigeration_rs": 30.7,
+          "total_cost_rs": 1815.85,
+          "feasible": true,
+          "computation_time_s": 4.93,
+          "vehicles_used": 3
+        },
+        "alns": {
+          "name": "ALNS Metaheuristic",
+          "distance": 1240.77,
+          "distance_gap_pct": 4.12,
+          "spoilage_rs": 505.69,
+          "refrigeration_rs": 32.87,
+          "total_cost_rs": 1779.32,
+          "feasible": true,
+          "computation_time_s": 5.3,
+          "vehicles_used": 3
+        },
+        "pulp_cbc": {
+          "name": "PuLP/CBC (ILP)",
+          "distance": 1296.31,
+          "distance_gap_pct": 8.78,
+          "spoilage_rs": 544.63,
+          "refrigeration_rs": 30.87,
+          "total_cost_rs": 1871.81,
+          "feasible": true,
+          "computation_time_s": 74.66,
+          "vehicles_used": 3
+        }
+      },
+      "cho_advantages": {
+        "spoilage_reduction_pct": 56.0,
+        "total_cost_reduction_pct": 18.6
+      }
+    },
+    {
+      "instance": "R203",
+      "class": "R2",
+      "num_customers": 100,
+      "bks_distance": 939.54,
+      "bks_vehicles": 3,
+      "solvers": {
+        "cho": {
+          "name": "Snow Rabbit: Hybrid Solver",
+          "distance": 983.48,
+          "distance_gap_pct": 4.68,
+          "spoilage_rs": 204.27,
+          "refrigeration_rs": 18.37,
+          "total_cost_rs": 1206.11,
+          "feasible": true,
+          "computation_time_s": 11.47,
+          "vehicles_used": 3
+        },
+        "classical": {
+          "name": "Classical (NN+2opt+ORopt)",
+          "distance": 997.03,
+          "distance_gap_pct": 6.12,
+          "spoilage_rs": 440.55,
+          "refrigeration_rs": 26.96,
+          "total_cost_rs": 1464.54,
+          "feasible": true,
+          "computation_time_s": 0.24,
+          "vehicles_used": 3
+        },
+        "ortools": {
+          "name": "Google OR-Tools",
+          "distance": 950.44,
+          "distance_gap_pct": 1.16,
+          "spoilage_rs": 423.08,
+          "refrigeration_rs": 24.23,
+          "total_cost_rs": 1397.75,
+          "feasible": true,
+          "computation_time_s": 5.21,
+          "vehicles_used": 3
+        },
+        "alns": {
+          "name": "ALNS Metaheuristic",
+          "distance": 977.51,
+          "distance_gap_pct": 4.04,
+          "spoilage_rs": 476.22,
+          "refrigeration_rs": 24.16,
+          "total_cost_rs": 1477.89,
+          "feasible": true,
+          "computation_time_s": 6.38,
+          "vehicles_used": 3
+        },
+        "pulp_cbc": {
+          "name": "PuLP/CBC (ILP)",
+          "distance": 1019.81,
+          "distance_gap_pct": 8.54,
+          "spoilage_rs": 476.37,
+          "refrigeration_rs": 25.43,
+          "total_cost_rs": 1521.61,
+          "feasible": true,
+          "computation_time_s": 75.07,
+          "vehicles_used": 3
+        }
+      },
+      "cho_advantages": {
+        "spoilage_reduction_pct": 53.6,
+        "total_cost_reduction_pct": 17.6
+      }
+    },
+    {
+      "instance": "R204",
+      "class": "R2",
+      "num_customers": 100,
+      "bks_distance": 825.52,
+      "bks_vehicles": 2,
+      "solvers": {
+        "cho": {
+          "name": "Snow Rabbit: Hybrid Solver",
+          "distance": 852.68,
+          "distance_gap_pct": 3.29,
+          "spoilage_rs": 260.93,
+          "refrigeration_rs": 17.99,
+          "total_cost_rs": 1131.61,
+          "feasible": true,
+          "computation_time_s": 12.39,
+          "vehicles_used": 2
+        },
+        "classical": {
+          "name": "Classical (NN+2opt+ORopt)",
+          "distance": 877.11,
+          "distance_gap_pct": 6.25,
+          "spoilage_rs": 502.23,
+          "refrigeration_rs": 21.51,
+          "total_cost_rs": 1400.85,
+          "feasible": true,
+          "computation_time_s": 0.24,
+          "vehicles_used": 2
+        },
+        "ortools": {
+          "name": "Google OR-Tools",
+          "distance": 831.58,
+          "distance_gap_pct": 0.73,
+          "spoilage_rs": 482.55,
+          "refrigeration_rs": 19.06,
+          "total_cost_rs": 1333.19,
+          "feasible": true,
+          "computation_time_s": 3.03,
+          "vehicles_used": 2
+        },
+        "alns": {
+          "name": "ALNS Metaheuristic",
+          "distance": 853.13,
+          "distance_gap_pct": 3.35,
+          "spoilage_rs": 408.04,
+          "refrigeration_rs": 22.42,
+          "total_cost_rs": 1283.59,
+          "feasible": true,
+          "computation_time_s": 11.22,
+          "vehicles_used": 2
+        },
+        "pulp_cbc": {
+          "name": "PuLP/CBC (ILP)",
+          "distance": 872.06,
+          "distance_gap_pct": 5.64,
+          "spoilage_rs": 594.33,
+          "refrigeration_rs": 22.7,
+          "total_cost_rs": 1489.08,
+          "feasible": true,
+          "computation_time_s": 58.11,
+          "vehicles_used": 2
+        }
+      },
+      "cho_advantages": {
+        "spoilage_reduction_pct": 48.0,
+        "total_cost_reduction_pct": 19.2
+      }
+    },
+    {
+      "instance": "R205",
+      "class": "R2",
+      "num_customers": 100,
+      "bks_distance": 994.42,
+      "bks_vehicles": 3,
+      "solvers": {
+        "cho": {
+          "name": "Snow Rabbit: Hybrid Solver",
+          "distance": 1039.07,
+          "distance_gap_pct": 4.49,
+          "spoilage_rs": 194.28,
+          "refrigeration_rs": 20.92,
+          "total_cost_rs": 1254.27,
+          "feasible": true,
+          "computation_time_s": 14.18,
+          "vehicles_used": 3
+        },
+        "classical": {
+          "name": "Classical (NN+2opt+ORopt)",
+          "distance": 1051.49,
+          "distance_gap_pct": 5.74,
+          "spoilage_rs": 538.87,
+          "refrigeration_rs": 26.54,
+          "total_cost_rs": 1616.9,
+          "feasible": true,
+          "computation_time_s": 0.12,
+          "vehicles_used": 3
+        },
+        "ortools": {
+          "name": "Google OR-Tools",
+          "distance": 1020.94,
+          "distance_gap_pct": 2.67,
+          "spoilage_rs": 469.4,
+          "refrigeration_rs": 27.34,
+          "total_cost_rs": 1517.68,
+          "feasible": true,
+          "computation_time_s": 4.29,
+          "vehicles_used": 3
+        },
+        "alns": {
+          "name": "ALNS Metaheuristic",
+          "distance": 1016.44,
+          "distance_gap_pct": 2.21,
+          "spoilage_rs": 486.51,
+          "refrigeration_rs": 25.31,
+          "total_cost_rs": 1528.26,
+          "feasible": true,
+          "computation_time_s": 7.72,
+          "vehicles_used": 3
+        },
+        "pulp_cbc": {
+          "name": "PuLP/CBC (ILP)",
+          "distance": 1101.68,
+          "distance_gap_pct": 10.79,
+          "spoilage_rs": 487.62,
+          "refrigeration_rs": 25.6,
+          "total_cost_rs": 1614.9,
+          "feasible": true,
+          "computation_time_s": 33.6,
+          "vehicles_used": 3
+        }
+      },
+      "cho_advantages": {
+        "spoilage_reduction_pct": 63.9,
+        "total_cost_reduction_pct": 22.4
+      }
+    },
+    {
+      "instance": "R206",
+      "class": "R2",
+      "num_customers": 100,
+      "bks_distance": 906.14,
+      "bks_vehicles": 3,
+      "solvers": {
+        "cho": {
+          "name": "Snow Rabbit: Hybrid Solver",
+          "distance": 963.62,
+          "distance_gap_pct": 6.34,
+          "spoilage_rs": 195.23,
+          "refrigeration_rs": 20.36,
+          "total_cost_rs": 1179.21,
+          "feasible": true,
+          "computation_time_s": 16.21,
+          "vehicles_used": 3
+        },
+        "classical": {
+          "name": "Classical (NN+2opt+ORopt)",
+          "distance": 923.39,
+          "distance_gap_pct": 1.9,
+          "spoilage_rs": 432.53,
+          "refrigeration_rs": 21.69,
+          "total_cost_rs": 1377.61,
+          "feasible": true,
+          "computation_time_s": 0.28,
+          "vehicles_used": 3
+        },
+        "ortools": {
+          "name": "Google OR-Tools",
+          "distance": 927.91,
+          "distance_gap_pct": 2.4,
+          "spoilage_rs": 444.37,
+          "refrigeration_rs": 22.66,
+          "total_cost_rs": 1394.94,
+          "feasible": true,
+          "computation_time_s": 2.12,
+          "vehicles_used": 3
+        },
+        "alns": {
+          "name": "ALNS Metaheuristic",
+          "distance": 940.64,
+          "distance_gap_pct": 3.81,
+          "spoilage_rs": 443.34,
+          "refrigeration_rs": 23.52,
+          "total_cost_rs": 1407.49,
+          "feasible": true,
+          "computation_time_s": 6.69,
+          "vehicles_used": 3
+        },
+        "pulp_cbc": {
+          "name": "PuLP/CBC (ILP)",
+          "distance": 996.7,
+          "distance_gap_pct": 9.99,
+          "spoilage_rs": 531.24,
+          "refrigeration_rs": 26.59,
+          "total_cost_rs": 1554.53,
+          "feasible": true,
+          "computation_time_s": 99.25,
+          "vehicles_used": 3
+        }
+      },
+      "cho_advantages": {
+        "spoilage_reduction_pct": 54.9,
+        "total_cost_reduction_pct": 14.4
+      }
+    },
+    {
+      "instance": "R207",
+      "class": "R2",
+      "num_customers": 100,
+      "bks_distance": 890.61,
+      "bks_vehicles": 2,
+      "solvers": {
+        "cho": {
+          "name": "Snow Rabbit: Hybrid Solver",
+          "distance": 948.81,
+          "distance_gap_pct": 6.53,
+          "spoilage_rs": 264.41,
+          "refrigeration_rs": 20.18,
+          "total_cost_rs": 1233.4,
+          "feasible": true,
+          "computation_time_s": 21.34,
+          "vehicles_used": 2
+        },
+        "classical": {
+          "name": "Classical (NN+2opt+ORopt)",
+          "distance": 934.59,
+          "distance_gap_pct": 4.94,
+          "spoilage_rs": 581.46,
+          "refrigeration_rs": 25.04,
+          "total_cost_rs": 1541.09,
+          "feasible": true,
+          "computation_time_s": 0.36,
+          "vehicles_used": 2
+        },
+        "ortools": {
+          "name": "Google OR-Tools",
+          "distance": 902.08,
+          "distance_gap_pct": 1.29,
+          "spoilage_rs": 498.47,
+          "refrigeration_rs": 20.2,
+          "total_cost_rs": 1420.75,
+          "feasible": true,
+          "computation_time_s": 3.27,
+          "vehicles_used": 2
+        },
+        "alns": {
+          "name": "ALNS Metaheuristic",
+          "distance": 921.64,
+          "distance_gap_pct": 3.48,
+          "spoilage_rs": 468.92,
+          "refrigeration_rs": 20.79,
+          "total_cost_rs": 1411.35,
+          "feasible": true,
+          "computation_time_s": 8.94,
+          "vehicles_used": 2
+        },
+        "pulp_cbc": {
+          "name": "PuLP/CBC (ILP)",
+          "distance": 991.82,
+          "distance_gap_pct": 11.36,
+          "spoilage_rs": 600.19,
+          "refrigeration_rs": 25.08,
+          "total_cost_rs": 1617.09,
+          "feasible": false,
+          "computation_time_s": 93.38,
+          "vehicles_used": 2
+        }
+      },
+      "cho_advantages": {
+        "spoilage_reduction_pct": 54.5,
+        "total_cost_reduction_pct": 20.0
+      }
+    },
+    {
+      "instance": "R208",
+      "class": "R2",
+      "num_customers": 100,
+      "bks_distance": 726.75,
+      "bks_vehicles": 2,
+      "solvers": {
+        "cho": {
+          "name": "Snow Rabbit: Hybrid Solver",
+          "distance": 750.23,
+          "distance_gap_pct": 3.23,
+          "spoilage_rs": 153.94,
+          "refrigeration_rs": 14.07,
+          "total_cost_rs": 918.24,
+          "feasible": true,
+          "computation_time_s": 25.27,
+          "vehicles_used": 2
+        },
+        "classical": {
+          "name": "Classical (NN+2opt+ORopt)",
+          "distance": 766.15,
+          "distance_gap_pct": 5.42,
+          "spoilage_rs": 440.07,
+          "refrigeration_rs": 20.42,
+          "total_cost_rs": 1226.65,
+          "feasible": true,
+          "computation_time_s": 0.37,
+          "vehicles_used": 2
+        },
+        "ortools": {
+          "name": "Google OR-Tools",
+          "distance": 730.69,
+          "distance_gap_pct": 0.54,
+          "spoilage_rs": 426.25,
+          "refrigeration_rs": 18.6,
+          "total_cost_rs": 1175.54,
+          "feasible": true,
+          "computation_time_s": 4.21,
+          "vehicles_used": 2
+        },
+        "alns": {
+          "name": "ALNS Metaheuristic",
+          "distance": 743.27,
+          "distance_gap_pct": 2.27,
+          "spoilage_rs": 432.53,
+          "refrigeration_rs": 17.59,
+          "total_cost_rs": 1193.38,
+          "feasible": true,
+          "computation_time_s": 3.58,
+          "vehicles_used": 2
+        },
+        "pulp_cbc": {
+          "name": "PuLP/CBC (ILP)",
+          "distance": 776.93,
+          "distance_gap_pct": 6.9,
+          "spoilage_rs": 422.65,
+          "refrigeration_rs": 21.49,
+          "total_cost_rs": 1221.07,
+          "feasible": false,
+          "computation_time_s": 52.17,
+          "vehicles_used": 2
+        }
+      },
+      "cho_advantages": {
+        "spoilage_reduction_pct": 65.0,
+        "total_cost_reduction_pct": 25.1
+      }
+    },
+    {
+      "instance": "R209",
+      "class": "R2",
+      "num_customers": 100,
+      "bks_distance": 909.16,
+      "bks_vehicles": 3,
+      "solvers": {
+        "cho": {
+          "name": "Snow Rabbit: Hybrid Solver",
+          "distance": 942.97,
+          "distance_gap_pct": 3.72,
+          "spoilage_rs": 171.93,
+          "refrigeration_rs": 20.83,
+          "total_cost_rs": 1135.72,
+          "feasible": true,
+          "computation_time_s": 23.89,
+          "vehicles_used": 3
+        },
+        "classical": {
+          "name": "Classical (NN+2opt+ORopt)",
+          "distance": 949.59,
+          "distance_gap_pct": 4.45,
+          "spoilage_rs": 483.14,
+          "refrigeration_rs": 24.19,
+          "total_cost_rs": 1456.93,
+          "feasible": true,
+          "computation_time_s": 0.07,
+          "vehicles_used": 3
+        },
+        "ortools": {
+          "name": "Google OR-Tools",
+          "distance": 921.04,
+          "distance_gap_pct": 1.31,
+          "spoilage_rs": 396.11,
+          "refrigeration_rs": 23.07,
+          "total_cost_rs": 1340.22,
+          "feasible": true,
+          "computation_time_s": 3.93,
+          "vehicles_used": 3
+        },
+        "alns": {
+          "name": "ALNS Metaheuristic",
+          "distance": 940.5,
+          "distance_gap_pct": 3.45,
+          "spoilage_rs": 398.13,
+          "refrigeration_rs": 25.42,
+          "total_cost_rs": 1364.05,
+          "feasible": true,
+          "computation_time_s": 6.97,
+          "vehicles_used": 3
+        },
+        "pulp_cbc": {
+          "name": "PuLP/CBC (ILP)",
+          "distance": 976.14,
+          "distance_gap_pct": 7.37,
+          "spoilage_rs": 470.84,
+          "refrigeration_rs": 24.07,
+          "total_cost_rs": 1471.05,
+          "feasible": true,
+          "computation_time_s": 93.45,
+          "vehicles_used": 3
+        }
+      },
+      "cho_advantages": {
+        "spoilage_reduction_pct": 64.4,
+        "total_cost_reduction_pct": 22.0
+      }
+    },
+    {
+      "instance": "R210",
+      "class": "R2",
+      "num_customers": 100,
+      "bks_distance": 939.34,
+      "bks_vehicles": 3,
+      "solvers": {
+        "cho": {
+          "name": "Snow Rabbit: Hybrid Solver",
+          "distance": 991.25,
+          "distance_gap_pct": 5.53,
+          "spoilage_rs": 235.27,
+          "refrigeration_rs": 19.37,
+          "total_cost_rs": 1245.89,
+          "feasible": true,
+          "computation_time_s": 23.95,
+          "vehicles_used": 3
+        },
+        "classical": {
+          "name": "Classical (NN+2opt+ORopt)",
+          "distance": 990.39,
+          "distance_gap_pct": 5.43,
+          "spoilage_rs": 474.35,
+          "refrigeration_rs": 25.26,
+          "total_cost_rs": 1490.0,
+          "feasible": true,
+          "computation_time_s": 0.11,
+          "vehicles_used": 3
+        },
+        "ortools": {
+          "name": "Google OR-Tools",
+          "distance": 950.19,
+          "distance_gap_pct": 1.15,
+          "spoilage_rs": 462.21,
+          "refrigeration_rs": 25.38,
+          "total_cost_rs": 1437.77,
+          "feasible": true,
+          "computation_time_s": 2.03,
+          "vehicles_used": 3
+        },
+        "alns": {
+          "name": "ALNS Metaheuristic",
+          "distance": 970.7,
+          "distance_gap_pct": 3.34,
+          "spoilage_rs": 448.54,
+          "refrigeration_rs": 24.64,
+          "total_cost_rs": 1443.89,
+          "feasible": true,
+          "computation_time_s": 7.39,
+          "vehicles_used": 3
+        },
+        "pulp_cbc": {
+          "name": "PuLP/CBC (ILP)",
+          "distance": 1002.22,
+          "distance_gap_pct": 6.69,
+          "spoilage_rs": 509.18,
+          "refrigeration_rs": 24.93,
+          "total_cost_rs": 1536.34,
+          "feasible": true,
+          "computation_time_s": 99.46,
+          "vehicles_used": 3
+        }
+      },
+      "cho_advantages": {
+        "spoilage_reduction_pct": 50.4,
+        "total_cost_reduction_pct": 16.4
+      }
+    },
+    {
+      "instance": "R211",
+      "class": "R2",
+      "num_customers": 100,
+      "bks_distance": 892.71,
+      "bks_vehicles": 2,
+      "solvers": {
+        "cho": {
+          "name": "Snow Rabbit: Hybrid Solver",
+          "distance": 949.89,
+          "distance_gap_pct": 6.41,
+          "spoilage_rs": 193.14,
+          "refrigeration_rs": 19.49,
+          "total_cost_rs": 1162.51,
+          "feasible": true,
+          "computation_time_s": 24.95,
+          "vehicles_used": 2
+        },
+        "classical": {
+          "name": "Classical (NN+2opt+ORopt)",
+          "distance": 946.01,
+          "distance_gap_pct": 5.97,
+          "spoilage_rs": 534.22,
+          "refrigeration_rs": 25.5,
+          "total_cost_rs": 1505.73,
+          "feasible": true,
+          "computation_time_s": 0.05,
+          "vehicles_used": 2
+        },
+        "ortools": {
+          "name": "Google OR-Tools",
+          "distance": 908.59,
+          "distance_gap_pct": 1.78,
+          "spoilage_rs": 554.56,
+          "refrigeration_rs": 20.71,
+          "total_cost_rs": 1483.86,
+          "feasible": true,
+          "computation_time_s": 3.65,
+          "vehicles_used": 2
+        },
+        "alns": {
+          "name": "ALNS Metaheuristic",
+          "distance": 929.3,
+          "distance_gap_pct": 4.1,
+          "spoilage_rs": 525.38,
+          "refrigeration_rs": 24.85,
+          "total_cost_rs": 1479.53,
+          "feasible": true,
+          "computation_time_s": 6.55,
+          "vehicles_used": 2
+        },
+        "pulp_cbc": {
+          "name": "PuLP/CBC (ILP)",
+          "distance": 944.51,
+          "distance_gap_pct": 5.8,
+          "spoilage_rs": 544.52,
+          "refrigeration_rs": 26.16,
+          "total_cost_rs": 1515.19,
+          "feasible": true,
+          "computation_time_s": 72.8,
+          "vehicles_used": 2
+        }
+      },
+      "cho_advantages": {
+        "spoilage_reduction_pct": 63.8,
+        "total_cost_reduction_pct": 22.8
+      }
+    },
+    {
+      "instance": "RC101",
+      "class": "RC1",
+      "num_customers": 100,
+      "bks_distance": 1696.94,
+      "bks_vehicles": 14,
+      "solvers": {
+        "cho": {
+          "name": "Snow Rabbit: Hybrid Solver",
+          "distance": 1764.06,
+          "distance_gap_pct": 3.96,
+          "spoilage_rs": 262.6,
+          "refrigeration_rs": 34.0,
+          "total_cost_rs": 2060.66,
+          "feasible": true,
+          "computation_time_s": 23.43,
+          "vehicles_used": 14
+        },
+        "classical": {
+          "name": "Classical (NN+2opt+ORopt)",
+          "distance": 1794.29,
+          "distance_gap_pct": 5.74,
+          "spoilage_rs": 467.01,
+          "refrigeration_rs": 42.18,
+          "total_cost_rs": 2303.48,
+          "feasible": true,
+          "computation_time_s": 0.08,
+          "vehicles_used": 14
+        },
+        "ortools": {
+          "name": "Google OR-Tools",
+          "distance": 1743.92,
+          "distance_gap_pct": 2.77,
+          "spoilage_rs": 422.05,
+          "refrigeration_rs": 38.72,
+          "total_cost_rs": 2204.7,
+          "feasible": true,
+          "computation_time_s": 5.05,
+          "vehicles_used": 14
+        },
+        "alns": {
+          "name": "ALNS Metaheuristic",
+          "distance": 1786.35,
+          "distance_gap_pct": 5.27,
+          "spoilage_rs": 504.97,
+          "refrigeration_rs": 46.02,
+          "total_cost_rs": 2337.34,
+          "feasible": true,
+          "computation_time_s": 3.36,
+          "vehicles_used": 14
+        },
+        "pulp_cbc": {
+          "name": "PuLP/CBC (ILP)",
+          "distance": 1964.68,
+          "distance_gap_pct": 15.78,
+          "spoilage_rs": 537.39,
+          "refrigeration_rs": 50.14,
+          "total_cost_rs": 2552.2,
+          "feasible": true,
+          "computation_time_s": 68.9,
+          "vehicles_used": 14
+        }
+      },
+      "cho_advantages": {
+        "spoilage_reduction_pct": 43.8,
+        "total_cost_reduction_pct": 10.5
+      }
+    },
+    {
+      "instance": "RC102",
+      "class": "RC1",
+      "num_customers": 100,
+      "bks_distance": 1554.75,
+      "bks_vehicles": 12,
+      "solvers": {
+        "cho": {
+          "name": "Snow Rabbit: Hybrid Solver",
+          "distance": 1675.88,
+          "distance_gap_pct": 7.79,
+          "spoilage_rs": 207.79,
+          "refrigeration_rs": 35.43,
+          "total_cost_rs": 1919.1,
+          "feasible": true,
+          "computation_time_s": 37.84,
+          "vehicles_used": 12
+        },
+        "classical": {
+          "name": "Classical (NN+2opt+ORopt)",
+          "distance": 1658.86,
+          "distance_gap_pct": 6.7,
+          "spoilage_rs": 452.76,
+          "refrigeration_rs": 44.32,
+          "total_cost_rs": 2155.94,
+          "feasible": true,
+          "computation_time_s": 0.18,
+          "vehicles_used": 12
+        },
+        "ortools": {
+          "name": "Google OR-Tools",
+          "distance": 1597.7,
+          "distance_gap_pct": 2.76,
+          "spoilage_rs": 463.87,
+          "refrigeration_rs": 35.24,
+          "total_cost_rs": 2096.8,
+          "feasible": true,
+          "computation_time_s": 3.09,
+          "vehicles_used": 12
+        },
+        "alns": {
+          "name": "ALNS Metaheuristic",
+          "distance": 1645.12,
+          "distance_gap_pct": 5.81,
+          "spoilage_rs": 406.69,
+          "refrigeration_rs": 38.64,
+          "total_cost_rs": 2090.45,
+          "feasible": true,
+          "computation_time_s": 3.9,
+          "vehicles_used": 12
+        },
+        "pulp_cbc": {
+          "name": "PuLP/CBC (ILP)",
+          "distance": 1702.01,
+          "distance_gap_pct": 9.47,
+          "spoilage_rs": 521.85,
+          "refrigeration_rs": 42.32,
+          "total_cost_rs": 2266.17,
+          "feasible": true,
+          "computation_time_s": 30.61,
+          "vehicles_used": 12
+        }
+      },
+      "cho_advantages": {
+        "spoilage_reduction_pct": 54.1,
+        "total_cost_reduction_pct": 11.0
+      }
+    },
+    {
+      "instance": "RC103",
+      "class": "RC1",
+      "num_customers": 100,
+      "bks_distance": 1261.67,
+      "bks_vehicles": 11,
+      "solvers": {
+        "cho": {
+          "name": "Snow Rabbit: Hybrid Solver",
+          "distance": 1348.89,
+          "distance_gap_pct": 6.91,
+          "spoilage_rs": 189.74,
+          "refrigeration_rs": 28.32,
+          "total_cost_rs": 1566.94,
+          "feasible": true,
+          "computation_time_s": 34.29,
+          "vehicles_used": 11
+        },
+        "classical": {
+          "name": "Classical (NN+2opt+ORopt)",
+          "distance": 1324.14,
+          "distance_gap_pct": 4.95,
+          "spoilage_rs": 370.38,
+          "refrigeration_rs": 30.4,
+          "total_cost_rs": 1724.91,
+          "feasible": true,
+          "computation_time_s": 0.1,
+          "vehicles_used": 11
+        },
+        "ortools": {
+          "name": "Google OR-Tools",
+          "distance": 1303.92,
+          "distance_gap_pct": 3.35,
+          "spoilage_rs": 430.51,
+          "refrigeration_rs": 33.21,
+          "total_cost_rs": 1767.64,
+          "feasible": true,
+          "computation_time_s": 2.02,
+          "vehicles_used": 11
+        },
+        "alns": {
+          "name": "ALNS Metaheuristic",
+          "distance": 1319.28,
+          "distance_gap_pct": 4.57,
+          "spoilage_rs": 359.22,
+          "refrigeration_rs": 30.33,
+          "total_cost_rs": 1708.83,
+          "feasible": true,
+          "computation_time_s": 4.51,
+          "vehicles_used": 11
+        },
+        "pulp_cbc": {
+          "name": "PuLP/CBC (ILP)",
+          "distance": 1415.15,
+          "distance_gap_pct": 12.16,
+          "spoilage_rs": 399.73,
+          "refrigeration_rs": 32.9,
+          "total_cost_rs": 1847.78,
+          "feasible": false,
+          "computation_time_s": 36.65,
+          "vehicles_used": 11
+        }
+      },
+      "cho_advantages": {
+        "spoilage_reduction_pct": 48.8,
+        "total_cost_reduction_pct": 9.2
+      }
+    },
+    {
+      "instance": "RC104",
+      "class": "RC1",
+      "num_customers": 100,
+      "bks_distance": 1135.48,
+      "bks_vehicles": 10,
+      "solvers": {
+        "cho": {
+          "name": "Snow Rabbit: Hybrid Solver",
+          "distance": 1189.3,
+          "distance_gap_pct": 4.74,
+          "spoilage_rs": 175.93,
+          "refrigeration_rs": 21.82,
+          "total_cost_rs": 1387.05,
+          "feasible": true,
+          "computation_time_s": 34.55,
+          "vehicles_used": 10
+        },
+        "classical": {
+          "name": "Classical (NN+2opt+ORopt)",
+          "distance": 1162.23,
+          "distance_gap_pct": 2.36,
+          "spoilage_rs": 378.27,
+          "refrigeration_rs": 31.2,
+          "total_cost_rs": 1571.7,
+          "feasible": true,
+          "computation_time_s": 0.23,
+          "vehicles_used": 10
+        },
+        "ortools": {
+          "name": "Google OR-Tools",
+          "distance": 1166.5,
+          "distance_gap_pct": 2.73,
+          "spoilage_rs": 348.3,
+          "refrigeration_rs": 28.25,
+          "total_cost_rs": 1543.05,
+          "feasible": true,
+          "computation_time_s": 3.33,
+          "vehicles_used": 10
+        },
+        "alns": {
+          "name": "ALNS Metaheuristic",
+          "distance": 1154.96,
+          "distance_gap_pct": 1.72,
+          "spoilage_rs": 320.95,
+          "refrigeration_rs": 30.53,
+          "total_cost_rs": 1506.44,
+          "feasible": false,
+          "computation_time_s": 11.64,
+          "vehicles_used": 10
+        },
+        "pulp_cbc": {
+          "name": "PuLP/CBC (ILP)",
+          "distance": 1293.98,
+          "distance_gap_pct": 13.96,
+          "spoilage_rs": 445.41,
+          "refrigeration_rs": 31.3,
+          "total_cost_rs": 1770.69,
+          "feasible": true,
+          "computation_time_s": 23.53,
+          "vehicles_used": 10
+        }
+      },
+      "cho_advantages": {
+        "spoilage_reduction_pct": 53.5,
+        "total_cost_reduction_pct": 11.7
+      }
+    },
+    {
+      "instance": "RC105",
+      "class": "RC1",
+      "num_customers": 100,
+      "bks_distance": 1629.44,
+      "bks_vehicles": 13,
+      "solvers": {
+        "cho": {
+          "name": "Snow Rabbit: Hybrid Solver",
+          "distance": 1772.89,
+          "distance_gap_pct": 8.8,
+          "spoilage_rs": 195.47,
+          "refrigeration_rs": 34.23,
+          "total_cost_rs": 2002.59,
+          "feasible": true,
+          "computation_time_s": 34.13,
+          "vehicles_used": 13
+        },
+        "classical": {
+          "name": "Classical (NN+2opt+ORopt)",
+          "distance": 1704.88,
+          "distance_gap_pct": 4.63,
+          "spoilage_rs": 446.23,
+          "refrigeration_rs": 43.86,
+          "total_cost_rs": 2194.97,
+          "feasible": true,
+          "computation_time_s": 0.28,
+          "vehicles_used": 13
+        },
+        "ortools": {
+          "name": "Google OR-Tools",
+          "distance": 1664.16,
+          "distance_gap_pct": 2.13,
+          "spoilage_rs": 427.22,
+          "refrigeration_rs": 41.13,
+          "total_cost_rs": 2132.51,
+          "feasible": true,
+          "computation_time_s": 4.58,
+          "vehicles_used": 13
+        },
+        "alns": {
+          "name": "ALNS Metaheuristic",
+          "distance": 1705.52,
+          "distance_gap_pct": 4.67,
+          "spoilage_rs": 470.27,
+          "refrigeration_rs": 40.13,
+          "total_cost_rs": 2215.91,
+          "feasible": true,
+          "computation_time_s": 9.21,
+          "vehicles_used": 13
+        },
+        "pulp_cbc": {
+          "name": "PuLP/CBC (ILP)",
+          "distance": 1797.8,
+          "distance_gap_pct": 10.33,
+          "spoilage_rs": 466.49,
+          "refrigeration_rs": 48.84,
+          "total_cost_rs": 2313.13,
+          "feasible": true,
+          "computation_time_s": 41.34,
+          "vehicles_used": 13
+        }
+      },
+      "cho_advantages": {
+        "spoilage_reduction_pct": 56.2,
+        "total_cost_reduction_pct": 8.8
+      }
+    },
+    {
+      "instance": "RC106",
+      "class": "RC1",
+      "num_customers": 100,
+      "bks_distance": 1424.73,
+      "bks_vehicles": 11,
+      "solvers": {
+        "cho": {
+          "name": "Snow Rabbit: Hybrid Solver",
+          "distance": 1507.6,
+          "distance_gap_pct": 5.82,
+          "spoilage_rs": 173.77,
+          "refrigeration_rs": 27.3,
+          "total_cost_rs": 1708.67,
+          "feasible": true,
+          "computation_time_s": 25.48,
+          "vehicles_used": 11
+        },
+        "classical": {
+          "name": "Classical (NN+2opt+ORopt)",
+          "distance": 1475.77,
+          "distance_gap_pct": 3.58,
+          "spoilage_rs": 426.61,
+          "refrigeration_rs": 40.41,
+          "total_cost_rs": 1942.79,
+          "feasible": true,
+          "computation_time_s": 0.17,
+          "vehicles_used": 11
+        },
+        "ortools": {
+          "name": "Google OR-Tools",
+          "distance": 1453.8,
+          "distance_gap_pct": 2.04,
+          "spoilage_rs": 445.32,
+          "refrigeration_rs": 32.53,
+          "total_cost_rs": 1931.65,
+          "feasible": true,
+          "computation_time_s": 1.99,
+          "vehicles_used": 11
+        },
+        "alns": {
+          "name": "ALNS Metaheuristic",
+          "distance": 1469.49,
+          "distance_gap_pct": 3.14,
+          "spoilage_rs": 453.45,
+          "refrigeration_rs": 38.69,
+          "total_cost_rs": 1961.63,
+          "feasible": true,
+          "computation_time_s": 5.54,
+          "vehicles_used": 11
+        },
+        "pulp_cbc": {
+          "name": "PuLP/CBC (ILP)",
+          "distance": 1565.6,
+          "distance_gap_pct": 9.89,
+          "spoilage_rs": 484.25,
+          "refrigeration_rs": 36.28,
+          "total_cost_rs": 2086.13,
+          "feasible": true,
+          "computation_time_s": 93.35,
+          "vehicles_used": 11
+        }
+      },
+      "cho_advantages": {
+        "spoilage_reduction_pct": 59.3,
+        "total_cost_reduction_pct": 12.1
+      }
+    },
+    {
+      "instance": "RC107",
+      "class": "RC1",
+      "num_customers": 100,
+      "bks_distance": 1230.48,
+      "bks_vehicles": 11,
+      "solvers": {
+        "cho": {
+          "name": "Snow Rabbit: Hybrid Solver",
+          "distance": 1315.78,
+          "distance_gap_pct": 6.93,
+          "spoilage_rs": 156.16,
+          "refrigeration_rs": 26.07,
+          "total_cost_rs": 1498.01,
+          "feasible": true,
+          "computation_time_s": 27.02,
+          "vehicles_used": 11
+        },
+        "classical": {
+          "name": "Classical (NN+2opt+ORopt)",
+          "distance": 1322.17,
+          "distance_gap_pct": 7.45,
+          "spoilage_rs": 393.57,
+          "refrigeration_rs": 29.89,
+          "total_cost_rs": 1745.64,
+          "feasible": true,
+          "computation_time_s": 0.27,
+          "vehicles_used": 11
+        },
+        "ortools": {
+          "name": "Google OR-Tools",
+          "distance": 1267.71,
+          "distance_gap_pct": 3.03,
+          "spoilage_rs": 399.41,
+          "refrigeration_rs": 32.89,
+          "total_cost_rs": 1700.01,
+          "feasible": true,
+          "computation_time_s": 1.61,
+          "vehicles_used": 11
+        },
+        "alns": {
+          "name": "ALNS Metaheuristic",
+          "distance": 1289.82,
+          "distance_gap_pct": 4.82,
+          "spoilage_rs": 347.32,
+          "refrigeration_rs": 30.56,
+          "total_cost_rs": 1667.7,
+          "feasible": true,
+          "computation_time_s": 11.29,
+          "vehicles_used": 11
+        },
+        "pulp_cbc": {
+          "name": "PuLP/CBC (ILP)",
+          "distance": 1428.8,
+          "distance_gap_pct": 16.12,
+          "spoilage_rs": 450.5,
+          "refrigeration_rs": 35.45,
+          "total_cost_rs": 1914.76,
+          "feasible": true,
+          "computation_time_s": 112.3,
+          "vehicles_used": 11
+        }
+      },
+      "cho_advantages": {
+        "spoilage_reduction_pct": 60.3,
+        "total_cost_reduction_pct": 14.2
+      }
+    },
+    {
+      "instance": "RC108",
+      "class": "RC1",
+      "num_customers": 100,
+      "bks_distance": 1139.82,
+      "bks_vehicles": 10,
+      "solvers": {
+        "cho": {
+          "name": "Snow Rabbit: Hybrid Solver",
+          "distance": 1200.87,
+          "distance_gap_pct": 5.36,
+          "spoilage_rs": 144.92,
+          "refrigeration_rs": 23.41,
+          "total_cost_rs": 1369.19,
+          "feasible": true,
+          "computation_time_s": 25.66,
+          "vehicles_used": 10
+        },
+        "classical": {
+          "name": "Classical (NN+2opt+ORopt)",
+          "distance": 1177.34,
+          "distance_gap_pct": 3.29,
+          "spoilage_rs": 349.49,
+          "refrigeration_rs": 30.68,
+          "total_cost_rs": 1557.51,
+          "feasible": true,
+          "computation_time_s": 0.08,
+          "vehicles_used": 10
+        },
+        "ortools": {
+          "name": "Google OR-Tools",
+          "distance": 1156.15,
+          "distance_gap_pct": 1.43,
+          "spoilage_rs": 415.82,
+          "refrigeration_rs": 25.82,
+          "total_cost_rs": 1597.79,
+          "feasible": true,
+          "computation_time_s": 1.71,
+          "vehicles_used": 10
+        },
+        "alns": {
+          "name": "ALNS Metaheuristic",
+          "distance": 1193.87,
+          "distance_gap_pct": 4.74,
+          "spoilage_rs": 371.08,
+          "refrigeration_rs": 30.47,
+          "total_cost_rs": 1595.42,
+          "feasible": true,
+          "computation_time_s": 3.57,
+          "vehicles_used": 10
+        },
+        "pulp_cbc": {
+          "name": "PuLP/CBC (ILP)",
+          "distance": 1232.59,
+          "distance_gap_pct": 8.14,
+          "spoilage_rs": 409.26,
+          "refrigeration_rs": 29.72,
+          "total_cost_rs": 1671.57,
+          "feasible": true,
+          "computation_time_s": 87.86,
+          "vehicles_used": 10
+        }
+      },
+      "cho_advantages": {
+        "spoilage_reduction_pct": 58.5,
+        "total_cost_reduction_pct": 12.1
+      }
+    },
+    {
+      "instance": "RC201",
+      "class": "RC2",
+      "num_customers": 100,
+      "bks_distance": 1406.91,
+      "bks_vehicles": 4,
+      "solvers": {
+        "cho": {
+          "name": "Snow Rabbit: Hybrid Solver",
+          "distance": 1475.68,
+          "distance_gap_pct": 4.89,
+          "spoilage_rs": 250.02,
+          "refrigeration_rs": 28.74,
+          "total_cost_rs": 1754.45,
+          "feasible": true,
+          "computation_time_s": 10.53,
+          "vehicles_used": 4
+        },
+        "classical": {
+          "name": "Classical (NN+2opt+ORopt)",
+          "distance": 1451.18,
+          "distance_gap_pct": 3.15,
+          "spoilage_rs": 598.64,
+          "refrigeration_rs": 38.19,
+          "total_cost_rs": 2088.01,
+          "feasible": false,
+          "computation_time_s": 0.14,
+          "vehicles_used": 4
+        },
+        "ortools": {
+          "name": "Google OR-Tools",
+          "distance": 1438.84,
+          "distance_gap_pct": 2.27,
+          "spoilage_rs": 646.52,
+          "refrigeration_rs": 35.08,
+          "total_cost_rs": 2120.44,
+          "feasible": true,
+          "computation_time_s": 2.81,
+          "vehicles_used": 4
+        },
+        "alns": {
+          "name": "ALNS Metaheuristic",
+          "distance": 1459.43,
+          "distance_gap_pct": 3.73,
+          "spoilage_rs": 523.78,
+          "refrigeration_rs": 37.05,
+          "total_cost_rs": 2020.26,
+          "feasible": true,
+          "computation_time_s": 2.08,
+          "vehicles_used": 4
+        },
+        "pulp_cbc": {
+          "name": "PuLP/CBC (ILP)",
+          "distance": 1525.2,
+          "distance_gap_pct": 8.41,
+          "spoilage_rs": 658.67,
+          "refrigeration_rs": 35.49,
+          "total_cost_rs": 2219.37,
+          "feasible": true,
+          "computation_time_s": 84.09,
+          "vehicles_used": 4
+        }
+      },
+      "cho_advantages": {
+        "spoilage_reduction_pct": 58.2,
+        "total_cost_reduction_pct": 16.0
+      }
+    },
+    {
+      "instance": "RC202",
+      "class": "RC2",
+      "num_customers": 100,
+      "bks_distance": 1365.65,
+      "bks_vehicles": 3,
+      "solvers": {
+        "cho": {
+          "name": "Snow Rabbit: Hybrid Solver",
+          "distance": 1458.86,
+          "distance_gap_pct": 6.83,
+          "spoilage_rs": 241.2,
+          "refrigeration_rs": 29.72,
+          "total_cost_rs": 1729.78,
+          "feasible": true,
+          "computation_time_s": 26.67,
+          "vehicles_used": 3
+        },
+        "classical": {
+          "name": "Classical (NN+2opt+ORopt)",
+          "distance": 1415.93,
+          "distance_gap_pct": 3.68,
+          "spoilage_rs": 761.76,
+          "refrigeration_rs": 38.72,
+          "total_cost_rs": 2216.42,
+          "feasible": true,
+          "computation_time_s": 0.27,
+          "vehicles_used": 3
+        },
+        "ortools": {
+          "name": "Google OR-Tools",
+          "distance": 1378.27,
+          "distance_gap_pct": 0.92,
+          "spoilage_rs": 608.35,
+          "refrigeration_rs": 36.61,
+          "total_cost_rs": 2023.24,
+          "feasible": true,
+          "computation_time_s": 4.83,
+          "vehicles_used": 3
+        },
+        "alns": {
+          "name": "ALNS Metaheuristic",
+          "distance": 1418.68,
+          "distance_gap_pct": 3.88,
+          "spoilage_rs": 714.45,
+          "refrigeration_rs": 35.34,
+          "total_cost_rs": 2168.48,
+          "feasible": false,
+          "computation_time_s": 11.2,
+          "vehicles_used": 3
+        },
+        "pulp_cbc": {
+          "name": "PuLP/CBC (ILP)",
+          "distance": 1482.45,
+          "distance_gap_pct": 8.55,
+          "spoilage_rs": 661.25,
+          "refrigeration_rs": 38.06,
+          "total_cost_rs": 2181.75,
+          "feasible": true,
+          "computation_time_s": 21.83,
+          "vehicles_used": 3
+        }
+      },
+      "cho_advantages": {
+        "spoilage_reduction_pct": 68.3,
+        "total_cost_reduction_pct": 22.0
+      }
+    },
+    {
+      "instance": "RC203",
+      "class": "RC2",
+      "num_customers": 100,
+      "bks_distance": 1049.62,
+      "bks_vehicles": 3,
+      "solvers": {
+        "cho": {
+          "name": "Snow Rabbit: Hybrid Solver",
+          "distance": 1098.52,
+          "distance_gap_pct": 4.66,
+          "spoilage_rs": 241.16,
+          "refrigeration_rs": 22.93,
+          "total_cost_rs": 1362.61,
+          "feasible": true,
+          "computation_time_s": 11.99,
+          "vehicles_used": 3
+        },
+        "classical": {
+          "name": "Classical (NN+2opt+ORopt)",
+          "distance": 1081.15,
+          "distance_gap_pct": 3.0,
+          "spoilage_rs": 520.56,
+          "refrigeration_rs": 25.53,
+          "total_cost_rs": 1627.25,
+          "feasible": true,
+          "computation_time_s": 0.26,
+          "vehicles_used": 3
+        },
+        "ortools": {
+          "name": "Google OR-Tools",
+          "distance": 1078.28,
+          "distance_gap_pct": 2.73,
+          "spoilage_rs": 502.58,
+          "refrigeration_rs": 26.29,
+          "total_cost_rs": 1607.14,
+          "feasible": true,
+          "computation_time_s": 4.54,
+          "vehicles_used": 3
+        },
+        "alns": {
+          "name": "ALNS Metaheuristic",
+          "distance": 1086.04,
+          "distance_gap_pct": 3.47,
+          "spoilage_rs": 479.92,
+          "refrigeration_rs": 28.9,
+          "total_cost_rs": 1594.85,
+          "feasible": true,
+          "computation_time_s": 8.56,
+          "vehicles_used": 3
+        },
+        "pulp_cbc": {
+          "name": "PuLP/CBC (ILP)",
+          "distance": 1141.85,
+          "distance_gap_pct": 8.79,
+          "spoilage_rs": 527.44,
+          "refrigeration_rs": 28.07,
+          "total_cost_rs": 1697.37,
+          "feasible": true,
+          "computation_time_s": 30.24,
+          "vehicles_used": 3
+        }
+      },
+      "cho_advantages": {
+        "spoilage_reduction_pct": 53.7,
+        "total_cost_reduction_pct": 16.3
+      }
+    },
+    {
+      "instance": "RC204",
+      "class": "RC2",
+      "num_customers": 100,
+      "bks_distance": 798.41,
+      "bks_vehicles": 3,
+      "solvers": {
+        "cho": {
+          "name": "Snow Rabbit: Hybrid Solver",
+          "distance": 837.71,
+          "distance_gap_pct": 4.92,
+          "spoilage_rs": 213.97,
+          "refrigeration_rs": 16.0,
+          "total_cost_rs": 1067.68,
+          "feasible": true,
+          "computation_time_s": 18.18,
+          "vehicles_used": 3
+        },
+        "classical": {
+          "name": "Classical (NN+2opt+ORopt)",
+          "distance": 832.31,
+          "distance_gap_pct": 4.25,
+          "spoilage_rs": 457.1,
+          "refrigeration_rs": 21.47,
+          "total_cost_rs": 1310.87,
+          "feasible": false,
+          "computation_time_s": 0.07,
+          "vehicles_used": 3
+        },
+        "ortools": {
+          "name": "Google OR-Tools",
+          "distance": 818.66,
+          "distance_gap_pct": 2.54,
+          "spoilage_rs": 404.69,
+          "refrigeration_rs": 18.57,
+          "total_cost_rs": 1241.92,
+          "feasible": true,
+          "computation_time_s": 4.83,
+          "vehicles_used": 3
+        },
+        "alns": {
+          "name": "ALNS Metaheuristic",
+          "distance": 830.87,
+          "distance_gap_pct": 4.07,
+          "spoilage_rs": 395.15,
+          "refrigeration_rs": 18.64,
+          "total_cost_rs": 1244.66,
+          "feasible": true,
+          "computation_time_s": 2.77,
+          "vehicles_used": 3
+        },
+        "pulp_cbc": {
+          "name": "PuLP/CBC (ILP)",
+          "distance": 887.22,
+          "distance_gap_pct": 11.12,
+          "spoilage_rs": 454.22,
+          "refrigeration_rs": 21.73,
+          "total_cost_rs": 1363.16,
+          "feasible": true,
+          "computation_time_s": 95.17,
+          "vehicles_used": 3
+        }
+      },
+      "cho_advantages": {
+        "spoilage_reduction_pct": 53.2,
+        "total_cost_reduction_pct": 18.6
+      }
+    },
+    {
+      "instance": "RC205",
+      "class": "RC2",
+      "num_customers": 100,
+      "bks_distance": 1297.19,
+      "bks_vehicles": 4,
+      "solvers": {
+        "cho": {
+          "name": "Snow Rabbit: Hybrid Solver",
+          "distance": 1367.81,
+          "distance_gap_pct": 5.44,
+          "spoilage_rs": 275.28,
+          "refrigeration_rs": 24.89,
+          "total_cost_rs": 1667.98,
+          "feasible": true,
+          "computation_time_s": 11.39,
+          "vehicles_used": 4
+        },
+        "classical": {
+          "name": "Classical (NN+2opt+ORopt)",
+          "distance": 1360.03,
+          "distance_gap_pct": 4.84,
+          "spoilage_rs": 624.62,
+          "refrigeration_rs": 32.89,
+          "total_cost_rs": 2017.54,
+          "feasible": true,
+          "computation_time_s": 0.14,
+          "vehicles_used": 4
+        },
+        "ortools": {
+          "name": "Google OR-Tools",
+          "distance": 1332.98,
+          "distance_gap_pct": 2.76,
+          "spoilage_rs": 615.85,
+          "refrigeration_rs": 32.27,
+          "total_cost_rs": 1981.1,
+          "feasible": true,
+          "computation_time_s": 3.25,
+          "vehicles_used": 4
+        },
+        "alns": {
+          "name": "ALNS Metaheuristic",
+          "distance": 1338.38,
+          "distance_gap_pct": 3.18,
+          "spoilage_rs": 529.99,
+          "refrigeration_rs": 30.81,
+          "total_cost_rs": 1899.19,
+          "feasible": true,
+          "computation_time_s": 6.39,
+          "vehicles_used": 4
+        },
+        "pulp_cbc": {
+          "name": "PuLP/CBC (ILP)",
+          "distance": 1403.31,
+          "distance_gap_pct": 8.18,
+          "spoilage_rs": 669.4,
+          "refrigeration_rs": 32.83,
+          "total_cost_rs": 2105.54,
+          "feasible": true,
+          "computation_time_s": 62.9,
+          "vehicles_used": 4
+        }
+      },
+      "cho_advantages": {
+        "spoilage_reduction_pct": 55.9,
+        "total_cost_reduction_pct": 17.3
+      }
+    },
+    {
+      "instance": "RC206",
+      "class": "RC2",
+      "num_customers": 100,
+      "bks_distance": 1146.32,
+      "bks_vehicles": 3,
+      "solvers": {
+        "cho": {
+          "name": "Snow Rabbit: Hybrid Solver",
+          "distance": 1196.47,
+          "distance_gap_pct": 4.37,
+          "spoilage_rs": 211.85,
+          "refrigeration_rs": 25.91,
+          "total_cost_rs": 1434.23,
+          "feasible": true,
+          "computation_time_s": 15.7,
+          "vehicles_used": 3
+        },
+        "classical": {
+          "name": "Classical (NN+2opt+ORopt)",
+          "distance": 1188.11,
+          "distance_gap_pct": 3.65,
+          "spoilage_rs": 609.64,
+          "refrigeration_rs": 31.11,
+          "total_cost_rs": 1828.86,
+          "feasible": true,
+          "computation_time_s": 0.39,
+          "vehicles_used": 3
+        },
+        "ortools": {
+          "name": "Google OR-Tools",
+          "distance": 1156.39,
+          "distance_gap_pct": 0.88,
+          "spoilage_rs": 613.17,
+          "refrigeration_rs": 27.42,
+          "total_cost_rs": 1796.98,
+          "feasible": true,
+          "computation_time_s": 4.29,
+          "vehicles_used": 3
+        },
+        "alns": {
+          "name": "ALNS Metaheuristic",
+          "distance": 1173.47,
+          "distance_gap_pct": 2.37,
+          "spoilage_rs": 569.05,
+          "refrigeration_rs": 30.51,
+          "total_cost_rs": 1773.03,
+          "feasible": true,
+          "computation_time_s": 5.92,
+          "vehicles_used": 3
+        },
+        "pulp_cbc": {
+          "name": "PuLP/CBC (ILP)",
+          "distance": 1233.98,
+          "distance_gap_pct": 7.65,
+          "spoilage_rs": 558.99,
+          "refrigeration_rs": 32.42,
+          "total_cost_rs": 1825.38,
+          "feasible": true,
+          "computation_time_s": 69.73,
+          "vehicles_used": 3
+        }
+      },
+      "cho_advantages": {
+        "spoilage_reduction_pct": 65.3,
+        "total_cost_reduction_pct": 21.6
+      }
+    },
+    {
+      "instance": "RC207",
+      "class": "RC2",
+      "num_customers": 100,
+      "bks_distance": 1061.14,
+      "bks_vehicles": 3,
+      "solvers": {
+        "cho": {
+          "name": "Snow Rabbit: Hybrid Solver",
+          "distance": 1132.5,
+          "distance_gap_pct": 6.73,
+          "spoilage_rs": 245.64,
+          "refrigeration_rs": 20.71,
+          "total_cost_rs": 1398.85,
+          "feasible": true,
+          "computation_time_s": 10.54,
+          "vehicles_used": 3
+        },
+        "classical": {
+          "name": "Classical (NN+2opt+ORopt)",
+          "distance": 1096.5,
+          "distance_gap_pct": 3.33,
+          "spoilage_rs": 573.9,
+          "refrigeration_rs": 28.63,
+          "total_cost_rs": 1699.03,
+          "feasible": true,
+          "computation_time_s": 0.08,
+          "vehicles_used": 3
+        },
+        "ortools": {
+          "name": "Google OR-Tools",
+          "distance": 1092.79,
+          "distance_gap_pct": 2.98,
+          "spoilage_rs": 572.86,
+          "refrigeration_rs": 26.12,
+          "total_cost_rs": 1691.77,
+          "feasible": true,
+          "computation_time_s": 4.88,
+          "vehicles_used": 3
+        },
+        "alns": {
+          "name": "ALNS Metaheuristic",
+          "distance": 1089.85,
+          "distance_gap_pct": 2.71,
+          "spoilage_rs": 538.87,
+          "refrigeration_rs": 26.33,
+          "total_cost_rs": 1655.05,
+          "feasible": true,
+          "computation_time_s": 3.01,
+          "vehicles_used": 3
+        },
+        "pulp_cbc": {
+          "name": "PuLP/CBC (ILP)",
+          "distance": 1182.51,
+          "distance_gap_pct": 11.44,
+          "spoilage_rs": 613.09,
+          "refrigeration_rs": 28.45,
+          "total_cost_rs": 1824.05,
+          "feasible": true,
+          "computation_time_s": 86.35,
+          "vehicles_used": 3
+        }
+      },
+      "cho_advantages": {
+        "spoilage_reduction_pct": 57.2,
+        "total_cost_reduction_pct": 17.7
+      }
+    },
+    {
+      "instance": "RC208",
+      "class": "RC2",
+      "num_customers": 100,
+      "bks_distance": 828.14,
+      "bks_vehicles": 3,
+      "solvers": {
+        "cho": {
+          "name": "Snow Rabbit: Hybrid Solver",
+          "distance": 881.91,
+          "distance_gap_pct": 6.49,
+          "spoilage_rs": 213.6,
+          "refrigeration_rs": 17.91,
+          "total_cost_rs": 1113.42,
+          "feasible": true,
+          "computation_time_s": 18.11,
+          "vehicles_used": 3
+        },
+        "classical": {
+          "name": "Classical (NN+2opt+ORopt)",
+          "distance": 879.27,
+          "distance_gap_pct": 6.17,
+          "spoilage_rs": 392.21,
+          "refrigeration_rs": 23.02,
+          "total_cost_rs": 1294.5,
+          "feasible": true,
+          "computation_time_s": 0.24,
+          "vehicles_used": 3
+        },
+        "ortools": {
+          "name": "Google OR-Tools",
+          "distance": 850.54,
+          "distance_gap_pct": 2.7,
+          "spoilage_rs": 400.37,
+          "refrigeration_rs": 19.32,
+          "total_cost_rs": 1270.23,
+          "feasible": true,
+          "computation_time_s": 2.74,
+          "vehicles_used": 3
+        },
+        "alns": {
+          "name": "ALNS Metaheuristic",
+          "distance": 840.45,
+          "distance_gap_pct": 1.49,
+          "spoilage_rs": 361.01,
+          "refrigeration_rs": 20.86,
+          "total_cost_rs": 1222.31,
+          "feasible": true,
+          "computation_time_s": 10.09,
+          "vehicles_used": 3
+        },
+        "pulp_cbc": {
+          "name": "PuLP/CBC (ILP)",
+          "distance": 885.56,
+          "distance_gap_pct": 6.93,
+          "spoilage_rs": 496.06,
+          "refrigeration_rs": 22.4,
+          "total_cost_rs": 1404.02,
+          "feasible": true,
+          "computation_time_s": 57.82,
+          "vehicles_used": 3
+        }
+      },
+      "cho_advantages": {
+        "spoilage_reduction_pct": 45.5,
+        "total_cost_reduction_pct": 14.0
+      }
+    }
+  ]
+}

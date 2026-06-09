@@ -1,8 +1,8 @@
 <p align="center">
-  <img src="Hybrid-approach-ColdChainVRP/frontend/src/assets/cryo_logo.png" alt="Cryo Hybrid Optimiser Logo" width="120" />
+  <img src="Hybrid-approach-ColdChainVRP/frontend/src/assets/snow_rabbit_md.png" alt="Snow Rabbit Logo" width="120" />
 </p>
 
-# Cryo Hybrid Optimiser
+# Snow Rabbit: Hybrid Solver for MCVRP w TW
 ## NISQ-Aware Hybrid Quantum-Classical Framework for Cold-Chain Multi-Compartment Vehicle Routing Optimization (MCVRP)
 
 > **"Every routing tool asks when vaccines arrive. Ours asks how much of their biological potency and monetary value survives the journey."**

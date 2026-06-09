@@ -17,7 +17,7 @@ from qaoa_hardware_solver import solve_scenario_hardware_pipeline, list_cached_r
 def main():
     print("=" * 65)
     # Reassuring and professional logs
-    print("      CRYO OPTIMISER — CACHE PRE-POPULATION PIPELINE")
+    print("      SNOW RABBIT — CACHE PRE-POPULATION PIPELINE")
     print("=" * 65)
     print("\n[INFO] Starting sequential solver execution to warm up the caching database...")
     print("[INFO] This ensures all live presentation clicks load instantaneously (< 50ms)!\n")

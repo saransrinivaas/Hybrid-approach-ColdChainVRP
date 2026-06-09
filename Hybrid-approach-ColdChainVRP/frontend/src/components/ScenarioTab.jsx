@@ -1,54 +1,17 @@
-import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
-import L from 'leaflet';
+import React from 'react';
 import { Navigation, Activity } from 'lucide-react';
 import { DEPOT, CLINICS, SCENARIO_STATS } from '../data';
+import MapIframe from './MapIframe';
 
-const createCustomIcon = (color) =>
-  new L.DivIcon({
-    className: 'custom-icon',
-    html: `<div style="background-color:${color};width:16px;height:16px;border-radius:50%;border:2px solid white;box-shadow:0 0 10px ${color}"></div>`,
-    iconSize: [20, 20],
-    iconAnchor: [10, 10],
-  });
 
-const depotIcon = new L.DivIcon({
-  className: 'depot-icon',
-  html: `<div style="background-color:#ef4444;width:20px;height:20px;border-radius:4px;border:2px solid white;box-shadow:0 0 15px rgba(239,68,68,0.8);display:flex;align-items:center;justify-content:center"><div style="width:8px;height:8px;background:white;border-radius:2px"></div></div>`,
-  iconSize: [24, 24],
-  iconAnchor: [12, 12],
-});
 
 export default function ScenarioTab() {
   return (
     <div className="content-grid">
       {/* Map */}
       <div className="main-content">
-        <div className="map-container" style={{ height: '600px' }}>
-          <MapContainer
-            center={[13.045, 80.18]}
-            zoom={11}
-            style={{ height: '100%', width: '100%', background: '#111827' }}
-          >
-            <TileLayer
-              url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
-              attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>'
-            />
-            <Marker position={[DEPOT.lat, DEPOT.lon]} icon={depotIcon}>
-              <Popup>
-                <strong style={{ color: '#111827' }}>{DEPOT.name}</strong>
-                <br />Central Hub
-              </Popup>
-            </Marker>
-            {CLINICS.map((c) => (
-              <Marker key={c.id} position={[c.lat, c.lon]} icon={createCustomIcon('#3b82f6')}>
-                <Popup>
-                  <strong style={{ color: '#111827' }}>{c.name}</strong>
-                  <br />
-                  F:{c.demand.frozen} C:{c.demand.chilled} A:{c.demand.ambient}
-                </Popup>
-              </Marker>
-            ))}
-          </MapContainer>
+        <div className="map-container map-shell map-frame" style={{ height: '600px', position: 'relative', background: '#000000' }}>
+          <MapIframe depot={DEPOT} clinics={CLINICS} routes={{}} />
         </div>
       </div>
 

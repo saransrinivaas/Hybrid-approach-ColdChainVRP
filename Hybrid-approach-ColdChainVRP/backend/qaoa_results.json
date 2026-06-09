@@ -1,88 +1,89 @@
 {
-  "V1_1": {
+  "V1": {
     "clinic_ids": [
-      3,
       1,
       5,
-      7
+      2,
+      4,
+      6,
+      3
     ],
     "sub_cluster_results": [
       {
         "clinic_ids": [
-          3,
           1,
           5,
-          7
+          2,
+          4
         ],
         "route": [
           1,
-          3,
-          7,
-          5
+          2,
+          5,
+          4
         ],
         "feasible": true,
         "cost": {
-          "distance": 26.1213,
-          "spoilage": 20.1186,
-          "refrigeration": 0.1065,
-          "total": 46.3463
+          "distance": 22.9209,
+          "spoilage": 28.1158,
+          "refrigeration": 0.1019,
+          "total": 51.1387
         },
-        "solver": "QAOA-classical-fallback"
-      }
-    ]
-  },
-  "V1_2": {
-    "clinic_ids": [
-      2,
-      6
-    ],
-    "sub_cluster_results": [
+        "solver": "QAOA"
+      },
       {
         "clinic_ids": [
           2,
-          6
+          4,
+          6,
+          3
         ],
         "route": [
+          4,
+          6,
           2,
-          6
+          3
         ],
         "feasible": true,
         "cost": {
-          "distance": 8.4608,
-          "spoilage": 0.9871,
-          "refrigeration": 0.0254,
-          "total": 9.4733
+          "distance": 13.0728,
+          "spoilage": 13.3482,
+          "refrigeration": 0.0596,
+          "total": 26.4806
         },
-        "solver": "classical"
+        "solver": "QAOA"
       }
     ]
   },
   "V2": {
     "clinic_ids": [
-      4,
+      7,
       8,
-      9
+      9,
+      10
     ],
     "sub_cluster_results": [
       {
         "clinic_ids": [
-          4,
+          7,
           8,
-          9
+          9,
+          10
         ],
         "route": [
-          4,
           8,
+          7,
+          10,
           9
         ],
         "feasible": true,
         "cost": {
-          "distance": 20.4576,
-          "spoilage": 22.1834,
-          "refrigeration": 0.0761,
-          "total": 42.7171
+          "distance": 22.2376,
+          "spoilage": 18.2582,
+          "refrigeration": 0.0736,
+          "total": 40.5694
         },
-        "solver": "QAOA-classical-fallback"
+        "solver": "QAOA"
       }
     ]
   }

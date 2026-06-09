@@ -398,22 +398,53 @@ def build_clusters(sc_module=None, max_size=None):
         _default_scenario = sc_module
     else:
         sc_module = _default_scenario
-    clinics = sc_module.CLINICS
-    vehicles = sc_module.VEHICLES
+    
+    original_clinics = sc_module.CLINICS
     demands = sc_module.DEMANDS
+    vehicles = sc_module.VEHICLES
     distance_matrix = sc_module.DISTANCE_MATRIX
     time_windows = sc_module.TIME_WINDOWS
+    
     # Determine capacity from first vehicle (assumed uniform)
     capacity = {temp: vehicles[0]["compartments"][temp]["capacity"] for temp in vehicles[0]["compartments"]}
 
+    # Filter out clinics with zero demand
+    active_clinics = []
+    for c in original_clinics:
+        cid = c["id"]
+        clinic_demand = demands.get(cid, {})
+        total_demand = sum(clinic_demand.get(temp, 0) for temp in ("frozen", "chilled", "ambient"))
+        if total_demand > 0:
+            active_clinics.append(c)
+        else:
+            print(f"  [SKIPPED] Clinic {c.get('name', f'ID {cid}')} has zero demand.")
+
+    if not active_clinics:
+        print("=== Vehicular Capacitated Clustering ===")
+        print("  [INFO] No clinics with positive demand. Skipping clustering.")
+        return []
+
+    # Temporarily override CLINICS in sc_module/default_scenario
+    sc_module.CLINICS = active_clinics
+    clinics = active_clinics
+
     print("=== Vehicular Capacitated Clustering ===\n")
-    n_vehicles = compute_n_vehicles(vehicles)
+    
+    # Calculate total demands for active clinics
+    total_demands = {temp: sum(demands[c["id"]].get(temp, 0) for c in clinics) for temp in capacity}
+    
+    # Determine minimum vehicles needed based on capacity
+    min_vehicles_by_cap = max(math.ceil(total_demands[temp] / capacity[temp]) for temp in capacity) if capacity else 1
+    
+    # Cap by available fleet size and number of active clinics
+    n_vehicles = min(len(vehicles), len(clinics), max(1, min_vehicles_by_cap))
+    print(f"  Fleet size: {len(vehicles)} vehicle(s) -> targeting {n_vehicles} vehicular cluster(s) based on capacity needs")
+    
     # STEP 1 – temporal‑aware K‑means with exactly n_vehicles
     n_clusters = n_vehicles
     clusters, _, _ = temporal_aware_kmeans(n_clusters)
     print(f"Initial clusters (temporal-aware): {clusters}\n")
     # STEP 2 – capacity repair (using dynamic relaxed capacity for multi-trip vehicle clusters)
-    total_demands = {temp: sum(demands[c["id"]][temp] for c in clinics) for temp in capacity}
     avg_demand_per_vehicle = {temp: total_demands[temp] / n_vehicles for temp in capacity}
     relaxed_capacity = {
         temp: max(capacity[temp] * 2.0, avg_demand_per_vehicle[temp] * 1.5)
@@ -433,6 +464,9 @@ def build_clusters(sc_module=None, max_size=None):
     vehicle_routes = [(vehicles[i]["id"] if i < len(vehicles) else f"V{i+1}", cl) for i, cl in enumerate(cluster_lists)]
     # STEP 5 – summary
     print_summary(vehicle_routes, clinics, capacity, demands, time_windows, max_size=max_size)
+    
+    # Restore original clinics list
+    sc_module.CLINICS = original_clinics
     return vehicle_routes
 
 if __name__ == "__main__":

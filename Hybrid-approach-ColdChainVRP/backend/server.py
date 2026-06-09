@@ -4,7 +4,10 @@ import time
 import subprocess
 from flask import Flask, Response, jsonify, request
 from flask_cors import CORS
+from dotenv import load_dotenv
 import json
+
+load_dotenv()
 # Lazy import for PuLP – set flag if unavailable
 try:
     import pulp
@@ -84,6 +87,9 @@ COMPUTED_STATE = {
     "pipeline_tough":   None,
     "pipeline_tough3":  None,
     "pipeline_tough4":  None,
+    "pipeline_blr":     None,
+    "pipeline_hyd":     None,
+    "pipeline_stress":  None,
     "compare_cl_easy":  None,
     "compare_cl_tough": None,
     "compare_cl_tough3": None,
@@ -108,6 +114,24 @@ COMPUTED_STATE = {
     "compare_qaoa_tough": None,
     "compare_qaoa_tough3": None,
     "compare_qaoa_tough4": None,
+    "compare_cl_blr":   None,
+    "compare_cl_hyd":   None,
+    "compare_cl_stress": None,
+    "compare_ort_blr":  None,
+    "compare_ort_hyd":  None,
+    "compare_ort_stress": None,
+    "compare_gurobi_blr": None,
+    "compare_gurobi_hyd": None,
+    "compare_gurobi_stress": None,
+    "compare_pulp_blr": None,
+    "compare_pulp_hyd": None,
+    "compare_pulp_stress": None,
+    "compare_alns_blr": None,
+    "compare_alns_hyd": None,
+    "compare_alns_stress": None,
+    "compare_qaoa_blr":  None,
+    "compare_qaoa_hyd":  None,
+    "compare_qaoa_stress": None,
 }
 
 def _save_computed_state_to_disk():
@@ -144,10 +168,34 @@ def _save_computed_state_to_disk():
             "alns": COMPUTED_STATE.get('compare_alns_tough4'),
             "qaoa": COMPUTED_STATE.get('compare_qaoa_tough4'),
         },
+        "blr": {
+            "classical": COMPUTED_STATE.get('compare_cl_blr'),
+            "ortools": COMPUTED_STATE.get('compare_ort_blr'),
+            "gurobi": COMPUTED_STATE.get('compare_gurobi_blr'),
+            "pulp_cbc": COMPUTED_STATE.get('compare_pulp_blr'),
+            "alns": COMPUTED_STATE.get('compare_alns_blr'),
+            "qaoa": COMPUTED_STATE.get('compare_qaoa_blr'),
+        },
+        "hyd": {
+            "classical": COMPUTED_STATE.get('compare_cl_hyd'),
+            "ortools": COMPUTED_STATE.get('compare_ort_hyd'),
+            "gurobi": COMPUTED_STATE.get('compare_gurobi_hyd'),
+            "pulp_cbc": COMPUTED_STATE.get('compare_pulp_hyd'),
+            "alns": COMPUTED_STATE.get('compare_alns_hyd'),
+            "qaoa": COMPUTED_STATE.get('compare_qaoa_hyd'),
+        },
+        "stress": {
+            "classical": COMPUTED_STATE.get('compare_cl_stress'),
+            "ortools": COMPUTED_STATE.get('compare_ort_stress'),
+            "gurobi": COMPUTED_STATE.get('compare_gurobi_stress'),
+            "pulp_cbc": COMPUTED_STATE.get('compare_pulp_stress'),
+            "alns": COMPUTED_STATE.get('compare_alns_stress'),
+            "qaoa": COMPUTED_STATE.get('compare_qaoa_stress'),
+        },
     }
     
-    for key in ('easy', 'tough', 'tough3', 'tough4'):
-        if not payload[key]["qaoa"]:
+    for key in ('easy', 'tough', 'tough3', 'tough4', 'blr', 'hyd', 'stress'):
+        if not payload[key].get("qaoa"):
             pipe_data = COMPUTED_STATE.get(f'pipeline_{key}')
             if pipe_data and not pipe_data.get('error'):
                 q_data = pipe_data.get('qaoa', pipe_data)
@@ -165,14 +213,7 @@ def _save_computed_state_to_disk():
                 else:
                     payload[key]["qaoa"] = {"status": "skipped", "note": "Run the Live Pipeline to generate Hybrid QAOA results."}
             else:
-                if key == 'easy':
-                    payload[key]["qaoa"] = {"status": "skipped", "note": "Run the Live Pipeline to generate Hybrid QAOA results."}
-                elif key == 'tough':
-                    payload[key]["qaoa"] = {"status": "skipped", "note": "Run 'Classical + QAOA' to see results."}
-                elif key == 'tough3':
-                    payload[key]["qaoa"] = {"status": "skipped", "note": "Scenario 3 is too large for the Qiskit Quantum Simulator."}
-                else:
-                    payload[key]["qaoa"] = {"status": "skipped", "note": "Run the Live Pipeline or 'Classical + QAOA' to see results."}
+                payload[key]["qaoa"] = {"status": "skipped", "note": "Run 'Classical + QAOA' to see results."}
 
     try:
         filepath = os.path.join(BACKEND_DIR, 'compare_results.json')
@@ -189,7 +230,7 @@ try:
     if os.path.exists(compare_file):
         with open(compare_file, 'r', encoding='utf-8') as f:
             compare_loaded_data = json.load(f)
-            for key in ('easy', 'tough', 'tough3', 'tough4'):
+            for key in ('easy', 'tough', 'tough3', 'tough4', 'blr', 'hyd', 'stress'):
                 sc = compare_loaded_data.get(key, {})
                 if sc:
                     if sc.get('classical') and sc['classical'].get('status') != 'failed':
@@ -210,7 +251,7 @@ except Exception as e:
     print(f"[WARN] Failed to load compare_results.json on startup: {e}")
 
 # Try to load existing pipeline results from disk on startup
-for key in ('easy', 'tough', 'tough3', 'tough4'):
+for key in ('easy', 'tough', 'tough3', 'tough4', 'blr', 'hyd', 'stress'):
     try:
         pipeline_file = os.path.join(BACKEND_DIR, f'pipeline_{key}.json')
         if os.path.exists(pipeline_file):
@@ -259,9 +300,18 @@ def submit_results():
     elif res_type == 'pipeline_tough4':
         COMPUTED_STATE['pipeline_tough4'] = data
         _save_pipeline_state_to_disk('tough4', data)
+    elif res_type == 'pipeline_blr':
+        COMPUTED_STATE['pipeline_blr'] = data
+        _save_pipeline_state_to_disk('blr', data)
+    elif res_type == 'pipeline_hyd':
+        COMPUTED_STATE['pipeline_hyd'] = data
+        _save_pipeline_state_to_disk('hyd', data)
+    elif res_type == 'pipeline_stress':
+        COMPUTED_STATE['pipeline_stress'] = data
+        _save_pipeline_state_to_disk('stress', data)
     elif res_type == 'compare':
         # Store classical, ortools, gurobi, and pulp separately per scenario for instant retrieval
-        for key in ('easy', 'tough', 'tough3', 'tough4'):
+        for key in ('easy', 'tough', 'tough3', 'tough4', 'blr', 'hyd', 'stress'):
             sc = data.get(key)
             if sc:
                 if sc.get('classical'):
@@ -340,6 +390,21 @@ def run_pipeline_scenario4():
     """Run the Scenario 4 edge cases (forces scenario4.py)."""
     return stream_script('pipeline.py', extra_args=['--tough4'])
 
+@app.route('/api/run-pipeline-blr')
+def run_pipeline_blr():
+    """Run the Bengaluru multi-trip scenario (forces scenario_blr.py)."""
+    return stream_script('pipeline.py', extra_args=['--blr'])
+
+@app.route('/api/run-pipeline-hyd')
+def run_pipeline_hyd():
+    """Run the Hyderabad node-splitting scenario (forces scenario_hyd.py)."""
+    return stream_script('pipeline.py', extra_args=['--hyd'])
+
+@app.route('/api/run-pipeline-stress')
+def run_pipeline_stress():
+    """Run the South India 50-node stress test (forces scenario_stress.py)."""
+    return stream_script('pipeline.py', extra_args=['--stress'])
+
 
 # ── Clustering result (live, from scenario.py) ───────────────────────────────
 
@@ -385,6 +450,28 @@ def clustering_result():
         return jsonify({"error": str(e), "trace": traceback.format_exc()}), 500
 
 
+@app.route("/api/map", methods=["POST"])
+def get_map():
+    try:
+        body = request.json
+        from maps_api import build_route_map
+        api_key = os.environ.get("GOOGLE_MAPS_API_KEY")
+        folium_map, metrics = build_route_map(
+            routes=body.get("routes", {}),
+            depot=body.get("depot", {}),
+            clinics=body.get("clinics", []),
+            api_key=api_key,
+            hide_lines=body.get("hide_lines", False)
+        )
+        return jsonify({
+            "map_html": folium_map._repr_html_(),
+            "metrics": metrics
+        })
+    except Exception as e:
+        import traceback
+        return jsonify({"error": str(e), "trace": traceback.format_exc()}), 500
+
+
 # ── Pipeline results ──────────────────────────────────────────────────────────
 
 @app.route('/api/results')
@@ -413,6 +500,27 @@ def get_results_tough4():
     """Return results produced by the Scenario 4 edge cases."""
     if COMPUTED_STATE['pipeline_tough4']:
         return jsonify(COMPUTED_STATE['pipeline_tough4'])
+    return jsonify({"error": "No results available — run the pipeline first"}), 404
+
+@app.route('/api/results-blr')
+def get_results_blr():
+    """Return results produced by the Bengaluru multi-trip scenario."""
+    if COMPUTED_STATE['pipeline_blr']:
+        return jsonify(COMPUTED_STATE['pipeline_blr'])
+    return jsonify({"error": "No results available — run the pipeline first"}), 404
+
+@app.route('/api/results-hyd')
+def get_results_hyd():
+    """Return results produced by the Hyderabad node-splitting scenario."""
+    if COMPUTED_STATE['pipeline_hyd']:
+        return jsonify(COMPUTED_STATE['pipeline_hyd'])
+    return jsonify({"error": "No results available — run the pipeline first"}), 404
+
+@app.route('/api/results-stress')
+def get_results_stress():
+    """Return results produced by the South India stress test."""
+    if COMPUTED_STATE['pipeline_stress']:
+        return jsonify(COMPUTED_STATE['pipeline_stress'])
     return jsonify({"error": "No results available — run the pipeline first"}), 404
 
 
@@ -637,13 +745,19 @@ def _start_ilp_background():
             importlib.reload(_SC3b)
             importlib.reload(_SC4b)
 
+            try:
+                import scenario_blr as _SC_BLR
+                import scenario_hyd as _SC_HYD
+                import scenario_stress as _SC_STRESS
+            except Exception: pass
+
             # ── PuLP (CBC) ────────────────────────────────────────────────────
             # Imported and run INDEPENDENTLY of Gurobi so a missing Gurobi
             # licence/installation never prevents PuLP results from appearing.
             if PULP_AVAILABLE:
                 try:
                     import pulp_solver as _pulp
-                    for key, sc in [('easy', _SC1b), ('tough', _SC2b), ('tough3', _SC3b), ('tough4', _SC4b)]:
+                    for key, sc in [('easy', _SC1b), ('tough', _SC2b), ('tough3', _SC3b), ('tough4', _SC4b), ('blr', _SC_BLR), ('hyd', _SC_HYD), ('stress', _SC_STRESS)]:
                         if COMPUTED_STATE.get(f'compare_pulp_{key}') is None:
                             print(f'[ILP Background] Running PuLP for {key}...')
                             COMPUTED_STATE[f'compare_pulp_{key}'] = run_solver_with_relaxed_fallback(_pulp.solve_scenario, sc)
@@ -658,7 +772,7 @@ def _start_ilp_background():
             # Optional — only runs if Gurobi is installed and licensed.
             try:
                 import gurobi_solver as _gurobi
-                for key, sc in [('easy', _SC1b), ('tough', _SC2b), ('tough3', _SC3b), ('tough4', _SC4b)]:
+                for key, sc in [('easy', _SC1b), ('tough', _SC2b), ('tough3', _SC3b), ('tough4', _SC4b), ('blr', _SC_BLR), ('hyd', _SC_HYD), ('stress', _SC_STRESS)]:
                     if COMPUTED_STATE.get(f'compare_gurobi_{key}') is None:
                         print(f'[ILP Background] Running Gurobi for {key}...')
                         COMPUTED_STATE[f'compare_gurobi_{key}'] = run_solver_with_relaxed_fallback(_gurobi.solve_scenario, sc)
@@ -723,8 +837,14 @@ def compare_results():
     tough4_pending = (_is_pending(cl_tough4)
                       or _is_pending(COMPUTED_STATE.get('compare_ort_tough4'))
                       or _is_pending(COMPUTED_STATE.get('compare_alns_tough4')))
+    
+    new_pending = any(
+        _is_pending(COMPUTED_STATE.get(f'compare_{sol}_{k}'))
+        for k in ('blr', 'hyd', 'stress')
+        for sol in ('cl', 'ort', 'alns')
+    )
 
-    if easy_pending or tough_pending or tough3_pending or tough4_pending:
+    if easy_pending or tough_pending or tough3_pending or tough4_pending or new_pending:
         try:
             sys.path.insert(0, BACKEND_DIR)
             import importlib
@@ -828,6 +948,21 @@ def compare_results():
                 except Exception as e:
                     print(f"[compare-results] ALNS Tough4 failed: {e}")
 
+            # ── New Scenarios ────────────────────────────────────────────────
+            import scenario_blr as _SC_BLR
+            import scenario_hyd as _SC_HYD
+            import scenario_stress as _SC_STRESS
+            for k, s in [('blr', _SC_BLR), ('hyd', _SC_HYD), ('stress', _SC_STRESS)]:
+                if COMPUTED_STATE.get(f'compare_cl_{k}') is None:
+                    try: COMPUTED_STATE[f'compare_cl_{k}'] = run_solver_with_relaxed_fallback(solve_classical, s)
+                    except Exception as e: print(f"[compare-results] Classical {k} failed: {e}")
+                if COMPUTED_STATE.get(f'compare_ort_{k}') is None:
+                    try: COMPUTED_STATE[f'compare_ort_{k}'] = run_solver_with_relaxed_fallback(ortools_solver.solve_scenario, s)
+                    except Exception as e: print(f"[compare-results] OR-Tools {k} failed: {e}")
+                if COMPUTED_STATE.get(f'compare_alns_{k}') is None:
+                    try: COMPUTED_STATE[f'compare_alns_{k}'] = run_solver_with_relaxed_fallback(alns_solver.solve_scenario, s)
+                    except Exception as e: print(f"[compare-results] ALNS {k} failed: {e}")
+
             # Save fast-solver results to disk and kick off ILP background thread
             _save_computed_state_to_disk()
             _start_ilp_background()
@@ -867,6 +1002,27 @@ def compare_results():
             "gurobi": COMPUTED_STATE.get('compare_gurobi_tough4'),
             "pulp_cbc": COMPUTED_STATE.get('compare_pulp_tough4'),
             "alns": COMPUTED_STATE.get('compare_alns_tough4'),
+        },
+        "blr": {
+            "classical": COMPUTED_STATE.get('compare_cl_blr'),
+            "ortools": COMPUTED_STATE.get('compare_ort_blr'),
+            "gurobi": COMPUTED_STATE.get('compare_gurobi_blr'),
+            "pulp_cbc": COMPUTED_STATE.get('compare_pulp_blr'),
+            "alns": COMPUTED_STATE.get('compare_alns_blr'),
+        },
+        "hyd": {
+            "classical": COMPUTED_STATE.get('compare_cl_hyd'),
+            "ortools": COMPUTED_STATE.get('compare_ort_hyd'),
+            "gurobi": COMPUTED_STATE.get('compare_gurobi_hyd'),
+            "pulp_cbc": COMPUTED_STATE.get('compare_pulp_hyd'),
+            "alns": COMPUTED_STATE.get('compare_alns_hyd'),
+        },
+        "stress": {
+            "classical": COMPUTED_STATE.get('compare_cl_stress'),
+            "ortools": COMPUTED_STATE.get('compare_ort_stress'),
+            "gurobi": COMPUTED_STATE.get('compare_gurobi_stress'),
+            "pulp_cbc": COMPUTED_STATE.get('compare_pulp_stress'),
+            "alns": COMPUTED_STATE.get('compare_alns_stress'),
         },
     }
 
@@ -918,6 +1074,13 @@ def compare_results():
         payload["tough4"]["qaoa"] = comp_qaoa_tough4
     else:
         payload["tough4"]["qaoa"] = {"status": "skipped", "note": "Run the Live Pipeline or 'Classical + QAOA' to see results."}
+
+    for key in ["blr", "hyd", "stress"]:
+        q_res = COMPUTED_STATE.get(f'compare_qaoa_{key}')
+        if q_res and q_res.get('status') == 'ok':
+            payload[key]["qaoa"] = q_res
+        else:
+            payload[key]["qaoa"] = {"status": "skipped", "note": "QAOA not run for this scenario yet."}
 
     # Signal to the frontend whether ILP results are still computing
     payload["ilp_computing"] = _ilp_running
@@ -990,15 +1153,21 @@ def get_scenarios():
         }
 
     try:
-        sc2_path  = os.path.join(BACKEND_DIR, 'scenario.py')
-        sc3_path  = os.path.join(BACKEND_DIR, 'scenario3.py')
-        sc4_path  = os.path.join(BACKEND_DIR, 'scenario4.py')
-        sc1_path  = os.path.join(BACKEND_DIR, 'scenario_dynamic.py')
+        sc2_path    = os.path.join(BACKEND_DIR, 'scenario.py')
+        sc3_path    = os.path.join(BACKEND_DIR, 'scenario3.py')
+        sc4_path    = os.path.join(BACKEND_DIR, 'scenario4.py')
+        sc1_path    = os.path.join(BACKEND_DIR, 'scenario_dynamic.py')
+        sc_blr_path = os.path.join(BACKEND_DIR, 'scenario_blr.py')
+        sc_hyd_path = os.path.join(BACKEND_DIR, 'scenario_hyd.py')
+        sc_stress_path = os.path.join(BACKEND_DIR, 'scenario_stress.py')
 
         ns2 = _parse_scenario_file(sc2_path)
         ns3 = _parse_scenario_file(sc3_path)
         ns4 = _parse_scenario_file(sc4_path)
         ns1 = _parse_scenario_file(sc1_path) if os.path.exists(sc1_path) else ns2
+        ns_blr = _parse_scenario_file(sc_blr_path) if os.path.exists(sc_blr_path) else {}
+        ns_hyd = _parse_scenario_file(sc_hyd_path) if os.path.exists(sc_hyd_path) else {}
+        ns_stress = _parse_scenario_file(sc_stress_path) if os.path.exists(sc_stress_path) else {}
 
         # scenario3 has TIME_WINDOWS as a dict comprehension (not literal_eval-able);
         # manually build it from the override lines we know
@@ -1014,11 +1183,36 @@ def get_scenarios():
             tw4.update({2:(8,13), 5:(12,17)})
             ns4['TIME_WINDOWS'] = tw4
 
+        # scenario_blr TIME_WINDOWS: dict comprehension + overrides
+        if not ns_blr.get('TIME_WINDOWS'):
+            tw_blr = {i: (8, 18) for i in range(1, 13)}
+            tw_blr.update({3:(8,13), 5:(10,16), 8:(9,14), 11:(13,18)})
+            ns_blr['TIME_WINDOWS'] = tw_blr
+
+        # scenario_hyd TIME_WINDOWS: dict comprehension + overrides
+        if not ns_hyd.get('TIME_WINDOWS'):
+            tw_hyd = {i: (8, 18) for i in range(1, 13)}
+            tw_hyd.update({3:(9,14), 6:(8,13), 8:(11,17), 12:(13,18)})
+            ns_hyd['TIME_WINDOWS'] = tw_hyd
+
+        # scenario_stress TIME_WINDOWS: dict comprehension + overrides
+        if not ns_stress.get('TIME_WINDOWS'):
+            tw_stress = {i: (8, 18) for i in range(1, 51)}
+            tw_stress.update({3:(8,13), 7:(10,16), 9:(13,18),
+                              13:(9,14), 15:(8,13), 22:(13,17),
+                              24:(9,14), 26:(8,12), 31:(14,18),
+                              36:(8,13), 40:(11,16),
+                              45:(8,13), 47:(13,18), 49:(9,14)})
+            ns_stress['TIME_WINDOWS'] = tw_stress
+
         return jsonify({
             'easy':   _sc_meta(ns1, 'easy'),
             'tough':  _sc_meta(ns2, 'tough'),
             'tough3': _sc_meta(ns3, 'tough3'),
             'tough4': _sc_meta(ns4, 'tough4'),
+            'blr':    _sc_meta(ns_blr, 'blr'),
+            'hyd':    _sc_meta(ns_hyd, 'hyd'),
+            'stress': _sc_meta(ns_stress, 'stress'),
         })
     except Exception as e:
         import traceback
@@ -1086,6 +1280,17 @@ def configure_scenario():
         if len(included) < 5:
             return jsonify({"error": "At least 5 clinics must be included"}), 400
 
+        # Filter out clinics that have totally zero demand
+        active_included = []
+        for c in included:
+            d = c.get("demand", {})
+            total_dem = sum(d.get(temp, 0) for temp in ("frozen", "chilled", "ambient"))
+            if total_dem > 0:
+                active_included.append(c)
+            else:
+                print(f"[configure] Excluding clinic {c.get('name')} (ID {c['id']}) due to zero demand.")
+        included = active_included
+
         # ── Generate Python source ──
         lines = [
             "# Auto-generated by /api/configure — do not edit manually",
@@ -1150,25 +1355,18 @@ def configure_scenario():
             f"SPOILAGE = {repr(spoilage)}",
             "",
             "# Distance matrix calculated dynamically",
-            "def haversine(lat1, lon1, lat2, lon2):",
-            "    import numpy as np",
-            "    R = 6371",
-            "    phi1, phi2 = np.radians(lat1), np.radians(lat2)",
-            "    dphi = np.radians(lat2 - lat1)",
-            "    dlambda = np.radians(lon2 - lon1)",
-            "    a = np.sin(dphi/2)**2 + np.cos(phi1)*np.cos(phi2)*np.sin(dlambda/2)**2",
-            "    return 2 * R * np.arcsin(np.sqrt(a))",
-            "",
+            "import os",
+            "from maps_api import get_road_distances",
             "def build_distance_matrix():",
             "    import numpy as np",
             "    locations = [DEPOT] + CLINICS",
             "    max_id = max(loc['id'] for loc in locations)",
             "    matrix = np.zeros((max_id + 1, max_id + 1))",
-            "    for i in range(len(locations)):",
-            "        for j in range(len(locations)):",
-            "            if i != j:",
-            "                loc_i, loc_j = locations[i], locations[j]",
-            "                matrix[loc_i['id']][loc_j['id']] = haversine(loc_i['lat'], loc_i['lon'], loc_j['lat'], loc_j['lon'])",
+            "    api_key = os.environ.get('GOOGLE_MAPS_API_KEY')",
+            "    road_matrix = get_road_distances(locations, api_key)",
+            "    for i, loc_i in enumerate(locations):",
+            "        for j, loc_j in enumerate(locations):",
+            "            matrix[loc_i['id']][loc_j['id']] = road_matrix[i][j]",
             "    return matrix",
             "",
             "DISTANCE_MATRIX = build_distance_matrix()",

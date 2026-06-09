@@ -60,10 +60,18 @@ def apply_node_splitting(sc):
     without modification.
     """
     vehicles   = sc.VEHICLES
-    clinics    = sc.CLINICS
+    original_clinics = sc.CLINICS
     demands    = sc.DEMANDS
     time_wins  = sc.TIME_WINDOWS
     dm         = np.asarray(sc.DISTANCE_MATRIX, dtype=float)
+
+    # Filter out clinics with zero total demand
+    clinics = []
+    for c in original_clinics:
+        cid = c["id"]
+        total_demand = sum(demands.get(cid, {}).get(temp, 0) for temp in ("frozen", "chilled", "ambient"))
+        if total_demand > 0:
+            clinics.append(c)
 
     max_cap = _max_capacity(vehicles)
 

@@ -54,6 +54,9 @@ export default function ScenarioPanel({
   const [results, setResults]     = useState(null);
   const [showLogs, setShowLogs]   = useState(false);
   const [localMeta, setLocalMeta] = useState(meta || null);
+  const [mapHtml, setMapHtml] = useState('');
+  const [mapLoading, setMapLoading] = useState(false);
+  const [debugText, setDebugText] = useState('Init...');
   const logsEndRef = useRef(null);
 
   // Sync localMeta when prop changes (parent fetched it)
@@ -67,8 +70,7 @@ export default function ScenarioPanel({
         .then(r => r.json())
         .then(d => {
           if (!d.error) {
-            const key = scenarioKey === 'easy' ? 'easy' : scenarioKey === 'tough' ? 'tough' : scenarioKey === 'tough3' ? 'tough3' : 'tough4';
-            const found = d[key];
+            const found = d[scenarioKey];
             if (found?.clinics?.length > 0) setLocalMeta(found);
           }
         })
@@ -102,25 +104,44 @@ export default function ScenarioPanel({
   const depot   = localMeta?.depot;
   const clinics = localMeta?.clinics || [];
 
-  // Build route polylines from results if available with type-guarded coords
   const solverResults = results?.qaoa || results;
-  const routeLines = solverResults?.routes
-    ? Object.entries(solverResults.routes).map(([vid, vdata], idx) => {
-        const color = VEHICLE_COLORS[idx % VEHICLE_COLORS.length];
-        const route = Array.isArray(vdata) ? vdata : (vdata.route || []);
-        const positions = route.map(id => {
-          if (id === 0 && depot && typeof depot.lat === 'number' && typeof depot.lon === 'number') {
-            return [depot.lat, depot.lon];
-          }
-          const originalId = id >= 1000 ? Math.floor(id / 1000) : id;
-          const c = clinics.find(x => x.id === originalId);
-          return c && typeof c.lat === 'number' && typeof c.lon === 'number' ? [c.lat, c.lon] : null;
-        }).filter(Boolean);
-        return { vid, color, positions };
-      })
-    : [];
 
-  const mapCenter = depot && typeof depot.lat === 'number' && typeof depot.lon === 'number' ? [depot.lat, depot.lon] : [13.02, 80.17];
+  useEffect(() => {
+    if (!depot || !clinics || clinics.length === 0) return;
+    
+    let isMounted = true;
+    setMapLoading(true);
+    fetch(`${API_BASE}/api/map`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        routes: solverResults?.routes || {},
+        depot,
+        clinics
+      })
+    })
+    .then(async res => {
+      const text = await res.text();
+      setDebugText(`Status: ${res.status}. Length: ${text.length}`);
+      try { return JSON.parse(text); } catch(e) { setDebugText(`Parse error: ${e.message}. Text: ${text.substring(0,50)}`); throw e; }
+    })
+    .then(data => {
+      setDebugText(prev => `${prev} | has map_html? ${!!data?.map_html}`);
+      if (isMounted && data.map_html) {
+        setMapHtml(data.map_html);
+      } else if (isMounted && !data.map_html) {
+        setDebugText(prev => `${prev} | map_html is missing!`);
+      }
+    })
+    .catch(err => {
+      setDebugText(prev => `${prev} | Catch error: ${err.message}`);
+    })
+    .finally(() => {
+      if (isMounted) setMapLoading(false);
+    });
+
+    return () => { isMounted = false; };
+  }, [depot, clinics, solverResults]);
 
   return (
     <div className="card glass-panel" style={{ padding: '1.25rem', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
@@ -181,61 +202,35 @@ export default function ScenarioPanel({
         </div>
       )}
 
-      {/* Map — always pre-rendered so tiles load immediately */}
-      <div className="map-shell scenario-map-shell" style={{ height: '430px', position: 'relative' }}>
-        {!localMeta && (
+      {/* Map — fetched from backend */}
+      <div className="map-shell scenario-map-shell map-frame" style={{ height: '430px', position: 'relative', background: '#000000' }}>
+        {(!localMeta || mapLoading) && (
           <div style={{
-            position: 'absolute', inset: 0, zIndex: 1000,
+            position: 'absolute', inset: 0, zIndex: 10,
             display: 'flex', alignItems: 'center', justifyContent: 'center',
-            background: 'rgba(17,17,17,0.75)', backdropFilter: 'blur(4px)',
+            background: 'rgba(0,0,0,0.8)', backdropFilter: 'blur(4px)',
             borderRadius: '8px', flexDirection: 'column', gap: '0.75rem',
           }}>
-            <div style={{ width: 28, height: 28, border: `3px solid ${accentColor}`, borderTopColor: 'transparent', borderRadius: '50%', animation: 'spin 0.9s linear infinite' }} />
+            <div style={{ width: 28, height: 28, border: `3px solid rgba(255,255,255,0.1)`, borderTopColor: '#ffffff', borderRadius: '50%', animation: 'spin 0.9s linear infinite' }} />
             <span style={{ color: 'var(--text-muted)', fontSize: '0.82rem' }}>Loading map data…</span>
           </div>
         )}
-        <MapContainer center={mapCenter} zoom={10} style={{ height: '100%', width: '100%' }}>
-          <TileLayer
-            url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
-            attribution='&copy; OpenStreetMap &copy; CARTO'
+        {mapHtml ? (
+          <iframe 
+            srcDoc={mapHtml} 
+            style={{ width: '100%', height: '100%', border: 'none', background: '#000000', borderRadius: '8px' }} 
+            title="Scenario Map"
           />
-          {depot && typeof depot.lat === 'number' && typeof depot.lon === 'number' && (
-            <Marker position={[depot.lat, depot.lon]} icon={depotIcon}>
-              <Popup><strong>{depot.name}</strong></Popup>
-            </Marker>
-          )}
-          {routeLines.map(({ vid, color, positions }) => (
-            positions.length >= 2 && (
-              <Polyline key={vid} positions={positions}
-                pathOptions={{ color, weight: 3.5, opacity: 0.92, lineCap: 'round', lineJoin: 'round' }} />
-            )
-          ))}
-          {clinics.map((c) => {
-            let color = accentColor;
-            if (solverResults?.routes) {
-              const entry = Object.entries(solverResults.routes).find(([, vd]) => {
-                const route = Array.isArray(vd) ? vd : (vd.route || []);
-                return route.some(id => (id >= 1000 ? Math.floor(id / 1000) : id) === c.id);
-              });
-              if (entry) color = VEHICLE_COLORS[Object.keys(solverResults.routes).indexOf(entry[0]) % VEHICLE_COLORS.length];
-            }
-            const tight = c.time_window && (c.time_window[1] - c.time_window[0]) <= 4;
-            if (typeof c.lat !== 'number' || typeof c.lon !== 'number') return null;
-            return (
-              <Marker key={c.id} position={[c.lat, c.lon]} icon={makeIcon(color, c.id)}>
-                <Popup>
-                  <strong>{c.name}</strong><br />
-                  F:{c.demand.frozen} C:{c.demand.chilled} A:{c.demand.ambient}
-                  {tight && <><br /><span>Tight window {c.time_window[0]}-{c.time_window[1]}h</span></>}
-                </Popup>
-              </Marker>
-            );
-          })}
-          <div className="map-float-card">
-            <span>{solverResults?.routes ? 'Optimized routes' : 'Clinic network'}</span>
-            <strong>{clinics.length} stops</strong>
+        ) : (
+          <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#000000', color: '#6b7280', borderRadius: '8px', flexDirection: 'column' }}>
+            <div>{(!localMeta || mapLoading) ? "" : "Map not available"}</div>
+            <div style={{ fontSize: '10px', color: 'red', marginTop: '10px' }}>{debugText}</div>
           </div>
-        </MapContainer>
+        )}
+        <div className="map-float-card" style={{ zIndex: 20, pointerEvents: 'none' }}>
+          <span>{solverResults?.routes ? 'Optimized routes' : 'Clinic network'}</span>
+          <strong>{clinics.length} stops</strong>
+        </div>
       </div>
 
       {/* Results summary */}

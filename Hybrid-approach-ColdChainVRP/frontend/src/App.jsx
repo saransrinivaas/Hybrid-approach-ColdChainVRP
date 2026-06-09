@@ -13,7 +13,7 @@ import HardwareTab   from './components/HardwareTab';
 import BenchmarkingTab from './components/BenchmarkingTab';
 import { API_BASE }  from './data';
 import { runSSE }    from './utils/sse';
-import cryoLogo     from './assets/cryo_logo.png';
+import snowRabbitLoadingLogo from './assets/snow_rabbit_loading.png';
 
 // Fix Leaflet default marker icons once at app level
 delete L.Icon.Default.prototype._getIconUrl;
@@ -93,7 +93,7 @@ export default function App() {
     { id: 'compare',   label: 'Compare',   icon: GitCompare },
     { id: 'hardware',  label: 'Quantum Hardware', icon: Cpu },
     { id: 'benchmarking', label: 'Benchmarking', icon: BarChart2 },
-    { id: 'explainer', label: 'Explainer', icon: BookOpen   },
+    { id: 'explainer', label: 'API Docs',  icon: BookOpen   },
     { id: 'future',    label: 'Future Results', icon: Sparkles },
   ];
 
@@ -101,9 +101,8 @@ export default function App() {
     <div className="dashboard-container" data-theme={theme}>
       {/* Splash Screen Loading overlay */}
       <div className={`splash-overlay ${!loading ? 'hidden' : ''}`}>
-        <img src={cryoLogo} alt="Cryo Logo" className="splash-logo" />
-        <h1 className="splash-title">Cryo Hybrid Optimiser</h1>
-        <p className="splash-subtitle">Quantum-Classical VRP Initializer</p>
+        <img src={snowRabbitLoadingLogo} alt="Snow Rabbit Loading Logo" className="splash-logo" />
+        <p className="splash-subtitle">hybrid solver for mcvrp w tw</p>
         <div className="splash-progress-track">
           <div className="splash-progress-bar"></div>
         </div>
@@ -114,7 +113,7 @@ export default function App() {
           <div>
             <p className="app-kicker" style={{ color: theme === 'dark' ? '#e2e8f0' : '#475569', fontWeight: 700, letterSpacing: '0.05em', textTransform: 'uppercase', margin: 0, fontSize: '0.75rem' }}>Quantum-Classical VRP</p>
             <h1 style={{ margin: '0.1rem 0 0 0', fontSize: '1.75rem', fontWeight: 700, letterSpacing: '-0.02em', color: 'var(--text-primary)' }}>
-              Cryo Hybrid Optimiser
+              Snow Rabbit: Hybrid Solver for MCVRP w TW
             </h1>
             <p className="app-sub" style={{ margin: '0.2rem 0 0 0', fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
               Thermodynamic Cold-Chain VRP Solver & NISQ-Era Hybrid QAOA Coprocessor
@@ -170,38 +169,38 @@ export default function App() {
             meta={scenarioMeta?.tough}
             pipelineEndpoint="/api/run-pipeline-easy"
             resultsEndpoint="/api/results-tough"
-            label="Scenario 1 (Baseline)"
-            subtitle="10 clinics · 2 vehicles · uniform 8–18h windows"
+            label="Chennai — Baseline"
+            subtitle="10 clinics · 2 vehicles · uniform 8–18h windows · real GPS"
             accentColor="var(--solver-qaoa)"
             runPipeline={runSSE}
           />
           <ScenarioPanel
-            scenarioKey="easy"
-            meta={scenarioMeta?.easy}
-            pipelineEndpoint="/api/run-pipeline"
-            resultsEndpoint="/api/results"
-            label="Scenario 2 (Configured)"
-            subtitle="Based on your inputs in the Input tab"
+            scenarioKey="blr"
+            meta={scenarioMeta?.blr}
+            pipelineEndpoint="/api/run-pipeline-blr"
+            resultsEndpoint="/api/results-blr"
+            label="Bengaluru — Multi-Trip"
+            subtitle="12 clinics · 2 vehicles · demand exceeds fleet capacity → multi-trip reload"
             accentColor="var(--solver-classical)"
             runPipeline={runSSE}
           />
           <ScenarioPanel
-            scenarioKey="tough4"
-            meta={scenarioMeta?.tough4}
-            pipelineEndpoint="/api/run-pipeline-scenario4"
-            resultsEndpoint="/api/results-tough4"
-            label="Scenario 3 (Edge Cases)"
-            subtitle="5 clinics · 4 vehicles · demand overflow node splitting"
+            scenarioKey="hyd"
+            meta={scenarioMeta?.hyd}
+            pipelineEndpoint="/api/run-pipeline-hyd"
+            resultsEndpoint="/api/results-hyd"
+            label="Hyderabad — Node Split"
+            subtitle="12 clinics · 2 vehicles · 2 clinics overflow capacity → node splitting"
             accentColor="var(--solver-gurobi)"
             runPipeline={runSSE}
           />
           <ScenarioPanel
-            scenarioKey="tough3"
-            meta={scenarioMeta?.tough3}
-            pipelineEndpoint="/api/run-pipeline-tough3"
-            resultsEndpoint="/api/results-tough3"
-            label="Scenario 4 (Stress Test)"
-            subtitle="30 clinics · 3 vehicles · non-uniform operating windows"
+            scenarioKey="stress"
+            meta={scenarioMeta?.stress}
+            pipelineEndpoint="/api/run-pipeline-stress"
+            resultsEndpoint="/api/results-stress"
+            label="South India — Stress Test"
+            subtitle="50 nodes · 5 cities · 5 vehicles · inter-city cold-chain across South India"
             accentColor="var(--solver-alns)"
             runPipeline={runSSE}
           />
