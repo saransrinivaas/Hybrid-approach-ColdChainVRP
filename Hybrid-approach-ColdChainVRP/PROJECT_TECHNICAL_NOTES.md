@@ -93,8 +93,8 @@ When a clinic's demand in any temperature compartment exceeds the maximum vehicl
 
 Because a global 10-node VRP requires $10^2 = 100$ qubits—which exceeds the capabilities of standard quantum hardware and simulators—we employ a **Clustering Pipeline**.
 
-### Step 1: Temporal-Aware K-Means
-Standard clustering only groups nodes spatially. Our framework uses a **composite distance metric** incorporating geographic distance and operating window penalties:
+### Step 1: Temporal-Aware Hierarchical Agglomerative Clustering
+Standard clustering only groups nodes spatially. Our framework uses a **composite distance metric** incorporating geographic distance and operating window penalties. Since standard coordinate-based clustering like K-Means cannot handle precomputed non-Euclidean distance matrices directly (especially with temporal penalties), we employ **Hierarchical Agglomerative Clustering** (with average linkage) on a precomputed distance matrix:
 ```math
 D_{ij} = \text{Haversine}(i, j) \cdot (1 + \lambda \cdot \text{Penalty}_{ij})
 ```

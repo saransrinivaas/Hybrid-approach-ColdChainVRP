@@ -16,7 +16,7 @@
 3. [The Core Gap in Modern Solvers](#the-core-gap-in-modern-solvers)
 4. [Novel Contributions & Mathematical Formulation](#novel-contributions--mathematical-formulation)
    - [The Global Hamiltonian $`\mathcal{H}_{\text{total}}`$](#the-global-hamiltonian-h_texttotal)
-   - [Level-1 Composite K-Means Clustering](#level-1-composite-k-means-clustering)
+   - [Level-1 Composite Hierarchical Clustering](#level-1-composite-hierarchical-clustering)
    - [First-Fit Multi-Compartment Trip Splitting](#first-fit-multi-compartment-trip-splitting)
    - [Quality-Weighted Consensus Voting](#quality-weighted-consensus-voting)
    - [Spoilage-Aware Local Search (Or-Opt)](#spoilage-aware-local-search-or-opt)
@@ -132,9 +132,9 @@ Enforces that each sequence position $`t`$ in the route is occupied by exactly o
 
 ---
 
-### Level-1 Composite K-Means Clustering
+### Level-1 Composite Hierarchical Clustering
 
-Standard clustering algorithms group nodes strictly based on geographical coordinate distance. Our framework uses a **composite distance metric** incorporating spatial location and operating-window penalties:
+Standard coordinate-based clustering (like standard K-Means) groups nodes strictly based on geographical coordinate space and cannot directly consume precomputed distance matrices. Because our framework uses a **non-Euclidean composite distance metric** incorporating spatial location and operating-window penalties, we employ **Hierarchical Agglomerative Clustering** (with average linkage) on a precomputed distance matrix:
 ```math
 D_{ij} = \text{Haversine}(i, j) \cdot (1 + \lambda \cdot \text{Penalty}_{ij})
 ```
@@ -150,7 +150,7 @@ This groups clinics that can be served sequentially within their open hours, ens
 ### First-Fit Multi-Compartment Trip Splitting
 
 A classical two-level hierarchical planner manages fleet capacity limits:
-1. **Strict Fleet Capping**: The K-means algorithm groups clinics strictly into the actual fleet size (`n_clusters = n_vehicles`).
+1. **Strict Fleet Capping**: The Hierarchical Agglomerative Clustering algorithm groups clinics strictly into the actual fleet size (`n_clusters = n_vehicles`).
 2. **First-Fit Trip Splitting**: A greedy bin-packing algorithm automatically divides a vehicle's clinics into multiple trips, ensuring each individual trip strictly satisfies the frozen, chilled, and ambient capacity limits.
 3. **Urgency-Based Pre-Sorting**: Before routing, clinics are pre-sorted based on their composite urgency index:
 ```math
@@ -218,7 +218,7 @@ graph TD
     B --> D[Preprocessing: temp_preprocessing.py]
     B --> E[Level-1 Clusterer: clustering.py]
     
-    E -->|K-Means + Composite Window Metric| F[First-Fit Trip Splitting]
+    E -->|Hierarchical + Composite Window Metric| F[First-Fit Trip Splitting]
     F -->|Splits into Overlapping Sub-clusters K=4| G[QUBO Compiler: qubo_builder.py]
     G -->|QAOA Solver: qaoa_solver.py| H[Simulated Qiskit QAOA / Statevector]
     
@@ -249,7 +249,7 @@ Mathematical & Classical Solvers
   ├── OR-Tools                 - Multi-compartment classical routing engine baseline
   ├── Gurobi                   - Academic-licensed gold standard MILP exact solver
   ├── CPLEX / PuLP             - Linear programming and relaxation comparison metrics
-  ├── scikit-learn             - Level-1 spatial K-means clustering engine
+  ├── scikit-learn             - Level-1 Hierarchical Agglomerative Clustering engine
   ├── NumPy 2.4.4              - High-speed geographic Haversine matrices
   └── NetworkX                 - Graph operations and routing path visualization
 
@@ -311,7 +311,7 @@ Hybrid-approach-ColdChainVRP/
 ├── backend/
 │   ├── scenario.py                 - Data models for 50 Chennai Central clinic locations
 │   ├── temp_preprocessing.py       - Evaluates thermal tolerances & active cooling power draw
-│   ├── clustering.py               - Level-1 composite K-means and capacity-repair planner
+│   ├── clustering.py               - Level-1 composite hierarchical and capacity-repair planner
 │   ├── qubo_builder.py             - Compiles cold-chain Hamiltonian terms into PyQUBO objects
 │   ├── qaoa_solver.py              - Manages local Aer simulators and parameter tuning (p=1)
 │   ├── stitching_repair.py         - Overlap voting consensus, repair, and spoilage-aware Or-opt
